@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Search Results</title>
+  <style>
+    :root {
+      --bg-color: #121212;
+      --text-color: #ffffff;
+      --accent-color: #1e90ff;
+      --border-color: #333333;
+      --hover-color: #2a2a2a;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      line-height: 1.6;
+    }
+
+    header {
+      padding: 1rem;
+      background-color: var(--accent-color);
+      color: var(--bg-color);
+    }
+
+    main {
+      padding: 1rem;
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      margin-top: 0;
+    }
+
+    .search-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .search-container input {
+      flex: 1;
+      padding: 0.5rem;
+      border: 1px solid var(--border-color);
+      background-color: var(--hover-color);
+      color: var(--text-color);
+    }
+
+    .search-container button {
+      padding: 0.5rem 1rem;
+      background-color: var(--accent-color);
+      color: var(--bg-color);
+      border: none;
+      cursor: pointer;
+    }
+
+    .search-container button:hover {
+      background-color: #1876f2;
+    }
+
+    .results-count {
+      margin-bottom: 1rem;
+    }
+
+    .result {
+      margin-bottom: 1rem;
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 1rem;
+    }
+
+    .result h2 {
+      margin: 0 0 0.5rem 0;
+    }
+
+    .result a {
+      color: var(--accent-color);
+      text-decoration: none;
+    }
+
+    .result a:hover {
+      text-decoration: underline;
+    }
+
+    .snippet {
+      color: #cccccc;
+    }
+
+    footer {
+      text-align: center;
+      padding: 1rem;
+      background-color: var(--border-color);
+      margin-top: 2rem;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Search Results</h1>
+  </header>
+  <main>
+    <form class="search-container" role="search">
+      <label for="search-query" class="visually-hidden">Search query</label>
+      <input type="text" id="search-query" name="search-query" value="example query" aria-label="Search query">
+      <button type="submit">Search</button>
+    </form>
+    <div class="results-count">
+      <p>Showing 8 results for "example query"</p>
+    </div>
+    <div class="result">
+      <h2><a href="#">Result Title 1</a></h2>
+      <p class="snippet">This is a snippet of text from the first result. It provides a brief summary of the content.</p>
+    </div>
+    <div class="result">
+      <h2><a href="#">Result Title 2</a></h2>
+      <p class="snippet">This is a snippet of text from the second result. It provides a brief summary of the content.</p>
+    </div>
+    <div class="result">
+      <h2><a href="#">Result Title 3</a></h2>
+      <p class="snippet">This is a snippet of text from the third result. It provides a brief summary of the content.</p>
+    </div>
+    <div class="result">
+      <h2><a href="#">Result Title 4</a></h2>
+      <p class="snippet">This is a snippet of text from the fourth result. It provides a brief summary of the content.</p>
+    </div>
+    <div class="result">
+      <h2><a href="#">Result Title 5</a></h2>
+      <p class="snippet">This is a snippet of text from the fifth result. It provides a brief summary of the content.</p>
+    </div>
+    <div class="result">
+      <h2><a href="#">Result Title 6</a></h2>
+      <p class="snippet">This is a snippet of text from the sixth result. It provides a brief summary of the content.</p>
+    </div>
+    <div class="result">
+      <h2><a href="#">Result Title 7</a></h2>
+      <p class="snippet">This is a snippet of text from the seventh result. It provides a brief summary of the content.</p>
+    </div>
+    <div class="result">
+      <h2><a href="#">Result Title 8</a></h2>
+      <p class="snippet">This is a snippet of text from the eighth result. It provides a brief summary of the content.</p>
+    </div>
+  </main>
+  <footer>
+    <p>&copy; 2025 Search Results Page</p>
+  </footer>
+</body>
+</html>

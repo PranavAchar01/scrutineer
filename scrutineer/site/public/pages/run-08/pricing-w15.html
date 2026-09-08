@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pricing Plans</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      line-height: 1.6;
+      background-color: #f9f9f9;
+      color: #333;
+    }
+
+    header {
+      background-color: #007BFF;
+      color: white;
+      padding: 20px 0;
+      text-align: center;
+    }
+
+    header h1 {
+      margin: 0;
+    }
+
+    main {
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .plan-card {
+      background-color: white;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 20px;
+      width: 100%;
+      max-width: 300px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+
+    .plan-card h2 {
+      margin-top: 0;
+      font-size: 1.5em;
+    }
+
+    .plan-card .price {
+      font-size: 1.8em;
+      color: #007BFF;
+      margin: 10px 0;
+    }
+
+    .plan-card ul {
+      list-style: none;
+      padding: 0;
+      margin: 15px 0;
+    }
+
+    .plan-card li {
+      padding: 5px 0;
+    }
+
+    .plan-card button {
+      width: 100%;
+      padding: 10px;
+      background-color: #007BFF;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 1em;
+    }
+
+    .plan-card button:hover {
+      background-color: #0056b3;
+    }
+
+    footer {
+      background-color: #333;
+      color: white;
+      text-align: center;
+      padding: 15px 0;
+      margin-top: 40px;
+    }
+
+    @media (min-width: 600px) {
+      main {
+        flex-direction: row;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 20px;
+      }
+
+      .plan-card {
+        max-width: 300px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Pricing Plans</h1>
+  </header>
+  <main>
+    <section aria-label="Pricing plans">
+      <div class="plan-card">
+        <h2>Basic</h2>
+        <div class="price">$9.99<span>/mo</span></div>
+        <ul>
+          <li>10GB storage</li>
+          <li>1 user</li>
+          <li>Email support</li>
+        </ul>
+        <button aria-label="Choose Basic plan">Choose Plan</button>
+      </div>
+      <div class="plan-card">
+        <h2>Pro</h2>
+        <div class="price">$19.99<span>/mo</span></div>
+        <ul>
+          <li>100GB storage</li>
+          <li>5 users</li>
+          <li>Priority support</li>
+        </ul>
+        <button aria-label="Choose Pro plan">Choose Plan</button>
+      </div>
+      <div class="plan-card">
+        <h2>Enterprise</h2>
+        <div class="price">$49.99<span>/mo</span></div>
+        <ul>
+          <li>Unlimited storage</li>
+          <li>Unlimited users</li>
+          <li>24/7 support</li>
+        </ul>
+        <button aria-label="Choose Enterprise plan">Choose Plan</button>
+      </div>
+    </section>
+  </main>
+  <footer>
+    <p>&copy; 2025 Pricing Example. All rights reserved.</p>
+  </footer>
+</body>
+</html>

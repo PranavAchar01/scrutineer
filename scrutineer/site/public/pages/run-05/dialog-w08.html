@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Delete Account Confirmation</title>
+  <style>
+    :root {
+      --bg-color: #121212;
+      --text-color: #ffffff;
+      --accent-color: #ff4d4d;
+      --dim-color: rgba(0, 0, 0, 0.5);
+      --modal-bg: #1e1e1e;
+      --modal-border: 1px solid #444;
+      --button-bg: #ff4d4d;
+      --button-hover: #e60000;
+      --button-text: #ffffff;
+      --button-border: 1px solid #ff4d4d;
+    }
+
+    body {
+      margin: 0;
+      font-family: sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      position: relative;
+    }
+
+    .dimmed {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: var(--dim-color);
+      z-index: 10;
+    }
+
+    .modal {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background-color: var(--modal-bg);
+      padding: 2rem;
+      border: var(--modal-border);
+      border-radius: 8px;
+      z-index: 20;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+      max-width: 400px;
+      width: 90%;
+    }
+
+    .modal h1 {
+      margin-top: 0;
+      font-size: 1.5rem;
+    }
+
+    .modal p {
+      margin: 1rem 0;
+    }
+
+    .modal-buttons {
+      display: flex;
+      gap: 1rem;
+      justify-content: flex-end;
+    }
+
+    .modal-buttons button {
+      padding: 0.5rem 1rem;
+      background-color: var(--button-bg);
+      color: var(--button-text);
+      border: var(--button-border);
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+
+    .modal-buttons button:hover {
+      background-color: var(--button-hover);
+    }
+
+    .modal-buttons button[disabled] {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .modal-buttons button.cancel {
+      background-color: #555;
+      border-color: #555;
+    }
+
+    .modal-buttons button.cancel:hover {
+      background-color: #333;
+    }
+
+    header, nav, main, footer {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="dimmed" id="dimmed" aria-hidden="true"></div>
+  <div class="modal" id="modal" role="dialog" aria-labelledby="modal-title" aria-describedby="modal-description" tabindex="-1">
+    <h1 id="modal-title">Delete Account</h1>
+    <p id="modal-description">Are you sure you want to delete your account? This action cannot be undone.</p>
+    <div class="modal-buttons">
+      <button class="cancel" id="cancel">Cancel</button>
+      <button id="delete">Delete</button>
+    </div>
+  </div>
+
+  <script>
+    const modal = document.getElementById('modal');
+    const dimmed = document.getElementById('dimmed');
+    const deleteButton = document.getElementById('delete');
+    const cancelButton = document.getElementById('cancel');
+
+    // Show modal
+    modal.style.display = 'block';
+    dimmed.style.display = 'block';
+
+    // Close modal on cancel
+    cancelButton.addEventListener('click', () => {
+      modal.style.display = 'none';
+      dimmed.style.display = 'none';
+    });
+
+    // Confirm delete (mock action)
+    deleteButton.addEventListener('click', () => {
+      alert('Account deletion confirmed.');
+      modal.style.display = 'none';
+      dimmed.style.display = 'none';
+    });
+
+    // Close modal on escape key
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        modal.style.display = 'none';
+        dimmed.style.display = 'none';
+      }
+    });
+
+    // Close modal when clicking outside
+    dimmed.addEventListener('click', () => {
+      modal.style.display = 'none';
+      dimmed.style.display = 'none';
+    });
+  </script>
+</body>
+</html>

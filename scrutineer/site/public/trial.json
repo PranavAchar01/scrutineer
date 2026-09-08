@@ -1,0 +1,156 @@
+{
+  "schema": 1,
+  "system": "You are writing one Python function. Output only code.",
+  "models": [
+    "OpenPipe/Qwen3-14B-Instruct",
+    "openai/gpt-oss-20b"
+  ],
+  "before_label": "the harness it started with",
+  "after_label": "the harness it ended with",
+  "tasks": [
+    {
+      "id": "c01-2",
+      "family": "two_sum",
+      "entry": "two_sum",
+      "prompt": "Write `two_sum(nums, target)` that returns the count for the pair of distinct positions whose values sum to `target`.\n\nExample: two_sum([2, 7, 11], 9) == 1",
+      "tests": "assert two_sum([1, 1, 2, 2], 3) == 4\nassert two_sum([1], 2) == 0\n",
+      "start_rate": 0.0,
+      "before": {
+        "context": "# References\n\n\n# Task\nWrite `two_sum(nums, target)` that returns the count for the pair of distinct positions whose values sum to `target`.\n\nExample: two_sum([2, 7, 11], 9) == 1",
+        "refs": [],
+        "missing": [
+          "dict-counter",
+          "hashing"
+        ],
+        "retrieval": "keyword",
+        "n_refs": 2,
+        "probe": "syntax",
+        "samples": 2
+      },
+      "after": {
+        "context": "# Task\nWrite `two_sum(nums, target)` that returns the count for the pair of distinct positions whose values sum to `target`.\n\nExample: two_sum([2, 7, 11], 9) == 1\n\n# References\n[ref-counting] `collections.Counter` gives counts and `most_common(k)`; `dict.fromkeys(xs)` dedupes in order.\n\n[ref-carried-state] Carry what earlier steps established rather than recomputing it: seed the accumulator once,\nupdate it in place, and read the answer from it at the end. When a step may repeat, make the\nupdate idempotent so a re-entry does not double-count what history already recorded.\n\n[ref-sorting] Sort by a tuple key to break ties deterministically: `sorted(c, key=lambda x: (-c[x], x))`.\n\n[ref-strings] Normalise before comparing: `s.lower()`, `str.isalnum()`, `re.sub(r'\\s+', ' ', s).strip()`.",
+        "refs": [
+          "ref-counting",
+          "ref-carried-state",
+          "ref-sorting",
+          "ref-strings"
+        ],
+        "missing": [
+          "hashing"
+        ],
+        "retrieval": "concept-match",
+        "n_refs": 4,
+        "probe": "syntax",
+        "samples": 2
+      }
+    },
+    {
+      "id": "c04-2",
+      "family": "flatten",
+      "entry": "flatten",
+      "prompt": "Write `flatten(xs)` flattening a nested list to a maximum depth of 2.\n\nExample: flatten([1, 2, 1]) == [1, 2, 1]",
+      "tests": "assert flatten([1, [2, [3, [4]]]]) == [1, 2, 3, [4]]\nassert flatten([]) == []\n",
+      "start_rate": 0.0,
+      "before": {
+        "context": "# References\n\n\n# Task\nWrite `flatten(xs)` flattening a nested list to a maximum depth of 2.\n\nExample: flatten([1, 2, 1]) == [1, 2, 1]",
+        "refs": [],
+        "missing": [
+          "recursion"
+        ],
+        "retrieval": "keyword",
+        "n_refs": 2,
+        "probe": "syntax",
+        "samples": 2
+      },
+      "after": {
+        "context": "# Task\nWrite `flatten(xs)` flattening a nested list to a maximum depth of 2.\n\nExample: flatten([1, 2, 1]) == [1, 2, 1]\n\n# References\n[ref-carried-state] Carry what earlier steps established rather than recomputing it: seed the accumulator once,\nupdate it in place, and read the answer from it at the end. When a step may repeat, make the\nupdate idempotent so a re-entry does not double-count what history already recorded.\n\n[ref-counting] `collections.Counter` gives counts and `most_common(k)`; `dict.fromkeys(xs)` dedupes in order.\n\n[ref-sorting] Sort by a tuple key to break ties deterministically: `sorted(c, key=lambda x: (-c[x], x))`.\n\n[ref-strings] Normalise before comparing: `s.lower()`, `str.isalnum()`, `re.sub(r'\\s+', ' ', s).strip()`.",
+        "refs": [
+          "ref-carried-state",
+          "ref-counting",
+          "ref-sorting",
+          "ref-strings"
+        ],
+        "missing": [
+          "recursion"
+        ],
+        "retrieval": "concept-match",
+        "n_refs": 4,
+        "probe": "syntax",
+        "samples": 2
+      }
+    },
+    {
+      "id": "c05-0",
+      "family": "combine",
+      "entry": "combine",
+      "prompt": "Write `combine(nums)` returning the gcd of the integers in `nums`.\n\nExample: combine([1, 2, 1]) == 1",
+      "tests": "assert combine([12, 18]) == 6\nassert combine([]) == 0\n",
+      "start_rate": 0.0,
+      "before": {
+        "context": "# References\n\n\n# Task\nWrite `combine(nums)` returning the gcd of the integers in `nums`.\n\nExample: combine([1, 2, 1]) == 1",
+        "refs": [],
+        "missing": [
+          "modular-arith",
+          "reduce"
+        ],
+        "retrieval": "keyword",
+        "n_refs": 2,
+        "probe": "syntax",
+        "samples": 2
+      },
+      "after": {
+        "context": "# Task\nWrite `combine(nums)` returning the gcd of the integers in `nums`.\n\nExample: combine([1, 2, 1]) == 1\n\n# References\n[ref-carried-state] Carry what earlier steps established rather than recomputing it: seed the accumulator once,\nupdate it in place, and read the answer from it at the end. When a step may repeat, make the\nupdate idempotent so a re-entry does not double-count what history already recorded.\n\n[ref-counting] `collections.Counter` gives counts and `most_common(k)`; `dict.fromkeys(xs)` dedupes in order.\n\n[ref-sorting] Sort by a tuple key to break ties deterministically: `sorted(c, key=lambda x: (-c[x], x))`.\n\n[ref-strings] Normalise before comparing: `s.lower()`, `str.isalnum()`, `re.sub(r'\\s+', ' ', s).strip()`.",
+        "refs": [
+          "ref-carried-state",
+          "ref-counting",
+          "ref-sorting",
+          "ref-strings"
+        ],
+        "missing": [
+          "modular-arith",
+          "reduce"
+        ],
+        "retrieval": "concept-match",
+        "n_refs": 4,
+        "probe": "syntax",
+        "samples": 2
+      }
+    },
+    {
+      "id": "c06-2",
+      "family": "transform",
+      "entry": "transform",
+      "prompt": "Write `transform(m)` returning the rotate 90 degrees anticlockwise of the rectangular matrix `m`.\n\nExample: transform([[2, 3], [4, 5]]) == [[3, 5], [2, 4]]",
+      "tests": "assert transform([[1, 2], [3, 4]]) == [[2, 4], [1, 3]]\nassert transform([]) == []\n",
+      "start_rate": 0.0,
+      "before": {
+        "context": "# References\n\n\n# Task\nWrite `transform(m)` returning the rotate 90 degrees anticlockwise of the rectangular matrix `m`.\n\nExample: transform([[2, 3], [4, 5]]) == [[3, 5], [2, 4]]",
+        "refs": [],
+        "missing": [
+          "matrix"
+        ],
+        "retrieval": "keyword",
+        "n_refs": 2,
+        "probe": "syntax",
+        "samples": 2
+      },
+      "after": {
+        "context": "# Task\nWrite `transform(m)` returning the rotate 90 degrees anticlockwise of the rectangular matrix `m`.\n\nExample: transform([[2, 3], [4, 5]]) == [[3, 5], [2, 4]]\n\n# References\n[ref-carried-state] Carry what earlier steps established rather than recomputing it: seed the accumulator once,\nupdate it in place, and read the answer from it at the end. When a step may repeat, make the\nupdate idempotent so a re-entry does not double-count what history already recorded.\n\n[ref-counting] `collections.Counter` gives counts and `most_common(k)`; `dict.fromkeys(xs)` dedupes in order.\n\n[ref-sorting] Sort by a tuple key to break ties deterministically: `sorted(c, key=lambda x: (-c[x], x))`.\n\n[ref-strings] Normalise before comparing: `s.lower()`, `str.isalnum()`, `re.sub(r'\\s+', ' ', s).strip()`.",
+        "refs": [
+          "ref-carried-state",
+          "ref-counting",
+          "ref-sorting",
+          "ref-strings"
+        ],
+        "missing": [
+          "matrix"
+        ],
+        "retrieval": "concept-match",
+        "n_refs": 4,
+        "probe": "syntax",
+        "samples": 2
+      }
+    }
+  ],
+  "identical": false
+}

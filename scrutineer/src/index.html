@@ -1,0 +1,34 @@
+<!-- Scrutineer. One view, one button, and the agent's own work underneath it. -->
+<div class="app" id="app">
+  <header class="top">
+    <div class="mark">SCRUTINEER</div>
+    <div class="tag">an agent that builds web interfaces, and rebuilds its own harness</div>
+    <div class="top-right">
+      <span class="runcount" id="runCount"></span>
+      <button class="run" id="runBtn">RUN THE AGENT</button>
+    </div>
+  </header>
+
+  <main class="body">
+    <section class="view">
+      <div class="stage-box">
+        <canvas id="stage" aria-label="The agent's harness"></canvas>
+        <div class="hud" id="hud"></div>
+        <div class="cards" id="cards"></div>
+        <div class="overlay" id="overlay" hidden></div>
+      </div>
+      <p class="say" id="say">Six components decide how this agent works. Press <b>RUN THE AGENT</b>.</p>
+      <div class="meters" id="meters"></div>
+    </section>
+
+    <aside class="rig" aria-label="The harness">
+      <div class="rig-head"><span>THE HARNESS</span><span class="rig-sub" id="rigSub">six components</span></div>
+      <div class="rig-list" id="rig"></div>
+      <button class="ghost-btn" id="regsBtn">how this works</button>
+      <button class="ghost-btn" id="tryBtn">run it yourself &middot; your own key</button>
+    </aside>
+  </main>
+
+  <section class="work" id="work" aria-label="The agent's work"></section>
+  <div class="regs" id="regs" hidden></div>
+</div>

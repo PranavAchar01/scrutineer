@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Site Header</title>
+  <style>
+    :root {
+      font-family: Arial, sans-serif;
+      color: #333;
+      background-color: #fff;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem 2rem;
+      background-color: #f0f0f0;
+      border-bottom: 1px solid #ccc;
+    }
+
+    .site-brand {
+      font-size: 1.5rem;
+      font-weight: bold;
+    }
+
+    nav {
+      display: flex;
+      gap: 1rem;
+    }
+
+    nav a {
+      text-decoration: none;
+      color: #333;
+      font-weight: 500;
+    }
+
+    nav a:hover {
+      text-decoration: underline;
+    }
+
+    .search-container {
+      display: flex;
+      align-items: center;
+    }
+
+    .search-container input[type="search"] {
+      padding: 0.5rem;
+      font-size: 1rem;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      outline: none;
+    }
+
+    .search-container button {
+      padding: 0.5rem 1rem;
+      margin-left: 0.5rem;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    .search-container button:hover {
+      background-color: #0056b3;
+    }
+
+    .user-menu {
+      display: flex;
+      align-items: center;
+    }
+
+    .user-menu button {
+      background: none;
+      border: none;
+      font-size: 1rem;
+      cursor: pointer;
+    }
+
+    .user-menu button:hover {
+      text-decoration: underline;
+    }
+
+    @media (max-width: 768px) {
+      nav {
+        display: none;
+      }
+
+      .search-container {
+        display: none;
+      }
+
+      .user-menu {
+        display: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header role="banner">
+    <div class="site-brand" aria-label="Company Wordmark">MyCompany</div>
+    <nav role="navigation" aria-label="Main Navigation">
+      <a href="#">Home</a>
+      <a href="#">About</a>
+      <a href="#">Services</a>
+      <a href="#">Contact</a>
+    </nav>
+    <div class="search-container" role="search">
+      <input type="search" name="search" aria-label="Search" placeholder="Search..." />
+      <button type="submit">Search</button>
+    </div>
+    <div class="user-menu" role="navigation" aria-label="User Menu">
+      <button aria-label="User Profile">👤</button>
+    </div>
+  </header>
+</body>
+</html>

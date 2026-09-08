@@ -1,0 +1,20 @@
+{
+  "versions": {
+    "aero": [
+      {
+        "version": "aero:v0",
+        "parent_version": "aero:v-1",
+        "proposal_hash": "fb31533191f22939b47ccfcafe70151027a9ad6b1e4480439c0515f559a18b64",
+        "wiki_pages_cited": [
+          "pattern-0231"
+        ],
+        "official": 74.1493,
+        "claimed": 79.06352717317151,
+        "verdict": "LEGAL"
+      }
+    ]
+  },
+  "aliases": {
+    "aero": "aero:v0"
+  }
+}
