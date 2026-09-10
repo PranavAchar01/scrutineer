@@ -128,16 +128,16 @@ function onLive(d) {
   }
   if (d.kind === 'phase') {
     if (d.levels) { st.levels = d.levels; paintRig(); }
+    if (SCR.dash) SCR.dash.phase(d.phase);
     if (d.phase === 'RUN') {
       live.run = d.generation; live.laps = []; live.clean = 0; live.total = d.total || 20;
-      A.setScene('run');
+      toRun();
       const rc = $('runCount'); if (rc) rc.textContent = `RUN ${d.generation + 1} · LIVE`;
       say(`Run ${d.generation + 1}. The agent is building interfaces on this machine, right now. `
         + 'Each one is written, opened in a real browser, and audited by axe-core.');
-      meters([{ label: 'INTERFACE', value: `0 / ${live.total}` },
-              { label: 'PASSED CLEAN', value: '0' },
-              { label: 'SCORE  (lower is better)', value: '', tone: 'hero', tween: true,
-                sub: 'measuring' }]);
+      const dash = SCR.dash;
+      if (dash) { dash.gatesClear(); dash.verdict('RUNNING', 'live'); dash.pipsFor(live.total);
+        dash.clean(0, 0, live.total); dash.delta(null); dash.scoreSub('measuring'); }
       const host = work('THE AGENT IS BUILDING', 'live, on your machine');
       const grid = el('div', 'tasks'); grid.id = 'taskGrid'; host.append(grid);
     } else if (d.phase === 'DIAGNOSE') {
@@ -166,20 +166,16 @@ function onLive(d) {
       grid.append(n);
       grid.parentElement.scrollTop = grid.parentElement.scrollHeight;
     }
-    meters([{ label: 'INTERFACE', value: `${d.index} / ${d.total}` },
-            { label: 'PASSED CLEAN', value: String(live.clean), tone: live.clean ? 'good' : '' },
-            { label: 'SCORE  (lower is better)', value: '', tone: 'hero', tween: true,
-              sub: 'measuring' }]);
+    if (SCR.dash) { SCR.dash.pip(d.index - 1, !!d.passed);
+      SCR.dash.clean(live.clean, d.index, d.total); }
     return;
   }
   if (d.kind === 'score') {
     live.pages = d.pages || [];
     tweenScore(null, d.official);
-    meters([{ label: 'INTERFACES CLEAN', value: `${d.clean} / ${d.total}`,
-              tone: d.clean ? 'good' : '' },
-            { label: 'PRACTICE SCORE', value: fx(d.claimed) },
-            { label: 'HELD-OUT SCORE  (lower is better)', value: fx(d.official), tone: 'hero',
-              tween: true, sub: 'never seen by the improver' }]);
+    if (SCR.dash) { SCR.dash.clean(d.clean, d.total, d.total);
+      SCR.dash.scoreSub('held out from the improver');
+      SCR.dash.delta(d.claimed !== undefined ? d.claimed - d.official : null); }
     say(`<span class="num">${d.clean}</span> of <span class="num">${d.total}</span> interfaces came `
       + 'back with zero accessibility violations. Every one of them is a real page — open it.');
     showPagesLive(d.pages || []);
@@ -202,6 +198,7 @@ function onLive(d) {
     return;
   }
   if (d.kind === 'blame') {
+    paintHeat(d.standings);
     const rows = Object.entries(d.standings || {})
       .map(([k, v]) => [k, { n: v.n, blame_s: v.blame_s }])
       .sort((a, b) => b[1].blame_s - a[1].blame_s);
@@ -227,6 +224,8 @@ function onLive(d) {
     return;
   }
   if (d.kind === 'gate') {
+    live.gates.push({ gate: d.gate, ok: d.ok });
+    if (SCR.dash) SCR.dash.gates(live.gates);
     const box = $('gateList');
     if (box) {
       const n = el('div', 'gate on ' + (d.ok ? 'pass' : 'fail'));
@@ -237,6 +236,8 @@ function onLive(d) {
     return;
   }
   if (d.kind === 'result') {
+    if (SCR.dash) SCR.dash.verdict(d.promoted ? 'KEPT' : 'THROWN AWAY',
+      d.promoted ? 'kept' : 'tossed');
     if (d.levels) { st.levels = d.levels; paintRig(d.promoted ? d.role : null); }
     const p = BY_KEY[d.role] || { name: d.role || '' };
     if (d.promoted) {
@@ -287,6 +288,8 @@ async function startLiveRun() {
 
 S.init = function (app) {
   A = app; R = app.R;
+  if (SCR.dash) { SCR.dash.build(); SCR.dash.watchStage(); }
+  if (SCR.curtain) SCR.curtain.attach($('curtain'));
   const L = window.SCRUTINEER_LOOP;
   st.bundle = L || null;
   st.rounds = (L && L.rounds) || [];
@@ -304,33 +307,51 @@ S.init = function (app) {
 function buildRig() {
   const host = $('rig'); if (!host) return;
   host.textContent = '';
-  const add = (p, small) => {
+  // Level is drawn as pips rather than written as a number: five slots, filled as the
+  // component is upgraded, so a column of these reads as a state of tune at a glance.
+  const add = p => {
     const n = el('button', 'part hue-' + (HUE[p.key] || 'cyan'));
     n.dataset.part = p.key;
-    n.innerHTML = `<span class="part-top"><b>${esc(p.name)}</b><span class="part-lvl" data-lvl>L1</span></span>`
+    n.innerHTML = `<span class="part-top"><b>${esc(p.name)}</b>`
+      + `<span class="part-lvl" data-lvl>${'<i></i>'.repeat(MAX_LV)}</span></span>`
       + `<span class="part-does">${esc(p.does)}</span>`
-      + (small ? '' : '<span class="part-bar"><b data-bar></b></span>');
+      + '<span class="part-bar"><b data-bar></b></span>';
     n.addEventListener('click', () => focusPart(p.key));
     host.append(n);
   };
-  PARTS.forEach(p => add(p, false));
-  const sep = el('div', 'rig-head');
+  PARTS.forEach(add);
+  const sep = el('div', 'rail-head');
   sep.innerHTML = '<span>KEEPING IT HONEST</span>';
-  sep.style.marginTop = '8px';
+  sep.style.marginTop = '6px';
   host.append(sep);
-  SUPPORT.forEach(p => add(p, true));
+  SUPPORT.forEach(add);
   paintRig();
+}
+
+const MAX_LV = 5;
+
+// The heat bar under each component is this run's blame: the share of lost time that
+// replaying the run with that one component corrected actually recovered.
+function paintHeat(standings) {
+  const host = $('rig'); if (!host) return;
+  const rows = Object.entries(standings || {});
+  const max = Math.max(1, ...rows.map(([, s]) => s.blame_s || 0));
+  const worst = rows.sort((a, b) => (b[1].blame_s || 0) - (a[1].blame_s || 0))[0];
+  for (const node of host.querySelectorAll('.part')) {
+    const k = node.dataset.part;
+    const s = (standings || {})[k];
+    const bar = node.querySelector('[data-bar]');
+    if (bar) bar.style.width = s ? Math.round(100 * (s.blame_s || 0) / max) + '%' : '0%';
+    node.classList.toggle('hot', !!worst && k === worst[0] && (worst[1].blame_s || 0) > 0);
+  }
 }
 
 function paintRig(bumped) {
   const host = $('rig'); if (!host) return;
-  const maxLv = Math.max(2, ...Object.values(st.levels));
   for (const node of host.querySelectorAll('.part')) {
     const k = node.dataset.part, lv = st.levels[k] || 1;
-    const lvNode = node.querySelector('[data-lvl]');
-    if (lvNode) lvNode.textContent = 'L' + lv;
-    const bar = node.querySelector('[data-bar]');
-    if (bar) bar.style.width = Math.round(100 * (lv - 1) / (maxLv - 1 || 1)) + '%';
+    const pips = node.querySelectorAll('[data-lvl] i');
+    pips.forEach((pip, i) => { pip.className = i < lv ? 'on' : ''; });
     node.classList.toggle('up', k === bumped);
   }
   const sub = $('rigSub');
@@ -391,28 +412,10 @@ function paintTags(highlight) {
   }
 }
 
-// The three numbers never leave the screen; only their values change. The score is tweened so a
-// run that improved is something you watch happen rather than a value that has already changed.
+// The score never leaves the rail; only its value changes. It is tweened so a run that
+// improved is something you watch happen rather than a value that has already changed.
 const tween = { from: null, to: null, t: 0, dur: 1.1 };
-
-function meters(list) {
-  const host = $('meters'); if (!host) return;
-  if (host.children.length !== list.length) {
-    host.textContent = '';
-    for (const m of list) {
-      const n = el('div', 'meter');
-      n.innerHTML = '<span data-l></span><b data-v></b><span class="delta" data-s></span>';
-      host.append(n);
-    }
-  }
-  list.forEach((m, i) => {
-    const n = host.children[i];
-    n.className = 'meter' + (m.tone ? ' ' + m.tone : '');
-    n.querySelector('[data-l]').textContent = m.label;
-    if (m.tween === undefined) n.querySelector('[data-v]').textContent = m.value;
-    n.querySelector('[data-s]').textContent = m.sub || '';
-  });
-}
+const D = () => SCR.dash;
 
 function tweenScore(from, to) {
   tween.from = from; tween.to = to; tween.t = 0;
@@ -420,15 +423,12 @@ function tweenScore(from, to) {
 }
 
 function paintTween() {
-  const host = $('meters'); if (!host) return;
-  const heroNode = host.querySelector('.meter.hero b');
-  if (heroNode && tween.to === null) { heroNode.textContent = '—'; return; }
-  if (tween.to === null) return;
-  const hero = host.querySelector('.meter.hero b'); if (!hero) return;
+  const d = D(); if (!d) return;
+  if (tween.to === null || tween.to === undefined) { d.score(null); return; }
   const k = tween.from === null ? 1 : Math.min(1, tween.t / tween.dur);
   const e = 1 - Math.pow(1 - k, 3);
   const v = tween.from === null ? tween.to : tween.from + (tween.to - tween.from) * e;
-  hero.textContent = fx(v);
+  d.score(v);
 }
 
 function work(head, sub) {
@@ -476,9 +476,24 @@ function teamFor() {
   return team;
 }
 
+// Crossing between the track and the garage is the one cut the eye should notice, so it goes
+// behind the shutter. Moving between beats inside the garage does not.
+function swap(fn) {
+  // nothing is on screen yet at boot: there is no cut to hide
+  if (!A.sceneName || !SCR.curtain || !SCR.curtain.ready()) { fn(); return; }
+  SCR.curtain.swap(fn);
+}
+
+function toRun() { swap(() => A.setScene('run')); }
+
 function showGarage(role, close) {
   const g = SCR.scenes.garage; if (!g) return;
-  if (A.sceneName !== 'garage') A.setScene('garage', { spec: harnessSpec(), era: 0 });
+  const cross = A.sceneName !== 'garage';
+  if (cross) swap(() => { A.setScene('garage', { spec: harnessSpec(), era: 0 });
+    g.setTeam(teamFor(), harnessSpec());
+    g.select(role ? (BY_KEY[role] || {}).ui : null);
+    g.setCamera(close && role ? 'STATION_' + (BY_KEY[role] || {}).ui : 'OVERVIEW'); });
+  if (cross) return;
   g.setTeam(teamFor(), harnessSpec());
   const ui = role ? (BY_KEY[role] || {}).ui : null;
   g.select(ui);
@@ -531,11 +546,15 @@ function enterIntro() {
   say('An agent that builds web interfaces, drawn as a garage. Six components decide how it '
     + 'works — and it rewrites them itself. '
     + promise + ' Press <b>RUN THE AGENT</b>.');
-  meters([
-    { label: 'RUNS COMPLETED', value: '0' },
-    { label: 'INTERFACES CLEAN', value: '—' },
-    { label: 'SCORE', value: '—', tone: 'hero' },
-  ]);
+  const d = D();
+  if (d) {
+    d.reset();
+    d.phase(null);
+    d.score(null);
+    d.scoreSub('press the button');
+    d.pipsFor((st.rounds[0] && (st.rounds[0].tasks || []).length) || 0);
+    d.budget(null);
+  }
   const host = work('WHAT YOU ARE ABOUT TO WATCH');
   if (host) {
     const box = el('div', 'two');
@@ -586,13 +605,17 @@ function startRun() {
 
 function phase(name) {
   st.phase = name; st.t = 0; st.shown = 0;
+  // The verdict lamp answers one question — was the change kept — so until the checks have run
+  // it says so rather than borrowing whatever word the previous phase left there.
+  if (D()) { D().phase(name);
+    if (name === 'SCORE' || name === 'DIAGNOSE' || name === 'CHANGE') D().verdict('PENDING', 'live'); }
   const r = st.rounds[st.i];
   const rc = $('runCount');
   if (rc) rc.textContent = `RUN ${st.i + 1} OF ${st.rounds.length}`;
 
   if (name === 'RUN') {
     st.seenTasks = []; st.solvedNow = 0;
-    A.setScene('run');
+    toRun();
     const n = (r.tasks || []).length || 20;
     st.dur = Math.max(7, Math.min(15, n * 0.55));
     button('RUNNING…', false);
@@ -601,12 +624,16 @@ function phase(name) {
       + 'RETRIEVAL gives it, writes a complete HTML document, and checks it with VERIFICATION '
       + 'before submitting. Every page is then opened in a real browser and audited by axe-core.');
     const prevScore = st.i > 0 ? st.rounds[st.i - 1].official_s : null;
-    meters([
-      { label: 'INTERFACE', value: `0 / ${n}` },
-      { label: 'PASSED CLEAN', value: '0' },
-      { label: 'SCORE  (lower is better)', value: prevScore === null ? '—' : fx(prevScore),
-        tone: 'hero', tween: true, sub: prevScore === null ? 'first run' : 'from the last run' },
-    ]);
+    const d = D();
+    if (d) {
+      d.gatesClear();
+      d.verdict('RUNNING', 'live');
+      d.pipsFor(n);
+      d.clean(0, 0, n);
+      d.delta(null);
+      d.budget(r.cost_usd === undefined ? null : 0, 3);
+      d.scoreSub(prevScore === null ? 'first run' : 'carried from the last run');
+    }
     tween.from = null; tween.to = prevScore; tween.t = tween.dur;
     paintTween();
     work('THE AGENT IS BUILDING', 'each interface is opened in a browser and audited');
@@ -627,7 +654,7 @@ function phase(name) {
       + (prev ? (dScore > 0.01
         ? ` — <span class="good">${fx(dScore)} better</span> than the last run.`
         : ` — <span class="bad">no better</span> than the last run.`) : '. Lower is better.'));
-    meters(scoreMeters(r, solved, tasks.length));
+    readouts(r, solved, tasks.length);
     tweenScore(st.i > 0 ? st.rounds[st.i - 1].official_s : r.official_s + Math.abs(dScore || 0), r.official_s);
     showSamples(r);
     button('SCORING', false);
@@ -652,6 +679,7 @@ function phase(name) {
           + `<span class="num">${fx(top[1].blame_s, 1)}s</span> of lost time.` : '.'));
     }
     keepScore(r);
+    paintHeat(r.standings);
     showBlame(r, blame);
     return;
   }
@@ -672,6 +700,7 @@ function phase(name) {
   if (name === 'GATES') {
     st.dur = Math.max(3, (r.gates || []).length * 0.28 + 1.4);
     button('CHECKING', false);
+    if (D()) { D().gatesClear(); D().verdict('CHECKING', 'live'); }
     say('Ten checks stand between a change and the agent keeping it. They run in order, and the '
       + 'first failure stops the change.');
     keepScore(r);
@@ -689,6 +718,8 @@ function phase(name) {
   if (name === 'RESULT') {
     st.dur = 6.5;
     const p = BY_KEY[r.role] || { name: r.role || '' };
+    if (D()) { D().gates(r.gates || []); D().verdict(r.promoted ? 'KEPT' : 'THROWN AWAY',
+      r.promoted ? 'kept' : 'tossed'); }
     if (r.promoted) {
       st.levels = levelsAt(st.i + 1);
       paintRig(r.role);
@@ -724,25 +755,26 @@ function phase(name) {
   }
 }
 
-function scoreMeters(r, solved, total) {
-  const gained = st.first !== null ? st.first - r.official_s : 0;
+// Everything on the right-hand rail for a finished run: how many pages came back clean, what
+// the run cost, and how far the score moved against the previous one.
+function readouts(r, solved, total) {
+  const d = D(); if (!d) return;
   const prev = st.i > 0 ? st.rounds[st.i - 1] : null;
-  const step = prev ? prev.official_s - r.official_s : 0;
-  return [
-    { label: 'INTERFACES CLEAN', value: total ? `${solved} / ${total}` : '—',
-      tone: solved ? 'good' : '' },
-    { label: 'BETTER THAN RUN 1 BY', value: gained > 0.005 ? fx(gained) : '—',
-      tone: gained > 0.005 ? 'good' : '' },
-    { label: 'SCORE  (lower is better)', value: fx(r.official_s), tone: 'hero', tween: true,
-      sub: prev ? (step > 0.005 ? `${fx(step)} better this run`
-        : step < -0.005 ? `${fx(-step)} worse this run` : 'unchanged') : 'first run' },
-  ];
+  const step = prev ? prev.official_s - r.official_s : null;
+  const gained = st.first !== null ? st.first - r.official_s : 0;
+  d.pipsFor(total);
+  (r.tasks || []).forEach((t, i) => d.pip(i, t.solved > 0));
+  d.clean(solved, total, total);
+  d.delta(step);
+  d.budget(r.cost_usd, 3);
+  d.scoreSub(gained > 0.005 ? `${fx(gained)} faster than run 1` : 'no gain on run 1 yet',
+    gained > 0.005 ? 'good' : '');
 }
 
 function keepScore(r, promotedView) {
   const tasks = r.tasks || [];
   const solved = tasks.reduce((a, t) => a + (t.solved > 0 ? 1 : 0), 0);
-  meters(scoreMeters(r, solved, tasks.length));
+  readouts(r, solved, tasks.length);
   if (promotedView && r.promoted && st.rounds[st.i + 1]) {
     // the payoff: the score falls to what the change actually bought
     tweenScore(r.official_s, st.rounds[st.i + 1].official_s);
@@ -972,13 +1004,13 @@ S.frame = function (dt) {
         grid.append(n);
         grid.parentElement.scrollTop = grid.parentElement.scrollHeight;
       }
-      const prevScore = st.i > 0 ? st.rounds[st.i - 1].official_s : null;
-      meters([
-        { label: 'INTERFACE', value: `${st.shown} / ${tasks.length}` },
-        { label: 'PASSED CLEAN', value: String(st.solvedNow), tone: st.solvedNow ? 'good' : '' },
-        { label: 'SCORE  (lower is better)', value: '', tone: 'hero', tween: true,
-          sub: prevScore === null ? 'first run' : 'from the last run' },
-      ]);
+      const d = D();
+      if (d) {
+        d.pip(st.shown - 1, ok);
+        d.clean(st.solvedNow, st.shown, tasks.length);
+        // the cost meter fills across the run rather than landing at the end
+        if (r.cost_usd !== undefined) d.budget(r.cost_usd * (st.shown / tasks.length), 3);
+      }
     }
     if (st.t >= st.dur) phase('SCORE');
     return;
@@ -996,6 +1028,7 @@ S.frame = function (dt) {
         node.querySelector('i').textContent = g.ok ? '✓' : '✗';
       }
       st.shown++;
+      if (D()) D().gates(gates, st.shown);
       if (!g.ok) { st.t = st.dur; break; }
     }
   }

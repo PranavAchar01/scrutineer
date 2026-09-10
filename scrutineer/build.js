@@ -2,7 +2,7 @@
 // Concatenates src/ into the single artifact fragment scrutineer.html and syntax-checks the script.
 const fs = require('fs'), path = require('path'), cp = require('child_process');
 const root = __dirname, src = path.join(root, 'src');
-const ORDER = ['engine.js', 'car.js', 'world.js', 'sim.js', 'trackscene.js', 'team.js', 'garage.js', 'scenes.js', 'season.js', 'ui.js', 'trial.js', 'story.js', 'main.js'];
+const ORDER = ['engine.js', 'car.js', 'world.js', 'sim.js', 'trackscene.js', 'team.js', 'garage.js', 'scenes.js', 'season.js', 'curtain.js', 'dash.js', 'ui.js', 'trial.js', 'story.js', 'main.js'];
 const present = ORDER.filter(f => fs.existsSync(path.join(src, f)));
 const missing = ORDER.filter(f => !present.includes(f));
 if (missing.length) console.log('build: skipping missing modules:', missing.join(', '));

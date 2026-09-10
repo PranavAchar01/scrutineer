@@ -340,7 +340,9 @@ scene.update = function (dt) {
     const [tx, tz] = worldOf(a.x, a.z, a.yaw, -0.3, 0.6);
     cam.pos = [px_, 3.9 - pull * 0.5, pz_]; cam.target = [tx, 1.15, tz]; cam.fov = 40 - pull * 2;
   } else if (scene.cam === 'CAR') { cam.pos = [CAR_POS.x + 6.4, 2.6, CAR_POS.z + 8.2]; cam.target = [CAR_POS.x, 0.8 + scene.lift, CAR_POS.z]; cam.fov = 38; }
-  else { cam.pos = [0, 20, 31]; cam.target = [0, 2.0, -3.5]; cam.fov = 50; }
+  // OVERVIEW sits closer and lower than a plan view would: the crew have to be readable as
+  // people doing a job, not as dots on a floor plan.
+  else { cam.pos = [0, 17.2, 27.4]; cam.target = [0, 1.9, -3.4]; cam.fov = 47; }
 };
 const identity = (x, y, z, g, o) => { o[0] = x; o[1] = y; o[2] = z; };
 scene.render = function () {

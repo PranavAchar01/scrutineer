@@ -1,32 +1,38 @@
-<!-- Scrutineer. One view, one button, and the agent's own work underneath it. -->
+<!-- Scrutineer. A pit wall: the picture in the middle, the readouts on the rails. -->
 <div class="app" id="app">
   <header class="top">
     <div class="mark">SCRUTINEER</div>
-    <div class="tag">an agent that builds web interfaces, and rebuilds its own harness</div>
+    <div class="hdr-chips" id="hdrChips"></div>
     <div class="top-right">
       <span class="runcount" id="runCount"></span>
       <button class="run" id="runBtn">RUN THE AGENT</button>
     </div>
   </header>
 
-  <main class="body">
-    <section class="view">
-      <div class="stage-box">
-        <canvas id="stage" aria-label="The agent's harness"></canvas>
-        <div class="hud" id="hud"></div>
-        <div class="cards" id="cards"></div>
-        <div class="overlay" id="overlay" hidden></div>
+  <main class="deck">
+    <aside class="rail rail-l" aria-label="The harness">
+      <div class="rail-head"><span>THE HARNESS</span><em class="rig-sub" id="rigSub"></em></div>
+      <div class="rig-list" id="rig"></div>
+      <div class="rail-foot">
+        <button class="ghost-btn" id="regsBtn">how this works</button>
+        <button class="ghost-btn" id="tryBtn">run it yourself</button>
+      </div>
+    </aside>
+
+    <section class="screen">
+      <div class="stage-wrap" id="stageWrap">
+        <div class="stage-box" id="stageBox">
+          <canvas id="stage" aria-label="The agent's harness"></canvas>
+          <div class="hud" id="hud"></div>
+          <div class="cards" id="cards"></div>
+          <canvas class="curtain" id="curtain" aria-hidden="true"></canvas>
+          <div class="overlay" id="overlay" hidden></div>
+        </div>
       </div>
       <p class="say" id="say">Six components decide how this agent works. Press <b>RUN THE AGENT</b>.</p>
-      <div class="meters" id="meters"></div>
     </section>
 
-    <aside class="rig" aria-label="The harness">
-      <div class="rig-head"><span>THE HARNESS</span><span class="rig-sub" id="rigSub">six components</span></div>
-      <div class="rig-list" id="rig"></div>
-      <button class="ghost-btn" id="regsBtn">how this works</button>
-      <button class="ghost-btn" id="tryBtn">run it yourself &middot; your own key</button>
-    </aside>
+    <aside class="rail rail-r" id="tele" aria-label="Telemetry"></aside>
   </main>
 
   <section class="work" id="work" aria-label="The agent's work"></section>
