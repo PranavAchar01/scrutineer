@@ -112,5 +112,15 @@ C.swap = function (swapFn, after) {
 };
 
 C.busy = () => st.running;
-C.stop = function () { st.running = false; cancelAnimationFrame(raf); if (ctx) ctx.clearRect(0, 0, W, H); if (cv) cv.hidden = true; st.p = 0; };
+// Stopping mid-sweep must not lose the swap: the callback is the scene change, and dropping
+// it leaves the page believing it is on a scene it never entered. Run it, then clear.
+C.stop = function () {
+  st.running = false; cancelAnimationFrame(raf);
+  const fn = st.cb, then = st.then; st.cb = null; st.then = null;
+  if (ctx) ctx.clearRect(0, 0, W, H);
+  if (cv) cv.hidden = true;
+  st.p = 0; st.dir = 0;
+  if (fn) { try { fn(); } catch (e) { void e; } }
+  if (then) { try { then(); } catch (e) { void e; } }
+};
 })(window.SCR = window.SCR || {});
