@@ -525,6 +525,18 @@ button:focus-visible{outline:2px solid var(--cyan);outline-offset:2px}
   .dgrid{grid-template-columns:1fr}
 }
 
+/* the circuit chip, opposite the state of tune */
+.circ{position:absolute;right:12px;top:12px;background:rgba(0,0,0,.86);
+  border-right:4px solid var(--cyan);padding:5px 9px 6px;pointer-events:none;text-align:right}
+.circ-top{display:flex;align-items:baseline;justify-content:flex-end;gap:8px}
+.circ-top b{font-family:"Press Start 2P","Courier New",monospace;font-size:9px;color:var(--cyan);
+  letter-spacing:.5px}
+.circ-top i{font-style:normal;font-family:"Press Start 2P","Courier New",monospace;font-size:7px;
+  color:var(--mid)}
+.circ-sub{display:flex;justify-content:flex-end;gap:10px;font-family:"VT323","Courier New",monospace;
+  font-size:17px;line-height:16px;color:var(--caption);margin-top:3px}
+.circ-sub span:last-child{color:var(--gold)}
+
 </style>
 </head>
 <body>
@@ -9960,6 +9972,24 @@ D.tier = function (index, name, of, count) {
   box.classList.remove('bump'); void box.offsetWidth; box.classList.add('bump');
 };
 
+// The circuit chip, opposite the state of tune: which track, how long, which camera.
+// Ten different layouts read as one track filmed ten ways unless the page says otherwise.
+D.circuit = function (name, metres, archetype, shot) {
+  const hud = $('hud'); if (!hud) return;
+  let box = $('circChip');
+  if (!box) {
+    box = el('div', 'circ'); box.id = 'circChip';
+    box.innerHTML = '<div class="circ-top"><b data-name></b><i data-kind></i></div>'
+      + '<div class="circ-sub"><span data-len></span><span data-shot></span></div>';
+    hud.append(box);
+  }
+  const set = (sel, v) => { const n = box.querySelector(sel); if (n) n.textContent = v || ''; };
+  set('[data-name]', name || '');
+  set('[data-kind]', archetype || '');
+  set('[data-len]', metres ? (metres / 1000).toFixed(2) + ' km' : '');
+  set('[data-shot]', shot || '');
+};
+
 D.reset = function () {
   D.gatesClear();
   D.verdict('STANDBY');
@@ -12783,11 +12813,31 @@ function showGarage(role, close) {
 }
 
 const track = { name: 'run' };
+
+// A different set of shots every run, in a different order, held for different lengths.
+// Cycling one fixed sequence from the same opening shot made ten different circuits look
+// like ten takes of the same footage. Seeded on the run so a seek reproduces the cut.
+const SHOTS = ['CHASE', 'TV', 'HELI', 'ONBOARD', 'STUDIO'];
+function cameraPlan(run) {
+  const rng = E.mulberry32((A.seed | 0) * 977 + run * 31 + 7);
+  const pool = SHOTS.slice();
+  // Fisher-Yates, so every run gets a genuine permutation rather than a rotation
+  for (let i = pool.length - 1; i > 0; i--) {
+    const j = Math.floor(rng() * (i + 1));
+    const tmp = pool[i]; pool[i] = pool[j]; pool[j] = tmp;
+  }
+  // STUDIO is the slow orbit of the car itself. It is the shot that shows the upgrades, so
+  // it is worth holding longer than a trackside cut, and never worth opening on.
+  if (pool[0] === 'STUDIO') { pool[0] = pool[2]; pool[2] = 'STUDIO'; }
+  return { shots: pool, hold: 3.4 + rng() * 2.2 };
+}
+
 track.enter = function () {
   const t = tierNow();
-  const circ = SCR.world.makeCircuit(A.seed + st.i * 7);
+  const circ = SCR.world.makeCircuit(A.seed + st.i * 7, { tier: t });
   const world = SCR.world.build(circ, { tier: t });
   track.tier = t;
+  track.circ = circ;
   paintTier();
   track.spec = harnessSpec(t);
   track.dd = SCR.car.derive(track.spec);
@@ -12795,20 +12845,39 @@ track.enter = function () {
   track.car = SCR.car.newState();
   SCR.sim.physics(track.car, track.dd, track.spec, circ, 0, {});
   track.scene = SCR.trackScene.create({ R, world, car: track.car });
-  track.scene.setMode('CHASE');   // always frames the car; TV cuts in once it is moving
+  track.plan = cameraPlan(st.i);
+  track.cut = 0;
+  track.scene.setMode(track.plan.shots[0]);
   track.camT = 0;
+  paintCircuit();
 };
+
 track.update = function (dt) {
   SCR.sim.physics(track.car, track.dd, track.spec, track.scene.circ, dt, { fx: track.scene.fx });
   SCR.sim.stepSparks(track.scene.fx, dt);
   track.camT += dt;
-  if (track.camT > 5.0) { track.camT = 0;
-    const modes = ['CHASE', 'TV', 'HELI', 'ONBOARD', 'CHASE'];
-    track.cut = ((track.cut || 0) + 1) % modes.length;
-    track.scene.setMode(modes[track.cut]); }
+  const plan = track.plan || { shots: SHOTS, hold: 5 };
+  // STUDIO orbits the stationary-looking car, so give it the extra beat it needs to get round
+  const hold = plan.shots[track.cut] === 'STUDIO' ? plan.hold * 1.5 : plan.hold;
+  if (track.camT > hold) {
+    track.camT = 0;
+    track.cut = (track.cut + 1) % plan.shots.length;
+    track.scene.setMode(plan.shots[track.cut]);
+    paintCircuit();
+  }
   track.scene.updateCamera(dt);
 };
 track.render = function () { track.scene.render({ car: track.mesh }); };
+
+// The circuit chip: which track this is, how long a lap is, and which camera is live.
+// Without it a new layout every run reads as the same track filmed differently.
+function paintCircuit() {
+  if (!D() || !track.circ) return;
+  const c = track.circ;
+  D().circuit(c.name, c.len, c.archetype,
+    track.scene ? (track.scene.label || '').replace(/^CAM\s*·?\s*/, '') : '');
+}
+
 SCR.scenes.run = track;
 
 // ---------------------------------------------------------------------------------------

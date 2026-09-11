@@ -257,6 +257,24 @@ D.tier = function (index, name, of, count) {
   box.classList.remove('bump'); void box.offsetWidth; box.classList.add('bump');
 };
 
+// The circuit chip, opposite the state of tune: which track, how long, which camera.
+// Ten different layouts read as one track filmed ten ways unless the page says otherwise.
+D.circuit = function (name, metres, archetype, shot) {
+  const hud = $('hud'); if (!hud) return;
+  let box = $('circChip');
+  if (!box) {
+    box = el('div', 'circ'); box.id = 'circChip';
+    box.innerHTML = '<div class="circ-top"><b data-name></b><i data-kind></i></div>'
+      + '<div class="circ-sub"><span data-len></span><span data-shot></span></div>';
+    hud.append(box);
+  }
+  const set = (sel, v) => { const n = box.querySelector(sel); if (n) n.textContent = v || ''; };
+  set('[data-name]', name || '');
+  set('[data-kind]', archetype || '');
+  set('[data-len]', metres ? (metres / 1000).toFixed(2) + ' km' : '');
+  set('[data-shot]', shot || '');
+};
+
 D.reset = function () {
   D.gatesClear();
   D.verdict('STANDBY');

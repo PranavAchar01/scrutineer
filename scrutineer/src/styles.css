@@ -511,3 +511,15 @@ button:focus-visible{outline:2px solid var(--cyan);outline-offset:2px}
 @media (max-width:720px){
   .dgrid{grid-template-columns:1fr}
 }
+
+/* the circuit chip, opposite the state of tune */
+.circ{position:absolute;right:12px;top:12px;background:rgba(0,0,0,.86);
+  border-right:4px solid var(--cyan);padding:5px 9px 6px;pointer-events:none;text-align:right}
+.circ-top{display:flex;align-items:baseline;justify-content:flex-end;gap:8px}
+.circ-top b{font-family:"Press Start 2P","Courier New",monospace;font-size:9px;color:var(--cyan);
+  letter-spacing:.5px}
+.circ-top i{font-style:normal;font-family:"Press Start 2P","Courier New",monospace;font-size:7px;
+  color:var(--mid)}
+.circ-sub{display:flex;justify-content:flex-end;gap:10px;font-family:"VT323","Courier New",monospace;
+  font-size:17px;line-height:16px;color:var(--caption);margin-top:3px}
+.circ-sub span:last-child{color:var(--gold)}
