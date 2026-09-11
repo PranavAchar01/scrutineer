@@ -6,36 +6,92 @@
 const E = SCR.engine, M = E.M, Wd = SCR.world = {};
 const { box, Q, T } = E;
 const ROAD_W = Wd.ROAD_W = 6;
-Wd.makeCircuit = function (seed) {
-  const rng = E.mulberry32(seed), N = 11, ctrl = [];
-  for (let i = 0; i < N; i++) { const ang = (i / N) * Math.PI * 2 + (rng() - 0.5) * 0.3, rad = 150 + (rng() - 0.5) * 80; ctrl.push([Math.cos(ang) * rad * 1.35, Math.sin(ang) * rad]); }
-  const pts = [], cr = (p0, p1, p2, p3, t) => { const t2 = t * t, t3 = t2 * t; return 0.5 * ((2 * p1) + (-p0 + p2) * t + (2 * p0 - 5 * p1 + 4 * p2 - p3) * t2 + (-p0 + 3 * p1 - 3 * p2 + p3) * t3); };
-  for (let i = 0; i < N; i++) { const p0 = ctrl[(i - 1 + N) % N], p1 = ctrl[i], p2 = ctrl[(i + 1) % N], p3 = ctrl[(i + 2) % N]; const steps = Math.max(8, Math.round(Math.hypot(p2[0] - p1[0], p2[1] - p1[1]) / 3.5));
-    for (let k = 0; k < steps; k++) { const t = k / steps; pts.push([cr(p0[0], p1[0], p2[0], p3[0], t), cr(p0[1], p1[1], p2[1], p3[1], t)]); } }
-  const STEP = 4, S = []; let acc = 0, prev = pts[0]; const dist = (a, b) => Math.hypot(a[0] - b[0], a[1] - b[1]);
-  S.push({ x: prev[0], z: prev[1] });
-  for (let i = 1; i <= pts.length; i++) { const p = pts[i % pts.length]; let d = dist(prev, p);
-    while (acc + d >= STEP) { const t = (STEP - acc) / d, q = [prev[0] + (p[0] - prev[0]) * t, prev[1] + (p[1] - prev[1]) * t]; S.push({ x: q[0], z: q[1] }); d -= (STEP - acc); acc = 0; prev = q; }
-    acc += d; prev = p; }
-  if (dist([S[S.length - 1].x, S[S.length - 1].z], [S[0].x, S[0].z]) < STEP * 0.5) S.pop();
-  const n = S.length;
-  for (let i = 0; i < n; i++) { const a = S[(i - 1 + n) % n], b = S[(i + 1) % n], p = S[i]; let tx = b.x - a.x, tz = b.z - a.z; const l = Math.hypot(tx, tz) || 1; tx /= l; tz /= l;
-    p.tx = tx; p.tz = tz; p.nx = -tz; p.nz = tx; const ta = S[(i - 2 + n) % n], tb = S[(i + 2) % n];
-    const h1 = Math.atan2(p.x - ta.x, p.z - ta.z), h2 = Math.atan2(tb.x - p.x, tb.z - p.z); let dh = h2 - h1; while (dh > Math.PI) dh -= 2 * Math.PI; while (dh < -Math.PI) dh += 2 * Math.PI; p.curv = dh / (4 * STEP); }
-  const sm = S.map((p, i) => { let s = 0; for (let k = -3; k <= 3; k++) s += S[(i + k + n) % n].curv; return s / 7; }); S.forEach((p, i) => p.curv = sm[i]);
+// makeCircuit(seed, {tier}) — tier 0..4 walks the LAYOUT itself from a car-park scratch circuit to a
+// grand-prix venue, the same 0..4 ladder the car and the trackside build already climb.
+// the shape is a radial profile r(theta) sampled on one monotone turn: single-valued r means the
+// centreline can never cross itself, whatever the harmonics do, so the hard no-self-intersection
+// constraint is structural rather than something we test for and patch.
+Wd.makeCircuit = function (seed, opts) {
+  const tier = Math.max(0, Math.min(4, Math.round((opts && opts.tier) || 0))), f = tier / 4;
+  const rng = E.mulberry32(seed), N = 36, TAU = Math.PI * 2, D = TAU / N;
+  const MINR = 20 + 20 * f;                // centreline radius floor. 18 is where the ribbon folds (ROAD_W 6), so 20 is the hard
+                                           // floor with margin; above tier 0 the floor rises because generous corners ARE the tier
+  const TARGET = 1000 + 250 * tier;        // lap metres. driving R off a length target, rather than fixing R, is what keeps
+                                           // every tier inside the 900..2600 band no matter how much shape a seed asks for
+  // every seeded constant is drawn up front: the rebuild loop below re-runs the assembly many times
+  // and must not walk the rng stream while it does.
+  const m = 3 + Math.floor(rng() * 3), th0 = rng() * TAU, poly = 0.78 * f;
+  // straights do not fall out of harmonics — a straight in polar form is r = d/cos(theta), i.e. the
+  // side of a polygon. so the high tiers blend a rounded 3..5-sided polygon into the base circle and
+  // get genuine long straights joined by big corners; tier 0 gets none of it and stays a lumpy blob.
+  const kLo = Math.round(3 - 2 * f), kHi = Math.round(8 - 5 * f);
+  const H = []; for (let j = 0; j < 3; j++) H.push({ k: kLo + Math.floor(rng() * (kHi - kLo + 1)), a: (0.05 + 0.17 * f) * (0.5 + rng()), p: rng() * TAU });
+  // noise is the whole difference between scrappy and deliberate, so it falls to nothing by tier 4.
+  // angular jitter stays under half the control spacing: the angles must stay monotone or r(theta)
+  // stops being single-valued and the crossing guarantee goes with it.
+  const jA = D * 0.4 * (1 - f), jR = 0.15 * (1 - f);
+  const ang = [], prof = [], sect = TAU / m;
+  for (let i = 0; i < N; i++) {
+    const t = i * D + (rng() - 0.5) * jA, pw = ((t - th0) % sect + sect) % sect - Math.PI / m;
+    let h = 1; for (const o of H) h += o.a * Math.cos(o.k * t + o.p);
+    ang.push(t); prof.push(((1 - poly) + poly / Math.cos(pw)) * h * (1 + (rng() - 0.5) * jR));
+  }
+  { const mu = prof.reduce((s, v) => s + v, 0) / N; for (let i = 0; i < N; i++) prof[i] /= mu; }
+  const smooth = () => { const o = prof.slice(); for (let i = 0; i < N; i++) prof[i] = 0.25 * o[(i - 1 + N) % N] + 0.5 * o[i] + 0.25 * o[(i + 1) % N]; };
+  smooth();   // one pass only: the corner-radius settle below is what actually rounds the polygon cusps, and it stops the moment the corners are drivable rather than flattening the layout to a circle
+  const cr = (p0, p1, p2, p3, t) => { const t2 = t * t, t3 = t2 * t; return 0.5 * ((2 * p1) + (-p0 + p2) * t + (2 * p0 - 5 * p1 + 4 * p2 - p3) * t2 + (-p0 + 3 * p1 - 3 * p2 + p3) * t3); };
+  const STEP = 4, dist = (a, b) => Math.hypot(a[0] - b[0], a[1] - b[1]);
+  const assemble = R => {
+    const ctrl = []; for (let i = 0; i < N; i++) ctrl.push([Math.cos(ang[i]) * prof[i] * R, Math.sin(ang[i]) * prof[i] * R]);
+    const pts = [];
+    for (let i = 0; i < N; i++) { const p0 = ctrl[(i - 1 + N) % N], p1 = ctrl[i], p2 = ctrl[(i + 1) % N], p3 = ctrl[(i + 2) % N]; const steps = Math.max(8, Math.round(Math.hypot(p2[0] - p1[0], p2[1] - p1[1]) / 3.5));
+      for (let k = 0; k < steps; k++) { const t = k / steps; pts.push([cr(p0[0], p1[0], p2[0], p3[0], t), cr(p0[1], p1[1], p2[1], p3[1], t)]); } }
+    const S = []; let acc = 0, prev = pts[0];
+    S.push({ x: prev[0], z: prev[1] });
+    for (let i = 1; i <= pts.length; i++) { const p = pts[i % pts.length]; let d = dist(prev, p);
+      while (acc + d >= STEP) { const t = (STEP - acc) / d, q = [prev[0] + (p[0] - prev[0]) * t, prev[1] + (p[1] - prev[1]) * t]; S.push({ x: q[0], z: q[1] }); d -= (STEP - acc); acc = 0; prev = q; }
+      acc += d; prev = p; }
+    if (dist([S[S.length - 1].x, S[S.length - 1].z], [S[0].x, S[0].z]) < STEP * 0.5) S.pop();
+    const n = S.length;
+    for (let i = 0; i < n; i++) { const a = S[(i - 1 + n) % n], b = S[(i + 1) % n], p = S[i]; let tx = b.x - a.x, tz = b.z - a.z; const l = Math.hypot(tx, tz) || 1; tx /= l; tz /= l;
+      p.tx = tx; p.tz = tz; p.nx = -tz; p.nz = tx; const ta = S[(i - 2 + n) % n], tb = S[(i + 2) % n];
+      const h1 = Math.atan2(p.x - ta.x, p.z - ta.z), h2 = Math.atan2(tb.x - p.x, tb.z - p.z); let dh = h2 - h1; while (dh > Math.PI) dh -= 2 * Math.PI; while (dh < -Math.PI) dh += 2 * Math.PI; p.curv = dh / (4 * STEP); }
+    const sm = S.map((p, i) => { let s = 0; for (let k = -3; k <= 3; k++) s += S[(i + k + n) % n].curv; return s / 7; }); S.forEach((p, i) => p.curv = sm[i]);
+    // min radius measured the way the verifier measures it: circumradius of the 8m-apart triple.
+    let minR = 1e9;
+    for (let i = 0; i < n; i++) { const a = S[(i - 2 + n) % n], b = S[i], cq = S[(i + 2) % n];
+      const A = Math.hypot(b.x - a.x, b.z - a.z), B = Math.hypot(cq.x - b.x, cq.z - b.z), C = Math.hypot(cq.x - a.x, cq.z - a.z);
+      const ar = Math.abs((b.x - a.x) * (cq.z - a.z) - (b.z - a.z) * (cq.x - a.x)) / 2;
+      if (ar > 1e-9) minR = Math.min(minR, A * B * C / (4 * ar)); }
+    return { S, n, len: n * STEP, minR };
+  };
+  // two constraints pull against each other — lap length wants scale, the corner-radius floor wants
+  // smoothing (which shortens the lap) — so settle them together instead of in one pass.
+  let R = TARGET / 6.4, out = assemble(R);
+  for (let it = 0; it < 30; it++) {
+    let ok = true;
+    if (out.minR < MINR) { smooth(); ok = false; }
+    const sc = TARGET / out.len; if (Math.abs(sc - 1) > 0.015) { R *= sc; ok = false; }
+    if (ok) break;
+    out = assemble(R);
+  }
+  const S = out.S, n = out.n;
   let best = 0, bestLen = 0;
   for (let i = 0; i < n; i++) { let len = 0; while (len < n && Math.abs(S[(i + len) % n].curv) < 0.004) len++; if (len > bestLen) { bestLen = len; best = i; } }
-  const R = []; for (let i = 0; i < n; i++) R.push(S[(best + i) % n]); R.forEach((p, i) => p.s = i * STEP);
-  const cx = R.reduce((s, p) => s + p.x, 0) / n, cz = R.reduce((s, p) => s + p.z, 0) / n;
-  const c = { seed, pts: R, n, step: STEP, len: n * STEP, cx, cz };
-  c.at = i => R[((i % n) + n) % n];
+  const Rp = []; for (let i = 0; i < n; i++) Rp.push(S[(best + i) % n]); Rp.forEach((p, i) => p.s = i * STEP);
+  const cx = Rp.reduce((s, p) => s + p.x, 0) / n, cz = Rp.reduce((s, p) => s + p.z, 0) / n;
+  const c = { seed, pts: Rp, n, step: STEP, len: n * STEP, cx, cz };
+  c.at = i => Rp[((i % n) + n) % n];
   c.pos = (i, off, y) => { const p = c.at(i); return [p.x + p.nx * off, y || 0, p.z + p.nz * off]; };
   c.outside = i => { const p = c.at(i); const dl = Math.hypot(p.x + p.nx - cx, p.z + p.nz - cz), dr = Math.hypot(p.x - p.nx - cx, p.z - p.nz - cz); return dl > dr ? 1 : -1; };
   c.geomInside = i => c.at(i).curv > 0 ? 1 : -1;
-  c.clearOfTrack = (x, z, margin) => { const m2 = margin * margin; for (const p of R) { const dx = p.x - x, dz = p.z - z; if (dx * dx + dz * dz < m2) return false; } return true; };
+  c.clearOfTrack = (x, z, margin) => { const m2 = margin * margin; for (const p of Rp) { const dx = p.x - x, dz = p.z - z; if (dx * dx + dz * dz < m2) return false; } return true; };
   c.name = Wd.circuitName(seed);
+  c.tier = tier;
+  c.archetype = ARCHETYPES[tier];
   return c;
 };
+const ARCHETYPES = ['kart park', 'club', 'national', 'sweeper', 'grand prix'];
 const NAMES = ['SILVERSTONE-LIKE', 'MONZA-LIKE', 'SUZUKA-LIKE', 'SPA-LIKE', 'INTERLAGOS-LIKE', 'MONACO-LIKE', 'IMOLA-LIKE', 'ZANDVOORT-LIKE', 'ESTORIL-LIKE', 'HOCKENHEIM-LIKE', 'KYALAMI-LIKE', 'JEREZ-LIKE', 'FUJI-LIKE', 'ADELAIDE-LIKE', 'MAGNY-COURS-LIKE', 'MONTREAL-LIKE', 'SEPANG-LIKE', 'ISTANBUL-LIKE', 'BAHRAIN-LIKE', 'SOCHI-LIKE', 'AUSTIN-LIKE', 'LAS VEGAS-LIKE'];
 Wd.circuitName = seed => `${NAMES[Math.abs(seed) % NAMES.length]} LAYOUT ${String.fromCharCode(65 + (Math.abs(seed >> 3) % 6))}`;
 // crowd hook (aux -> sign with crowd:true)

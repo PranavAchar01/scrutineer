@@ -577,6 +577,8 @@ track.enter = function () {
   track.cut = 0;
   track.scene.setMode(track.plan.shots[0]);
   track.camT = 0;
+  track.scene.updateCamera(0);   // the chip reads the camera's own label, so let it set one
+  track.lastLabel = track.scene.label;
   paintCircuit();
 };
 
@@ -591,9 +593,15 @@ track.update = function (dt) {
     track.camT = 0;
     track.cut = (track.cut + 1) % plan.shots.length;
     track.scene.setMode(plan.shots[track.cut]);
-    paintCircuit();
   }
   track.scene.updateCamera(dt);
+  // Repaint on any change of label rather than on a planned cut: updateCamera, not setMode,
+  // is what writes the label, and the trackside shot renumbers itself as the car passes each
+  // camera. Watching the label catches both without the chip ever lagging a shot behind.
+  if (track.scene.label !== track.lastLabel) {
+    track.lastLabel = track.scene.label;
+    paintCircuit();
+  }
 };
 track.render = function () { track.scene.render({ car: track.mesh }); };
 
