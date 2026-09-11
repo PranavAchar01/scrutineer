@@ -411,3 +411,20 @@ button:focus-visible{outline:2px solid var(--cyan);outline-offset:2px}
   .g-val{font-size:28px;line-height:24px}.g-hero .g-val{font-size:36px;line-height:30px}
   .gauge{padding:4px 7px 5px}
 }
+
+/* the state of tune, pinned over the picture */
+.tier{position:absolute;left:12px;top:12px;background:rgba(0,0,0,.86);
+  border-left:4px solid var(--gold);padding:5px 9px 6px;pointer-events:none}
+.tier-top{display:flex;align-items:center;gap:9px}
+.tier-top b{font-family:"Press Start 2P","Courier New",monospace;font-size:10px;color:var(--gold);
+  letter-spacing:.5px}
+.tier-pips{display:flex;gap:3px}
+.tier-pips i{width:7px;height:11px;background:var(--studio);display:block}
+.tier-pips i.on{background:var(--gold)}
+.tier-of{font-family:"VT323","Courier New",monospace;font-size:17px;line-height:16px;
+  color:var(--caption);margin-top:3px}
+.tier.bump{animation:tierbump .9s ease-out}
+@keyframes tierbump{0%{background:var(--gold)}12%{background:var(--gold)}100%{background:rgba(0,0,0,.86)}}
+@keyframes tierbumpb{0%,12%{color:var(--ink)}100%{color:var(--gold)}}
+.tier.bump .tier-top b{animation:tierbumpb .9s ease-out}
+@media (prefers-reduced-motion:reduce){.tier.bump,.tier.bump .tier-top b{animation:none}}

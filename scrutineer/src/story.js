@@ -448,31 +448,67 @@ function button(label, armed) {
 }
 
 // ---------------------------------------------------------------------------------------
+// states of tune
+//
+// car.js has always known how to draw four generations past 1994 — C.ERA gates NEON at
+// 0.3, CANOPY at 0.5, FAIRINGS at 0.7 and CHROME at 0.85 — and world.js can now build the
+// circuit at five tiers. Nothing was using either: this shell built every car at era 0 on
+// a tier-0 track, so ten runs looked identical.
+//
+// Tier is driven by runs completed rather than by upgrades kept. The recorded season keeps
+// exactly one change in ten runs, so tying the picture to promotions would show one step
+// and then nothing; runs completed is the axis the eye is actually being asked to read,
+// and it is the axis the score is plotted against everywhere else on the page.
+const TIERS = [
+  { era: 0.00, name: 'LOCK-UP 1994',      of: 'airbox · open cockpit · roll hoop' },
+  { era: 0.36, name: 'WORKSHOP',          of: 'sharp nose · lit flanks · bargeboards' },
+  { era: 0.58, name: 'FACTORY',           of: 'closed canopy · sculpted cover' },
+  { era: 0.78, name: 'TECHNOLOGY CENTRE', of: 'wheel fairings · ground-effect fan' },
+  { era: 0.95, name: 'SINGULARITY',       of: 'chrome · underglow · drone escort' },
+];
+// two runs a tier, so all five states are reached inside a ten-run season
+function tierFor(runsDone) { return Math.max(0, Math.min(TIERS.length - 1, Math.floor(runsDone / 2))); }
+function tierNow() { return tierFor(Math.max(0, st.i)); }
+function paintTier() {
+  const t = tierNow();
+  if (D()) D().tier(t, TIERS[t].name, TIERS[t].of, TIERS.length);
+}
+
+// ---------------------------------------------------------------------------------------
 // scenes
 // ---------------------------------------------------------------------------------------
-function harnessSpec() {
-  // the car is the harness: each component that levels up changes a part you can see
-  const lv = st.levels, C = SCR.car;
+function harnessSpec(tier) {
+  // the car is the harness: each component that levels up changes a part you can see, and
+  // the tier raises the whole state of tune on top of that so the silhouette moves even in
+  // a season where the loop kept almost nothing
+  const lv = st.levels, C = SCR.car, t = tier === undefined ? tierNow() : tier;
   const clamp = (x, lo, hi) => Math.max(lo, Math.min(hi, x));
   return {
     ...C.GEN01,
-    frontWing: clamp(1 + (lv.AERO - 1), 1, 5),
-    rearWing: clamp(1 + Math.floor((lv.AERO - 1) * 0.8), 1, 5),
-    floor: clamp(1 + (lv.DATA - 1), 1, 4),
-    engine: clamp(1 + (lv.POWER_UNIT - 1), 1, 5),
-    gearbox: clamp(6 + (lv.STRATEGIST - 1), 6, 8),
-    tyres: lv.TYRES > 2 ? 'SOFT' : lv.TYRES > 1 ? 'MEDIUM' : 'HARD',
-    drs: lv.SIMULATOR > 1,
-    fin: lv.AERO > 2,
-    brakes: clamp(1 + Math.floor((lv.PIT_CREW - 1) * 1.5), 1, 4),
+    frontWing: clamp(1 + (lv.AERO - 1) + t, 1, 5),
+    rearWing: clamp(1 + Math.floor((lv.AERO - 1) * 0.8) + t, 1, 5),
+    floor: clamp(1 + (lv.DATA - 1) + t, 1, 5),
+    engine: clamp(1 + (lv.POWER_UNIT - 1) + t, 1, 5),
+    brakes: clamp(1 + Math.floor((lv.PIT_CREW - 1) * 1.5) + t, 1, 5),
+    gearbox: clamp(6 + (lv.STRATEGIST - 1) + (t > 1 ? 1 : 0), 6, 8),
+    // slim pods once the floor is doing the work, soft tyres once the grip is there to use
+    sidepods: t >= 2 ? 'SLIM' : 'STD',
+    tyres: t >= 3 || lv.TYRES > 2 ? 'SOFT' : t >= 1 || lv.TYRES > 1 ? 'MEDIUM' : 'HARD',
+    drs: t >= 1 || lv.SIMULATOR > 1,
+    fin: t >= 1 || lv.AERO > 2,
   };
 }
 
 function teamFor() {
-  const T = SCR.team, team = T.newTeam();
+  const T = SCR.team, team = T.newTeam(), t = tierNow();
   for (const p of ALL) { const r = team.roles[p.ui]; if (r) { r.level = st.levels[p.key] || 1; r.xp = 0; } }
   team.level = Object.values(team.roles).reduce((a, r) => a + r.level, 0);
-  team.era = T.eraFor ? T.eraFor(team.level) : team.era;
+  // The garage reads era.index to pick which of its six rooms to build and era.f to build
+  // the car on the jacks, so the facility has to follow the same tier as the track does.
+  // (T.era is the real function; the T.eraFor this used to call has never existed, so the
+  // room was pinned to the 1994 lock-up for the whole season.)
+  const base = T.era ? T.era(team.level) : { name: TIERS[t].name, key: 'TIER', index: t };
+  team.era = { ...base, f: TIERS[t].era, index: Math.min(5, t), name: TIERS[t].name };
   return team;
 }
 
@@ -489,11 +525,12 @@ function toRun() { swap(() => A.setScene('run')); }
 function showGarage(role, close) {
   const g = SCR.scenes.garage; if (!g) return;
   const cross = A.sceneName !== 'garage';
-  if (cross) swap(() => { A.setScene('garage', { spec: harnessSpec(), era: 0 });
+  if (cross) swap(() => { A.setScene('garage', { spec: harnessSpec(), era: TIERS[tierNow()].era });
     g.setTeam(teamFor(), harnessSpec());
     g.select(role ? (BY_KEY[role] || {}).ui : null);
     g.setCamera(close && role ? 'STATION_' + (BY_KEY[role] || {}).ui : 'OVERVIEW'); });
   if (cross) return;
+  paintTier();
   g.setTeam(teamFor(), harnessSpec());
   const ui = role ? (BY_KEY[role] || {}).ui : null;
   g.select(ui);
@@ -504,10 +541,14 @@ function showGarage(role, close) {
 
 const track = { name: 'run' };
 track.enter = function () {
-  const circ = SCR.world.makeCircuit(A.seed + st.i * 7), world = SCR.world.build(circ);
-  track.spec = harnessSpec();
+  const t = tierNow();
+  const circ = SCR.world.makeCircuit(A.seed + st.i * 7);
+  const world = SCR.world.build(circ, { tier: t });
+  track.tier = t;
+  paintTier();
+  track.spec = harnessSpec(t);
   track.dd = SCR.car.derive(track.spec);
-  track.mesh = SCR.car.build(track.spec, 0);
+  track.mesh = SCR.car.build(track.spec, TIERS[t].era);
   track.car = SCR.car.newState();
   SCR.sim.physics(track.car, track.dd, track.spec, circ, 0, {});
   track.scene = SCR.trackScene.create({ R, world, car: track.car });

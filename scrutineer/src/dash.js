@@ -237,6 +237,26 @@ D.verdict = function (word, tone) {
   nodes.verdict.className = 'verdict' + (tone ? ' ' + tone : '');
 };
 
+// The state of tune, pinned over the picture. Five pips and a name: the point is that you
+// can see the car and the circuit change and then read what changed, not the other way round.
+D.tier = function (index, name, of, count) {
+  const hud = $('hud'); if (!hud) return;
+  let box = $('tierBadge');
+  if (!box) {
+    box = el('div', 'tier'); box.id = 'tierBadge';
+    box.innerHTML = '<div class="tier-top"><b data-name></b><span class="tier-pips" data-pips></span></div>'
+      + '<div class="tier-of" data-of></div>';
+    hud.append(box);
+  }
+  box.querySelector('[data-name]').textContent = name;
+  box.querySelector('[data-of]').textContent = of || '';
+  const pips = box.querySelector('[data-pips]');
+  if (pips.children.length !== count) { pips.textContent = '';
+    for (let i = 0; i < count; i++) pips.append(el('i')); }
+  [...pips.children].forEach((p, i) => { p.className = i <= index ? 'on' : ''; });
+  box.classList.remove('bump'); void box.offsetWidth; box.classList.add('bump');
+};
+
 D.reset = function () {
   D.gatesClear();
   D.verdict('STANDBY');
