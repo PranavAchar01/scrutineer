@@ -57,7 +57,7 @@ R.interfaces = function (ctx, w, h, t, data) {
   ctx.save();
 
   // one decision from the box, taken once — every font call downstream reads it.
-  const small = h < 190 || w < 300;
+  const small = T.small(w, h);
   const pad = small ? 6 : 10, gap = small ? 4 : 6;
   const pw = w - pad * 2, ph = h - pad * 2;
   if (!(pw > 40) || !(ph > 20)) { ctx.restore(); T.empty(ctx, w, h, 'no room'); return; }
@@ -177,7 +177,7 @@ R.ruleHeat = function (ctx, w, h, t, data) {
   ctx.save();
 
   // one decision from the box, taken once — every font call downstream reads it.
-  const small = h < 190 || w < 300;
+  const small = T.small(w, h);
   const padT = small ? 8 : 12, padB = small ? 14 : 18;
   const padR = small ? 6 : 10, padL = small ? 6 : 10;
   const labelW = clamp(w * 0.34, 0, small ? 78 : 118);
@@ -289,7 +289,7 @@ R.diffView = function (ctx, w, h, t, data) {
   ctx.save();
 
   // one decision from the box, taken once — every font call downstream reads it.
-  const small = h < 190 || w < 300;
+  const small = T.small(w, h);
   const padL = small ? 8 : 12, padR = small ? 6 : 10;
   const padT = small ? 6 : 9, padB = small ? 4 : 6;
   const availW = w - padL - padR;
@@ -319,7 +319,7 @@ R.diffView = function (ctx, w, h, t, data) {
   const bodyH = h - bodyY - padB;
   if (!(bodyH > 6)) { ctx.restore(); return; }
 
-  ctx.font = T.font('axis', small);
+  ctx.font = T.font('code', small);
   const adv = ctx.measureText('0').width;          // measured, never assumed
   const lh = small ? 9.5 : 11;
   const rows = Math.max(0, Math.floor(bodyH / lh));

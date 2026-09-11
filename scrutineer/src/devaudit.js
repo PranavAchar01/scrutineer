@@ -34,7 +34,7 @@ function fit (ctx, s, max) {
 function bad (w, h) { return !(w > 0) || !(h > 0); }
 
 // one shrink decision per panel, taken from the panel's own box — never per string.
-function isSmall (w, h) { return h < 190 || w < 300; }
+function isSmall (w, h) { return SCR.devtheme.small(w, h); }
 
 // ---------------------------------------------------------------------------
 // 1. tamper matrix — functional role x obligation, as a heatmap

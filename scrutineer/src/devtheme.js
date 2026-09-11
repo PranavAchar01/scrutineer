@@ -9,7 +9,9 @@
 // Three rules this file exists to enforce, because eleven panels drawn by four
 // hands drifted apart on all three:
 //
-//   TYPE    six sizes, no others. Nothing builds a font string by hand.
+//   TYPE    three families, eight sizes, no others. Nothing builds a font
+//           string by hand: a serif for titles, Inter for every small thing,
+//           and a system monospace for the one place columns must line up.
 //   MOTION  movement means something or it does not happen. See MOTION below.
 //   ICONS   one set, Lucide (MIT, lucide.dev), inlined as primitives so the
 //           page carries no runtime icon dependency.
@@ -37,35 +39,54 @@ T.C = {
 };
 
 // ---------------------------------------------------------------------------------------
-// type: six sizes, and nothing may invent a seventh
+// type: three families with one job each, and eight sizes. Nothing invents a ninth.
+//
+//   SERIF  Hedvig Letters Serif, one weight only — titles and the one number a panel is
+//          built around. It is the voice of the view; it never sets running text.
+//   UI     Inter — every label, qualifier, tick and tag. All the small text.
+//   CODE   the platform's own monospace — the diff, and only the diff. A unified diff
+//          needs its columns to line up, and that is the one thing Inter cannot do.
+//          Kept as a system stack rather than a third download.
 // ---------------------------------------------------------------------------------------
-const SANS = "'Geist', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif";
-const MONO = "'Geist Mono', ui-monospace, 'SF Mono', Menlo, Consolas, monospace";
-T.SANS = SANS;
-T.MONO = MONO;
+const SERIF = "'Hedvig Letters Serif', ui-serif, Georgia, 'Times New Roman', serif";
+const UI = "'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif";
+const CODE = "ui-monospace, 'SF Mono', SFMono-Regular, Menlo, Consolas, monospace";
+T.SERIF = SERIF;
+T.UI = UI;
+T.CODE = CODE;
 
-// hero  one number a panel is built around      value  a number read in passing
-// label the name of a thing                     sub    a qualifier on a label
-// axis  a tick                                  tag    a state word, never a sentence
+// title a card's name           hero  the one number a panel is built around
+// value a number read in passing label the name of a thing
+// sub   a qualifier on a label   axis  a tick
+// tag   a state word             code  a line of a diff
+// Hedvig ships a single weight; asking for 600 would synthesise a bold and thicken it.
 T.F = {
-  hero:  `500 20px ${MONO}`,
-  value: `400 13px ${MONO}`,
-  label: `600 11px ${SANS}`,
-  sub:   `500 10px ${SANS}`,
-  axis:  `400 9px ${MONO}`,
-  tag:   `500 9px ${SANS}`,
+  title: `400 15px ${SERIF}`,
+  hero:  `400 24px ${SERIF}`,
+  value: `500 13px ${UI}`,
+  label: `600 11px ${UI}`,
+  sub:   `500 10px ${UI}`,
+  axis:  `500 9px ${UI}`,
+  tag:   `600 9px ${UI}`,
+  code:  `400 10px ${CODE}`,
 };
-// Cards get shorter than a desk layout in the folded grid. Rather than let each panel
-// invent its own shrink rule, one step down is available and that is the whole ladder.
+// Cards get shorter in the folded grid. One step down is available and that is the whole
+// ladder — no panel scales a size of its own.
 T.Fs = {
-  hero:  `500 15px ${MONO}`,
-  value: `400 11px ${MONO}`,
-  label: `600 10px ${SANS}`,
-  sub:   `500 9px ${SANS}`,
-  axis:  `400 8px ${MONO}`,
-  tag:   `500 8px ${SANS}`,
+  title: `400 13px ${SERIF}`,
+  hero:  `400 18px ${SERIF}`,
+  value: `500 11px ${UI}`,
+  label: `600 10px ${UI}`,
+  sub:   `500 9px ${UI}`,
+  axis:  `500 8px ${UI}`,
+  tag:   `600 8px ${UI}`,
+  code:  `400 9px ${CODE}`,
 };
-// `small` is decided from the panel box, once, by the caller — never per string.
+// `small` is decided from the panel box, once, by the caller — never per string. The test
+// lives here rather than in each panel because it was written eight times and drifted: a
+// 300px threshold fired on every card of a five-column desktop grid, so the whole view was
+// reading one step down from the scale it was designed at.
+T.small = (w, h) => h < 175 || w < 265;
 T.font = (name, small) => (small ? T.Fs : T.F)[name] || T.F.label;
 
 // ---------------------------------------------------------------------------------------
@@ -128,7 +149,7 @@ function shapes(name) {
 // 14px icon and a 24px icon read as the same drawing, not as two different weights.
 T.icon = function (ctx, name, x, y, size, colour, alpha) {
   const p = shapes(name); if (!p) return;
-  const k = size / 24;
+  const k = (size || 18) / 24;
   ctx.save();
   ctx.translate(x, y); ctx.scale(k, k);
   ctx.strokeStyle = colour || T.C.dim;
@@ -145,7 +166,7 @@ T.iconSvg = function (name, size, colour) {
     : s.l ? `<line x1="${s.l[0]}" y1="${s.l[1]}" x2="${s.l[2]}" y2="${s.l[3]}"/>`
     : s.c ? `<circle cx="${s.c[0]}" cy="${s.c[1]}" r="${s.c[2]}"/>`
     : `<rect x="${s.r[0]}" y="${s.r[1]}" width="${s.r[2]}" height="${s.r[3]}" rx="${s.r[4]}"/>`).join('');
-  return `<svg viewBox="0 0 24 24" width="${size || 13}" height="${size || 13}" fill="none" `
+  return `<svg viewBox="0 0 24 24" width="${size || 18}" height="${size || 18}" fill="none" `
     + `stroke="${colour || T.C.dim}" stroke-width="2" stroke-linecap="round" `
     + `stroke-linejoin="round" aria-hidden="true">${body}</svg>`;
 };

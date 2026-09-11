@@ -52,7 +52,7 @@ G.creditGraph = function (ctx, w, h, t, data) {
   ctx.save();
 
   // one decision from the box, taken once — every font call downstream reads it.
-  const small = h < 190 || w < 300;
+  const small = T.small(w, h);
   const padX = small ? 20 : 30;
   const padY = small ? 12 : 16;
   const xL = padX, xR = w - padX;
@@ -155,7 +155,7 @@ G.failureModes = function (ctx, w, h, t, data) {
 
   ctx.save();
 
-  const small = h < 190 || w < 300;
+  const small = T.small(w, h);
   const labelW = clamp(w * 0.28, 44, 96);
   const numW = small ? 30 : 40;
   const x0 = labelW + 6;
@@ -210,7 +210,7 @@ G.runHistory = function (ctx, w, h, t, data) {
 
   ctx.save();
 
-  const small = h < 190 || w < 300;
+  const small = T.small(w, h);
   const padL = small ? 22 : 30, padR = small ? 8 : 12;
   const padT = small ? 14 : 18;
   const costH = clamp(h * 0.16, 10, 34);

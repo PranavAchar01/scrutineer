@@ -163,7 +163,7 @@ V.setContext = function (tier, circuit) {
 function card(host, id, icon, title, note) {
   const n = el('div', 'dcard');
   const h = el('div', 'dcard-h');
-  h.innerHTML = `<span>${SCR.devtheme.iconSvg(icon, 13)}${title}</span>`
+  h.innerHTML = `<span>${SCR.devtheme.iconSvg(icon, 17)}${title}</span>`
     + (note ? `<em>${note}</em>` : '');
   const cv = el('canvas');
   n.append(h, cv);
@@ -278,7 +278,7 @@ function size() {
 // The only panel allowed to move: the motion is throughput, which is the thing it is about.
 // ---------------------------------------------------------------------------------------
 function drawPipe(ctx, w, h, t) {
-  const c = C(), th = T(), small = h < 190 || w < 380;
+  const c = C(), th = T(), small = th.small(w, h);
   const n = OPS.length, padX = 16, gap = (w - padX * 2) / n;
   const cy = h * 0.42, r = Math.max(10, Math.min(17, gap * 0.15));
 
@@ -312,10 +312,10 @@ function drawPipe(ctx, w, h, t) {
 
     // the one span that leaves this machine. The icon replaces the sentence that was here.
     if (o.remote) {
-      th.icon(ctx, 'server', x - 7, cy - r - 21, 14, c.rose);
+      th.icon(ctx, 'server', x - 9, cy - r - 26, 18, c.rose);
       ctx.strokeStyle = c.rose; ctx.lineWidth = 1;
       ctx.setLineDash([2, 2]);
-      ctx.beginPath(); ctx.moveTo(th.crisp(x), cy - r - 4); ctx.lineTo(th.crisp(x), cy - r - 22);
+      ctx.beginPath(); ctx.moveTo(th.crisp(x), cy - r - 4); ctx.lineTo(th.crisp(x), cy - r - 27);
       ctx.stroke(); ctx.setLineDash([]);
     }
 
@@ -333,7 +333,7 @@ function drawPipe(ctx, w, h, t) {
 // shimmered implied it was still moving, and it is not.
 // ---------------------------------------------------------------------------------------
 function drawInfer(ctx, w, h) {
-  const c = C(), th = T(), small = h < 190 || w < 300;
+  const c = C(), th = T(), small = th.small(w, h);
   const m = D.meters.driver;
   if (!m) return th.empty(ctx, w, h, 'no meter');
   const calls = m.calls || 0, hits = m.cache_hits || 0, total = calls + hits || 1;
@@ -379,7 +379,7 @@ function drawInfer(ctx, w, h) {
 // one thing on this card worth a glance.
 // ---------------------------------------------------------------------------------------
 function drawRails(ctx, w, h, t) {
-  const c = C(), small = h < 190 || w < 300;
+  const c = C(), th = T(), small = th.small(w, h);
   const rowH = Math.min(22, (h - 6) / RAILS.length);
   RAILS.forEach((rl, i) => {
     const backend = (D.backends[rl.key] || '').split('—')[0].trim();

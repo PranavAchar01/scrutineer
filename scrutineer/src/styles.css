@@ -431,15 +431,15 @@ button:focus-visible{outline:2px solid var(--cyan);outline-offset:2px}
 
 /* ---- the view switch, and the developer view it reveals ----
    The developer view does not inherit the broadcast's look. It is an instrument
-   panel, not an arcade cabinet: its own cooler palette, Geist instead of Press
-   Start 2P, hairlines instead of blocks. The tokens live under #dev so neither
+   panel, not an arcade cabinet: its own cooler palette, a serif for titles and
+   Inter for everything small instead of Press Start 2P, hairlines instead of blocks. The tokens live under #dev so neither
    set can leak into the other. */
 .vswitch{display:flex;gap:2px;flex:none}
 .vtab{font-family:"Press Start 2P","Courier New",monospace;font-size:8px;padding:9px 11px;
   background:#0B1038;color:var(--mid);border:0;border-bottom:3px solid var(--studio);cursor:pointer}
 .vtab:hover{color:var(--caption)}
 .vtab.active{background:var(--studio);color:var(--cyan);border-bottom-color:var(--cyan)}
-.app.devmode .vtab{font-family:"Geist",ui-sans-serif,system-ui,sans-serif;font-weight:500;
+.app.devmode .vtab{font-family:"Inter",ui-sans-serif,system-ui,sans-serif;font-weight:500;
   font-size:12px;letter-spacing:-.01em;text-transform:none;padding:8px 13px;background:#111418;
   color:#5C646F;border-bottom-color:#1C2026}
 .app.devmode .vtab.active{background:#171B21;color:#E7EAEE;border-bottom-color:#5B8DEF}
@@ -451,9 +451,9 @@ button:focus-visible{outline:2px solid var(--cyan);outline-offset:2px}
 .app.devmode .hdr-chips{display:none}
 .app.devmode .mark{color:#E7EAEE;text-shadow:none}
 .app.devmode .mark::after{background:#5B8DEF;height:2px;background-image:none}
-.app.devmode .runcount{font-family:"Geist Mono",ui-monospace,monospace;font-size:11px;
+.app.devmode .runcount{font-family:"Inter",ui-sans-serif,system-ui,sans-serif;font-size:11px;
   color:#5C646F;text-transform:none}
-.app.devmode .run{font-family:"Geist",ui-sans-serif,system-ui,sans-serif;font-weight:600;
+.app.devmode .run{font-family:"Inter",ui-sans-serif,system-ui,sans-serif;font-weight:600;
   font-size:12px;letter-spacing:-.01em;text-transform:none;background:#5B8DEF;color:#08090B;
   padding:9px 16px;border-radius:5px}
 .app.devmode .run:hover:not(:disabled){background:#7BA3F5}
@@ -466,10 +466,10 @@ button:focus-visible{outline:2px solid var(--cyan);outline-offset:2px}
 /* the run context strip: every scalar the broadcast rail carries, in one row */
 .dstrip{display:flex;align-items:center;gap:14px;flex:none;background:#0E1013;
   border:1px solid #1C2026;border-radius:7px;padding:7px 11px;overflow:hidden;
-  font-family:"Geist",ui-sans-serif,system-ui,sans-serif}
+  font-family:"Inter",ui-sans-serif,system-ui,sans-serif}
 .ds-run{display:flex;align-items:baseline;gap:4px;flex:none}
-.ds-run b{font-family:"Geist Mono",ui-monospace,monospace;font-size:13px;color:#E7EAEE}
-.ds-run span{font-family:"Geist Mono",ui-monospace,monospace;font-size:10px;color:#5C646F}
+.ds-run b{font-family:"Hedvig Letters Serif",ui-serif,Georgia,serif;font-weight:400;font-size:16px;color:#E7EAEE}
+.ds-run span{font-family:"Inter",ui-sans-serif,system-ui,sans-serif;font-size:10px;color:#5C646F}
 .ds-steps{display:flex;gap:3px;flex:none}
 .ds-step{display:flex;flex-direction:column;gap:3px;min-width:44px}
 .ds-step u{display:block;height:2px;background:#1C2026;border-radius:1px}
@@ -479,7 +479,7 @@ button:focus-visible{outline:2px solid var(--cyan);outline-offset:2px}
 .ds-stats{display:flex;gap:14px;flex:1;min-width:0;overflow:hidden}
 .ds-stat{display:flex;flex-direction:column;gap:1px;min-width:0}
 .ds-stat span{font-size:9px;font-weight:500;color:#5C646F;letter-spacing:.01em}
-.ds-stat b{font-family:"Geist Mono",ui-monospace,monospace;font-size:13px;color:#E7EAEE;
+.ds-stat b{font-family:"Inter",ui-sans-serif,system-ui,sans-serif;font-size:13px;color:#E7EAEE;
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .ds-stat b.good{color:#3FCF8E}.ds-stat b.bad{color:#F05E6B}
 .ds-verdict{display:flex;align-items:center;gap:6px;flex:none;padding:4px 9px;
@@ -496,14 +496,14 @@ button:focus-visible{outline:2px solid var(--cyan);outline-offset:2px}
 .dcard{display:flex;flex-direction:column;min-width:0;min-height:0;background:#0E1013;
   border:1px solid #1C2026;border-radius:7px;overflow:hidden}
 .dcard canvas{flex:1;min-height:0;width:100%;display:block}
-.dcard-h{display:flex;justify-content:space-between;align-items:baseline;gap:9px;flex:none;
-  padding:7px 10px 6px;border-bottom:1px solid #161A20}
-.dcard-h span{display:flex;align-items:center;gap:6px;min-width:0;
-  font-family:"Geist",ui-sans-serif,system-ui,sans-serif;font-weight:600;
-  font-size:11px;letter-spacing:-.01em;color:#E7EAEE;white-space:nowrap;overflow:hidden;
+.dcard-h{display:flex;justify-content:space-between;align-items:center;gap:9px;flex:none;
+  padding:6px 10px 6px;border-bottom:1px solid #161A20}
+.dcard-h span{display:flex;align-items:center;gap:7px;min-width:0;
+  font-family:"Hedvig Letters Serif",ui-serif,Georgia,serif;font-weight:400;
+  font-size:15px;letter-spacing:0;color:#E7EAEE;white-space:nowrap;overflow:hidden;
   text-overflow:ellipsis}
-.dcard-h span svg{flex:none;opacity:.85}
-.dcard-h em{font-style:normal;font-family:"Geist Mono",ui-monospace,monospace;font-size:9px;
+.dcard-h span svg{flex:none;opacity:1}
+.dcard-h em{font-style:normal;font-family:"Inter",ui-sans-serif,system-ui,sans-serif;font-size:9px;
   color:#5C646F;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:-.02em}
 /* a hairline of accent on the top edge, not a slab down the side */
 .dcard::before{content:"";height:2px;flex:none;background:#1C2026}

@@ -1,5 +1,5 @@
 <title>Scrutineer</title>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&family=Hedvig+Letters+Serif&family=Inter:wght@400;500;600;700&display=swap">
 <style>
 /* The Artifact runtime's head reset supplies this; a standalone document does not, and without
    it any class-level `display` silently overrides the [hidden] attribute. That is how an 82 %
@@ -434,15 +434,15 @@ button:focus-visible{outline:2px solid var(--cyan);outline-offset:2px}
 
 /* ---- the view switch, and the developer view it reveals ----
    The developer view does not inherit the broadcast's look. It is an instrument
-   panel, not an arcade cabinet: its own cooler palette, Geist instead of Press
-   Start 2P, hairlines instead of blocks. The tokens live under #dev so neither
+   panel, not an arcade cabinet: its own cooler palette, a serif for titles and
+   Inter for everything small instead of Press Start 2P, hairlines instead of blocks. The tokens live under #dev so neither
    set can leak into the other. */
 .vswitch{display:flex;gap:2px;flex:none}
 .vtab{font-family:"Press Start 2P","Courier New",monospace;font-size:8px;padding:9px 11px;
   background:#0B1038;color:var(--mid);border:0;border-bottom:3px solid var(--studio);cursor:pointer}
 .vtab:hover{color:var(--caption)}
 .vtab.active{background:var(--studio);color:var(--cyan);border-bottom-color:var(--cyan)}
-.app.devmode .vtab{font-family:"Geist",ui-sans-serif,system-ui,sans-serif;font-weight:500;
+.app.devmode .vtab{font-family:"Inter",ui-sans-serif,system-ui,sans-serif;font-weight:500;
   font-size:12px;letter-spacing:-.01em;text-transform:none;padding:8px 13px;background:#111418;
   color:#5C646F;border-bottom-color:#1C2026}
 .app.devmode .vtab.active{background:#171B21;color:#E7EAEE;border-bottom-color:#5B8DEF}
@@ -454,9 +454,9 @@ button:focus-visible{outline:2px solid var(--cyan);outline-offset:2px}
 .app.devmode .hdr-chips{display:none}
 .app.devmode .mark{color:#E7EAEE;text-shadow:none}
 .app.devmode .mark::after{background:#5B8DEF;height:2px;background-image:none}
-.app.devmode .runcount{font-family:"Geist Mono",ui-monospace,monospace;font-size:11px;
+.app.devmode .runcount{font-family:"Inter",ui-sans-serif,system-ui,sans-serif;font-size:11px;
   color:#5C646F;text-transform:none}
-.app.devmode .run{font-family:"Geist",ui-sans-serif,system-ui,sans-serif;font-weight:600;
+.app.devmode .run{font-family:"Inter",ui-sans-serif,system-ui,sans-serif;font-weight:600;
   font-size:12px;letter-spacing:-.01em;text-transform:none;background:#5B8DEF;color:#08090B;
   padding:9px 16px;border-radius:5px}
 .app.devmode .run:hover:not(:disabled){background:#7BA3F5}
@@ -469,10 +469,10 @@ button:focus-visible{outline:2px solid var(--cyan);outline-offset:2px}
 /* the run context strip: every scalar the broadcast rail carries, in one row */
 .dstrip{display:flex;align-items:center;gap:14px;flex:none;background:#0E1013;
   border:1px solid #1C2026;border-radius:7px;padding:7px 11px;overflow:hidden;
-  font-family:"Geist",ui-sans-serif,system-ui,sans-serif}
+  font-family:"Inter",ui-sans-serif,system-ui,sans-serif}
 .ds-run{display:flex;align-items:baseline;gap:4px;flex:none}
-.ds-run b{font-family:"Geist Mono",ui-monospace,monospace;font-size:13px;color:#E7EAEE}
-.ds-run span{font-family:"Geist Mono",ui-monospace,monospace;font-size:10px;color:#5C646F}
+.ds-run b{font-family:"Hedvig Letters Serif",ui-serif,Georgia,serif;font-weight:400;font-size:16px;color:#E7EAEE}
+.ds-run span{font-family:"Inter",ui-sans-serif,system-ui,sans-serif;font-size:10px;color:#5C646F}
 .ds-steps{display:flex;gap:3px;flex:none}
 .ds-step{display:flex;flex-direction:column;gap:3px;min-width:44px}
 .ds-step u{display:block;height:2px;background:#1C2026;border-radius:1px}
@@ -482,7 +482,7 @@ button:focus-visible{outline:2px solid var(--cyan);outline-offset:2px}
 .ds-stats{display:flex;gap:14px;flex:1;min-width:0;overflow:hidden}
 .ds-stat{display:flex;flex-direction:column;gap:1px;min-width:0}
 .ds-stat span{font-size:9px;font-weight:500;color:#5C646F;letter-spacing:.01em}
-.ds-stat b{font-family:"Geist Mono",ui-monospace,monospace;font-size:13px;color:#E7EAEE;
+.ds-stat b{font-family:"Inter",ui-sans-serif,system-ui,sans-serif;font-size:13px;color:#E7EAEE;
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .ds-stat b.good{color:#3FCF8E}.ds-stat b.bad{color:#F05E6B}
 .ds-verdict{display:flex;align-items:center;gap:6px;flex:none;padding:4px 9px;
@@ -499,14 +499,14 @@ button:focus-visible{outline:2px solid var(--cyan);outline-offset:2px}
 .dcard{display:flex;flex-direction:column;min-width:0;min-height:0;background:#0E1013;
   border:1px solid #1C2026;border-radius:7px;overflow:hidden}
 .dcard canvas{flex:1;min-height:0;width:100%;display:block}
-.dcard-h{display:flex;justify-content:space-between;align-items:baseline;gap:9px;flex:none;
-  padding:7px 10px 6px;border-bottom:1px solid #161A20}
-.dcard-h span{display:flex;align-items:center;gap:6px;min-width:0;
-  font-family:"Geist",ui-sans-serif,system-ui,sans-serif;font-weight:600;
-  font-size:11px;letter-spacing:-.01em;color:#E7EAEE;white-space:nowrap;overflow:hidden;
+.dcard-h{display:flex;justify-content:space-between;align-items:center;gap:9px;flex:none;
+  padding:6px 10px 6px;border-bottom:1px solid #161A20}
+.dcard-h span{display:flex;align-items:center;gap:7px;min-width:0;
+  font-family:"Hedvig Letters Serif",ui-serif,Georgia,serif;font-weight:400;
+  font-size:15px;letter-spacing:0;color:#E7EAEE;white-space:nowrap;overflow:hidden;
   text-overflow:ellipsis}
-.dcard-h span svg{flex:none;opacity:.85}
-.dcard-h em{font-style:normal;font-family:"Geist Mono",ui-monospace,monospace;font-size:9px;
+.dcard-h span svg{flex:none;opacity:1}
+.dcard-h em{font-style:normal;font-family:"Inter",ui-sans-serif,system-ui,sans-serif;font-size:9px;
   color:#5C646F;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:-.02em}
 /* a hairline of accent on the top edge, not a slab down the side */
 .dcard::before{content:"";height:2px;flex:none;background:#1C2026}
@@ -10111,7 +10111,9 @@ D.reset = function () {
 // Three rules this file exists to enforce, because eleven panels drawn by four
 // hands drifted apart on all three:
 //
-//   TYPE    six sizes, no others. Nothing builds a font string by hand.
+//   TYPE    three families, eight sizes, no others. Nothing builds a font
+//           string by hand: a serif for titles, Inter for every small thing,
+//           and a system monospace for the one place columns must line up.
 //   MOTION  movement means something or it does not happen. See MOTION below.
 //   ICONS   one set, Lucide (MIT, lucide.dev), inlined as primitives so the
 //           page carries no runtime icon dependency.
@@ -10139,35 +10141,54 @@ T.C = {
 };
 
 // ---------------------------------------------------------------------------------------
-// type: six sizes, and nothing may invent a seventh
+// type: three families with one job each, and eight sizes. Nothing invents a ninth.
+//
+//   SERIF  Hedvig Letters Serif, one weight only — titles and the one number a panel is
+//          built around. It is the voice of the view; it never sets running text.
+//   UI     Inter — every label, qualifier, tick and tag. All the small text.
+//   CODE   the platform's own monospace — the diff, and only the diff. A unified diff
+//          needs its columns to line up, and that is the one thing Inter cannot do.
+//          Kept as a system stack rather than a third download.
 // ---------------------------------------------------------------------------------------
-const SANS = "'Geist', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif";
-const MONO = "'Geist Mono', ui-monospace, 'SF Mono', Menlo, Consolas, monospace";
-T.SANS = SANS;
-T.MONO = MONO;
+const SERIF = "'Hedvig Letters Serif', ui-serif, Georgia, 'Times New Roman', serif";
+const UI = "'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif";
+const CODE = "ui-monospace, 'SF Mono', SFMono-Regular, Menlo, Consolas, monospace";
+T.SERIF = SERIF;
+T.UI = UI;
+T.CODE = CODE;
 
-// hero  one number a panel is built around      value  a number read in passing
-// label the name of a thing                     sub    a qualifier on a label
-// axis  a tick                                  tag    a state word, never a sentence
+// title a card's name           hero  the one number a panel is built around
+// value a number read in passing label the name of a thing
+// sub   a qualifier on a label   axis  a tick
+// tag   a state word             code  a line of a diff
+// Hedvig ships a single weight; asking for 600 would synthesise a bold and thicken it.
 T.F = {
-  hero:  `500 20px ${MONO}`,
-  value: `400 13px ${MONO}`,
-  label: `600 11px ${SANS}`,
-  sub:   `500 10px ${SANS}`,
-  axis:  `400 9px ${MONO}`,
-  tag:   `500 9px ${SANS}`,
+  title: `400 15px ${SERIF}`,
+  hero:  `400 24px ${SERIF}`,
+  value: `500 13px ${UI}`,
+  label: `600 11px ${UI}`,
+  sub:   `500 10px ${UI}`,
+  axis:  `500 9px ${UI}`,
+  tag:   `600 9px ${UI}`,
+  code:  `400 10px ${CODE}`,
 };
-// Cards get shorter than a desk layout in the folded grid. Rather than let each panel
-// invent its own shrink rule, one step down is available and that is the whole ladder.
+// Cards get shorter in the folded grid. One step down is available and that is the whole
+// ladder — no panel scales a size of its own.
 T.Fs = {
-  hero:  `500 15px ${MONO}`,
-  value: `400 11px ${MONO}`,
-  label: `600 10px ${SANS}`,
-  sub:   `500 9px ${SANS}`,
-  axis:  `400 8px ${MONO}`,
-  tag:   `500 8px ${SANS}`,
+  title: `400 13px ${SERIF}`,
+  hero:  `400 18px ${SERIF}`,
+  value: `500 11px ${UI}`,
+  label: `600 10px ${UI}`,
+  sub:   `500 9px ${UI}`,
+  axis:  `500 8px ${UI}`,
+  tag:   `600 8px ${UI}`,
+  code:  `400 9px ${CODE}`,
 };
-// `small` is decided from the panel box, once, by the caller — never per string.
+// `small` is decided from the panel box, once, by the caller — never per string. The test
+// lives here rather than in each panel because it was written eight times and drifted: a
+// 300px threshold fired on every card of a five-column desktop grid, so the whole view was
+// reading one step down from the scale it was designed at.
+T.small = (w, h) => h < 175 || w < 265;
 T.font = (name, small) => (small ? T.Fs : T.F)[name] || T.F.label;
 
 // ---------------------------------------------------------------------------------------
@@ -10230,7 +10251,7 @@ function shapes(name) {
 // 14px icon and a 24px icon read as the same drawing, not as two different weights.
 T.icon = function (ctx, name, x, y, size, colour, alpha) {
   const p = shapes(name); if (!p) return;
-  const k = size / 24;
+  const k = (size || 18) / 24;
   ctx.save();
   ctx.translate(x, y); ctx.scale(k, k);
   ctx.strokeStyle = colour || T.C.dim;
@@ -10247,7 +10268,7 @@ T.iconSvg = function (name, size, colour) {
     : s.l ? `<line x1="${s.l[0]}" y1="${s.l[1]}" x2="${s.l[2]}" y2="${s.l[3]}"/>`
     : s.c ? `<circle cx="${s.c[0]}" cy="${s.c[1]}" r="${s.c[2]}"/>`
     : `<rect x="${s.r[0]}" y="${s.r[1]}" width="${s.r[2]}" height="${s.r[3]}" rx="${s.r[4]}"/>`).join('');
-  return `<svg viewBox="0 0 24 24" width="${size || 13}" height="${size || 13}" fill="none" `
+  return `<svg viewBox="0 0 24 24" width="${size || 18}" height="${size || 18}" fill="none" `
     + `stroke="${colour || T.C.dim}" stroke-width="2" stroke-linecap="round" `
     + `stroke-linejoin="round" aria-hidden="true">${body}</svg>`;
 };
@@ -10346,7 +10367,7 @@ G.creditGraph = function (ctx, w, h, t, data) {
   ctx.save();
 
   // one decision from the box, taken once — every font call downstream reads it.
-  const small = h < 190 || w < 300;
+  const small = T.small(w, h);
   const padX = small ? 20 : 30;
   const padY = small ? 12 : 16;
   const xL = padX, xR = w - padX;
@@ -10449,7 +10470,7 @@ G.failureModes = function (ctx, w, h, t, data) {
 
   ctx.save();
 
-  const small = h < 190 || w < 300;
+  const small = T.small(w, h);
   const labelW = clamp(w * 0.28, 44, 96);
   const numW = small ? 30 : 40;
   const x0 = labelW + 6;
@@ -10504,7 +10525,7 @@ G.runHistory = function (ctx, w, h, t, data) {
 
   ctx.save();
 
-  const small = h < 190 || w < 300;
+  const small = T.small(w, h);
   const padL = small ? 22 : 30, padR = small ? 8 : 12;
   const padT = small ? 14 : 18;
   const costH = clamp(h * 0.16, 10, 34);
@@ -10680,7 +10701,7 @@ P.calibration = function (ctx, w, h, t, data) {
   ctx.save();
 
   // one decision from the box, taken once — every font call downstream reads it.
-  const small = h < 190 || w < 300;
+  const small = T.small(w, h);
   const padL = small ? 26 : 34, padR = small ? 10 : 14;
   const padT = small ? 14 : 18, padB = small ? 20 : 28;
   const pw = w - padL - padR, ph = h - padT - padB;
@@ -10855,7 +10876,7 @@ P.gateFunnel = function (ctx, w, h, t, data) {
   ctx.save();
 
   // one decision from the box, taken once — every font call downstream reads it.
-  const small = h < 190 || w < 300;
+  const small = T.small(w, h);
   const padL = small ? 22 : 30, padR = small ? 22 : 30;
   const padT = small ? 12 : 16, padB = small ? 16 : 22;
   const pw = w - padL - padR, ph = h - padT - padB;
@@ -11003,7 +11024,7 @@ function fit (ctx, s, max) {
 function bad (w, h) { return !(w > 0) || !(h > 0); }
 
 // one shrink decision per panel, taken from the panel's own box — never per string.
-function isSmall (w, h) { return h < 190 || w < 300; }
+function isSmall (w, h) { return SCR.devtheme.small(w, h); }
 
 // ---------------------------------------------------------------------------
 // 1. tamper matrix — functional role x obligation, as a heatmap
@@ -11409,7 +11430,7 @@ R.interfaces = function (ctx, w, h, t, data) {
   ctx.save();
 
   // one decision from the box, taken once — every font call downstream reads it.
-  const small = h < 190 || w < 300;
+  const small = T.small(w, h);
   const pad = small ? 6 : 10, gap = small ? 4 : 6;
   const pw = w - pad * 2, ph = h - pad * 2;
   if (!(pw > 40) || !(ph > 20)) { ctx.restore(); T.empty(ctx, w, h, 'no room'); return; }
@@ -11529,7 +11550,7 @@ R.ruleHeat = function (ctx, w, h, t, data) {
   ctx.save();
 
   // one decision from the box, taken once — every font call downstream reads it.
-  const small = h < 190 || w < 300;
+  const small = T.small(w, h);
   const padT = small ? 8 : 12, padB = small ? 14 : 18;
   const padR = small ? 6 : 10, padL = small ? 6 : 10;
   const labelW = clamp(w * 0.34, 0, small ? 78 : 118);
@@ -11641,7 +11662,7 @@ R.diffView = function (ctx, w, h, t, data) {
   ctx.save();
 
   // one decision from the box, taken once — every font call downstream reads it.
-  const small = h < 190 || w < 300;
+  const small = T.small(w, h);
   const padL = small ? 8 : 12, padR = small ? 6 : 10;
   const padT = small ? 6 : 9, padB = small ? 4 : 6;
   const availW = w - padL - padR;
@@ -11671,7 +11692,7 @@ R.diffView = function (ctx, w, h, t, data) {
   const bodyH = h - bodyY - padB;
   if (!(bodyH > 6)) { ctx.restore(); return; }
 
-  ctx.font = T.font('axis', small);
+  ctx.font = T.font('code', small);
   const adv = ctx.measureText('0').width;          // measured, never assumed
   const lh = small ? 9.5 : 11;
   const rows = Math.max(0, Math.floor(bodyH / lh));
@@ -11888,7 +11909,7 @@ V.setContext = function (tier, circuit) {
 function card(host, id, icon, title, note) {
   const n = el('div', 'dcard');
   const h = el('div', 'dcard-h');
-  h.innerHTML = `<span>${SCR.devtheme.iconSvg(icon, 13)}${title}</span>`
+  h.innerHTML = `<span>${SCR.devtheme.iconSvg(icon, 17)}${title}</span>`
     + (note ? `<em>${note}</em>` : '');
   const cv = el('canvas');
   n.append(h, cv);
@@ -12003,7 +12024,7 @@ function size() {
 // The only panel allowed to move: the motion is throughput, which is the thing it is about.
 // ---------------------------------------------------------------------------------------
 function drawPipe(ctx, w, h, t) {
-  const c = C(), th = T(), small = h < 190 || w < 380;
+  const c = C(), th = T(), small = th.small(w, h);
   const n = OPS.length, padX = 16, gap = (w - padX * 2) / n;
   const cy = h * 0.42, r = Math.max(10, Math.min(17, gap * 0.15));
 
@@ -12037,10 +12058,10 @@ function drawPipe(ctx, w, h, t) {
 
     // the one span that leaves this machine. The icon replaces the sentence that was here.
     if (o.remote) {
-      th.icon(ctx, 'server', x - 7, cy - r - 21, 14, c.rose);
+      th.icon(ctx, 'server', x - 9, cy - r - 26, 18, c.rose);
       ctx.strokeStyle = c.rose; ctx.lineWidth = 1;
       ctx.setLineDash([2, 2]);
-      ctx.beginPath(); ctx.moveTo(th.crisp(x), cy - r - 4); ctx.lineTo(th.crisp(x), cy - r - 22);
+      ctx.beginPath(); ctx.moveTo(th.crisp(x), cy - r - 4); ctx.lineTo(th.crisp(x), cy - r - 27);
       ctx.stroke(); ctx.setLineDash([]);
     }
 
@@ -12058,7 +12079,7 @@ function drawPipe(ctx, w, h, t) {
 // shimmered implied it was still moving, and it is not.
 // ---------------------------------------------------------------------------------------
 function drawInfer(ctx, w, h) {
-  const c = C(), th = T(), small = h < 190 || w < 300;
+  const c = C(), th = T(), small = th.small(w, h);
   const m = D.meters.driver;
   if (!m) return th.empty(ctx, w, h, 'no meter');
   const calls = m.calls || 0, hits = m.cache_hits || 0, total = calls + hits || 1;
@@ -12104,7 +12125,7 @@ function drawInfer(ctx, w, h) {
 // one thing on this card worth a glance.
 // ---------------------------------------------------------------------------------------
 function drawRails(ctx, w, h, t) {
-  const c = C(), small = h < 190 || w < 300;
+  const c = C(), th = T(), small = th.small(w, h);
   const rowH = Math.min(22, (h - 6) / RAILS.length);
   RAILS.forEach((rl, i) => {
     const backend = (D.backends[rl.key] || '').split('—')[0].trim();

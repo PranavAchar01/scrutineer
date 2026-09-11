@@ -57,7 +57,7 @@ P.calibration = function (ctx, w, h, t, data) {
   ctx.save();
 
   // one decision from the box, taken once — every font call downstream reads it.
-  const small = h < 190 || w < 300;
+  const small = T.small(w, h);
   const padL = small ? 26 : 34, padR = small ? 10 : 14;
   const padT = small ? 14 : 18, padB = small ? 20 : 28;
   const pw = w - padL - padR, ph = h - padT - padB;
@@ -232,7 +232,7 @@ P.gateFunnel = function (ctx, w, h, t, data) {
   ctx.save();
 
   // one decision from the box, taken once — every font call downstream reads it.
-  const small = h < 190 || w < 300;
+  const small = T.small(w, h);
   const padL = small ? 22 : 30, padR = small ? 22 : 30;
   const padT = small ? 12 : 16, padB = small ? 16 : 22;
   const pw = w - padL - padR, ph = h - padT - padB;
