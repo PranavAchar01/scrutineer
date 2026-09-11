@@ -11,13 +11,19 @@
 const G = SCR.devgraphs = {};
 
 // project tokens. nothing here invents a colour.
-const NIGHT = '#06081A', STUDIO = '#121A4A', TARMAC = '#2C2E3A';
-const WHITE = '#FFFFFF', CAPTION = '#C8CBD8', MID = '#6A6F8A';
-const GOLD = '#F4C542', RED = '#E31E2D', PURPLE = '#B04BFF';
-const CYAN = '#3DD2FF', GREEN = '#2FD968', AMBER = '#FFA318';
+// The developer view's palette, not the broadcast's: this file draws instruments, so the
+// names below are bound to SCR.devtheme rather than to the arcade tokens they started as.
+const TH = () => SCR.devtheme;
+const NIGHT = '#0E1013', STUDIO = '#161A20', TARMAC = '#1C2026';
+const WHITE = '#E7EAEE', CAPTION = '#949BA6', MID = '#5C646F';
+const GOLD = '#F5A524', RED = '#F05E6B', PURPLE = '#A78BFA';
+const CYAN = '#5B8DEF', GREEN = '#3FCF8E', AMBER = '#F5A524';
 
-const PX = "px 'Press Start 2P', monospace";   // labels: shouting, so keep them short
-const VT = "px 'VT323', monospace";            // numbers: the actual content
+// Geist for words, Geist Mono for anything compared by eye. The old pixel faces ran two
+// thirds the optical size of these at the same px, so every call site is scaled to match.
+const SANS = ", ui-sans-serif, system-ui, sans-serif";
+const LB = n => `500 ${Math.round(n * 1.55)}px 'Geist'${SANS}`;
+const NUM = n => `400 ${Math.round(n * 0.82)}px 'Geist Mono', ui-monospace, monospace`;
 
 const TAU = Math.PI * 2;
 const clamp = (v, a, b) => v < a ? a : v > b ? b : v;
@@ -36,10 +42,10 @@ function empty (ctx, w, h) {
   ctx.save();
   ctx.globalAlpha = 0.55;
   ctx.fillStyle = MID;
-  ctx.font = 7 + PX;
+  ctx.font = LB(7);
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
-  ctx.fillText('NO DATA', w / 2, h / 2);
+  ctx.fillText('no data', w / 2, h / 2);
   ctx.restore();
 }
 
@@ -112,7 +118,7 @@ G.creditGraph = function (ctx, w, h, t, data) {
   }
 
   // ---- nodes ----
-  ctx.font = fs + PX;
+  ctx.font = LB(fs);
   ctx.textBaseline = 'middle';
 
   ctx.textAlign = 'right';
@@ -201,13 +207,13 @@ G.failureModes = function (ctx, w, h, t, data) {
 
     ctx.globalAlpha = 0.82;
     ctx.fillStyle = CAPTION;
-    ctx.font = fs + PX;
+    ctx.font = LB(fs);
     ctx.textAlign = 'left';
-    ctx.fillText(String(keys[i]).slice(0, 10).toUpperCase(), 2, y);
+    ctx.fillText(String(keys[i]).slice(0, 12), 2, y);
 
     ctx.globalAlpha = 1;
     ctx.fillStyle = col;
-    ctx.font = (rowH < 18 ? 14 : 18) + VT;
+    ctx.font = NUM(rowH < 18 ? 14 : 18);
     ctx.textAlign = 'right';
     ctx.fillText(String(v), w - 2, y);
   }
@@ -318,7 +324,7 @@ G.runHistory = function (ctx, w, h, t, data) {
   // ---- four numbers, no axis furniture ----
   ctx.globalAlpha = 0.7;
   ctx.fillStyle = MID;
-  ctx.font = (tiny ? 14 : 17) + VT;
+  ctx.font = NUM(tiny ? 14 : 17);
   ctx.textBaseline = 'middle';
   ctx.textAlign = 'right';
   ctx.fillText((hi - pad).toFixed(1), padL - 3, padT + 4);

@@ -9,7 +9,7 @@
 <meta name="theme-color" content="#06081A">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' fill='%2306081A'/%3E%3Cpath d='M2 3h4v4H2zM6 7h4v4H6zM10 3h4v4h-4zM2 11h4v4H2zM10 11h4v4h-4z' fill='%23F4C542'/%3E%3C/svg%3E">
 <title>Scrutineer</title>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap">
 <style>
 /* The Artifact runtime's head reset supplies this; a standalone document does not, and without
    it any class-level `display` silently overrides the [hidden] attribute. That is how an 82 %
@@ -442,46 +442,87 @@ button:focus-visible{outline:2px solid var(--cyan);outline-offset:2px}
 .tier.bump .tier-top b{animation:tierbumpb .9s ease-out}
 @media (prefers-reduced-motion:reduce){.tier.bump,.tier.bump .tier-top b{animation:none}}
 
-/* ---- the view switch, and the developer view it reveals ---- */
+/* ---- the view switch, and the developer view it reveals ----
+   The developer view does not inherit the broadcast's look. It is an instrument
+   panel, not an arcade cabinet: its own cooler palette, Geist instead of Press
+   Start 2P, hairlines instead of blocks. The tokens live under #dev so neither
+   set can leak into the other. */
 .vswitch{display:flex;gap:2px;flex:none}
 .vtab{font-family:"Press Start 2P","Courier New",monospace;font-size:8px;padding:9px 11px;
   background:#0B1038;color:var(--mid);border:0;border-bottom:3px solid var(--studio);cursor:pointer}
 .vtab:hover{color:var(--caption)}
 .vtab.active{background:var(--studio);color:var(--cyan);border-bottom-color:var(--cyan)}
+.app.devmode .vtab{font-family:"Geist",ui-sans-serif,system-ui,sans-serif;font-weight:500;
+  font-size:12px;letter-spacing:-.01em;text-transform:none;padding:8px 13px;background:#111418;
+  color:#5C646F;border-bottom-color:#1C2026}
+.app.devmode .vtab.active{background:#171B21;color:#E7EAEE;border-bottom-color:#5B8DEF}
+
 /* the developer view takes the whole body of the page, so the app becomes one row */
-.app.devmode{grid-template-rows:54px minmax(0,1fr)}
+.app.devmode{grid-template-rows:54px minmax(0,1fr);background:#08090B}
 .app.devmode .deck,.app.devmode .work{display:none}
-.dev{min-height:0;overflow:hidden;background:#04060F;padding:10px 12px}
-.dgrid{display:grid;height:100%;min-height:0;gap:8px;
-  grid-template-columns:minmax(0,1.35fr) minmax(0,1fr) minmax(0,0.85fr);
-  grid-template-rows:minmax(0,1fr) minmax(0,0.92fr) minmax(0,1.02fr)}
-.dcard{display:flex;flex-direction:column;min-width:0;min-height:0;background:var(--night);
-  border:1px solid var(--studio);border-left:3px solid var(--cyan)}
+.app.devmode .top{background:#0B0D10;border-bottom-color:#1C2026}
+.app.devmode .hdr-chips{display:none}
+.app.devmode .mark{color:#E7EAEE;text-shadow:none}
+.app.devmode .mark::after{background:#5B8DEF;height:2px;background-image:none}
+.app.devmode .runcount{font-family:"Geist Mono",ui-monospace,monospace;font-size:11px;
+  color:#5C646F;text-transform:none}
+.app.devmode .run{font-family:"Geist",ui-sans-serif,system-ui,sans-serif;font-weight:600;
+  font-size:12px;letter-spacing:-.01em;text-transform:none;background:#5B8DEF;color:#08090B;
+  padding:9px 16px;border-radius:5px}
+.app.devmode .run:hover:not(:disabled){background:#7BA3F5}
+.app.devmode .run:disabled{background:#171B21;color:#5C646F}
+.app.devmode .run.armed{animation:none}
+
+.dev{min-height:0;overflow:hidden;background:#08090B;padding:9px 11px}
+.dgrid{display:grid;height:100%;min-height:0;gap:7px;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  grid-template-rows:minmax(0,1fr) minmax(0,1fr) minmax(0,1fr)}
+.dcard{display:flex;flex-direction:column;min-width:0;min-height:0;background:#0E1013;
+  border:1px solid #1C2026;border-radius:7px;overflow:hidden}
 .dcard canvas{flex:1;min-height:0;width:100%;display:block}
-.dcard-h{display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex:none;
-  padding:5px 8px 4px;border-bottom:1px solid var(--studio)}
-.dcard-h span{font-family:"Press Start 2P","Courier New",monospace;font-size:8px;
-  color:var(--white);letter-spacing:.4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.dcard-h em{font-style:normal;font-family:"VT323","Courier New",monospace;font-size:14px;
-  line-height:12px;color:var(--mid);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dcard-h{display:flex;justify-content:space-between;align-items:baseline;gap:9px;flex:none;
+  padding:7px 10px 6px;border-bottom:1px solid #161A20}
+.dcard-h span{font-family:"Geist",ui-sans-serif,system-ui,sans-serif;font-weight:600;
+  font-size:11px;letter-spacing:-.01em;color:#E7EAEE;white-space:nowrap;overflow:hidden;
+  text-overflow:ellipsis}
+.dcard-h em{font-style:normal;font-family:"Geist Mono",ui-monospace,monospace;font-size:10px;
+  color:#5C646F;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:-.02em}
+/* a hairline of accent on the top edge, not a slab down the side */
+.dcard::before{content:"";height:2px;flex:none;background:#1C2026}
+.dgrid>*:nth-child(1)::before{background:#5B8DEF}
+.dgrid>*:nth-child(2)::before{background:#A78BFA}
+.dgrid>*:nth-child(3)::before{background:#F05E6B}
+.dgrid>*:nth-child(4)::before{background:#2DD4BF}
+.dgrid>*:nth-child(5)::before{background:#3FCF8E}
+.dgrid>*:nth-child(6)::before{background:#5B8DEF}
+.dgrid>*:nth-child(7)::before{background:#F5A524}
+.dgrid>*:nth-child(8)::before{background:#2DD4BF}
+.dgrid>*:nth-child(9)::before{background:#A78BFA}
+.dgrid>*:nth-child(10)::before{background:#F05E6B}
+.dgrid>*:nth-child(11)::before{background:#F5A524}
+
 /* Placed explicitly rather than auto-flowed: a spanning card and an auto-placed one fight
    each other for the same cell, and the loser gets whatever height is left over. */
-.dgrid>*:nth-child(1){grid-area:1/1/2/3}   /* one lap, across the top   */
-.dgrid>*:nth-child(2){grid-area:2/1/3/2}   /* inference meter            */
-.dgrid>*:nth-child(3){grid-area:1/3/3/4}   /* credit graph, full height  */
-.dgrid>*:nth-child(4){grid-area:2/2/3/3}   /* rails                      */
-.dgrid>*:nth-child(5){grid-area:3/1/4/2}   /* failure modes              */
-.dgrid>*:nth-child(6){grid-area:3/2/4/4}   /* claimed vs held-out        */
-#dev .dcard:nth-child(2){border-left-color:var(--red)}
-#dev .dcard:nth-child(3){border-left-color:var(--purple)}
-#dev .dcard:nth-child(4){border-left-color:var(--green)}
-#dev .dcard:nth-child(5){border-left-color:var(--amber)}
-#dev .dcard:nth-child(6){border-left-color:var(--gold)}
-@media (max-width:1080px){
+.dgrid>*:nth-child(1){grid-area:1/1/2/3}    /* one lap, across the top */
+.dgrid>*:nth-child(2){grid-area:1/3/2/4}    /* calibration             */
+.dgrid>*:nth-child(3){grid-area:1/4/2/5}    /* tamper matrix           */
+.dgrid>*:nth-child(4){grid-area:2/1/3/2}    /* inference meter         */
+.dgrid>*:nth-child(5){grid-area:2/2/3/3}    /* rails                   */
+.dgrid>*:nth-child(6){grid-area:2/3/3/4}    /* credit graph            */
+.dgrid>*:nth-child(7){grid-area:2/4/3/5}    /* gate funnel             */
+.dgrid>*:nth-child(8){grid-area:3/1/4/2}    /* selection economics     */
+.dgrid>*:nth-child(9){grid-area:3/2/4/3}    /* blame with intervals    */
+.dgrid>*:nth-child(10){grid-area:3/3/4/4}   /* what it kept missing    */
+.dgrid>*:nth-child(11){grid-area:3/4/4/5}   /* claimed vs held-out     */
+
+@media (max-width:1180px){
   .app.devmode{grid-template-rows:52px auto;height:auto;min-height:100vh;overflow:auto}
   .dev{overflow:visible}
-  .dgrid{grid-template-columns:1fr;grid-auto-rows:minmax(190px,auto);height:auto}
+  .dgrid{grid-template-columns:repeat(2,minmax(0,1fr));grid-auto-rows:minmax(180px,auto);height:auto}
   .dgrid>*:nth-child(n){grid-area:auto}
+}
+@media (max-width:720px){
+  .dgrid{grid-template-columns:1fr}
 }
 
 </style>
@@ -9926,6 +9967,87 @@ D.reset = function () {
 };
 })(window.SCR = window.SCR || {});
 
+// ===== devtheme.js =====
+// ============================================================================
+// SCR.devtheme — the developer view's own palette and type.
+//
+// The broadcast is a pixel object: four-step ramps, Press Start 2P, a night
+// palette borrowed from a 1994 arcade cabinet. The developer view is not
+// pretending to be that. It is an instrument panel, so it gets a flatter, cooler
+// palette, real hinted type, and hairlines instead of blocks.
+//
+// Kept deliberately separate from the broadcast tokens so neither can drift into
+// the other: nothing in here is used outside #dev.
+// ============================================================================
+(function (SCR) {
+'use strict';
+
+const T = SCR.devtheme = {};
+
+T.C = {
+  bg:     '#08090B',   // the page behind the cards
+  panel:  '#0E1013',   // a card
+  line:   '#1C2026',   // borders and axes
+  grid:   '#161A20',   // gridlines, one step above the card
+  text:   '#E7EAEE',   // primary
+  dim:    '#949BA6',   // secondary — labels
+  mute:   '#5C646F',   // tertiary — axis numbers, disabled
+  blue:   '#5B8DEF',
+  teal:   '#2DD4BF',
+  green:  '#3FCF8E',
+  amber:  '#F5A524',
+  rose:   '#F05E6B',
+  violet: '#A78BFA',
+  white:  '#FFFFFF',
+};
+
+// Geist for words, Geist Mono for anything you would compare by eye. Both fall back
+// through the platform stack, so a blocked font file costs weight, not layout.
+const SANS = "'Geist', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif";
+const MONO = "'Geist Mono', ui-monospace, 'SF Mono', Menlo, Consolas, monospace";
+T.SANS = SANS;
+T.MONO = MONO;
+T.label = (px, w) => `${w || 500} ${px}px ${SANS}`;
+T.num = (px, w) => `${w || 400} ${px}px ${MONO}`;
+
+// A hairline that survives a device-pixel-ratio of 1: canvas strokes straddle the
+// coordinate, so integers blur a 1px line across two rows.
+T.crisp = v => Math.round(v) + 0.5;
+
+// Draw a faint horizontal grid and return the y() mapper, so every plot in the view
+// shares the same axis furniture instead of each inventing its own.
+T.grid = function (ctx, x0, y0, w, h, lines) {
+  ctx.save();
+  ctx.strokeStyle = T.C.grid; ctx.lineWidth = 1;
+  const n = lines || 4;
+  for (let i = 0; i <= n; i++) {
+    const y = T.crisp(y0 + (h * i) / n);
+    ctx.beginPath(); ctx.moveTo(x0, y); ctx.lineTo(x0 + w, y); ctx.stroke();
+  }
+  ctx.restore();
+};
+
+// Rounded rect, because nothing in this view has a hard pixel corner.
+T.rr = function (ctx, x, y, w, h, r) {
+  const rad = Math.min(r === undefined ? 3 : r, Math.abs(w) / 2, Math.abs(h) / 2);
+  ctx.beginPath();
+  ctx.moveTo(x + rad, y);
+  ctx.arcTo(x + w, y, x + w, y + h, rad);
+  ctx.arcTo(x + w, y + h, x, y + h, rad);
+  ctx.arcTo(x, y + h, x, y, rad);
+  ctx.arcTo(x, y, x + w, y, rad);
+  ctx.closePath();
+};
+
+T.empty = function (ctx, w, h, msg) {
+  ctx.save();
+  ctx.font = T.label(11); ctx.fillStyle = T.C.mute;
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.fillText(msg || 'no data', w / 2, h / 2);
+  ctx.restore();
+};
+})(window.SCR = window.SCR || {});
+
 // ===== devgraphs.js =====
 // ============================================================================
 // SCR.devgraphs — three canvas readouts for the developer dashboard.
@@ -9940,13 +10062,19 @@ D.reset = function () {
 const G = SCR.devgraphs = {};
 
 // project tokens. nothing here invents a colour.
-const NIGHT = '#06081A', STUDIO = '#121A4A', TARMAC = '#2C2E3A';
-const WHITE = '#FFFFFF', CAPTION = '#C8CBD8', MID = '#6A6F8A';
-const GOLD = '#F4C542', RED = '#E31E2D', PURPLE = '#B04BFF';
-const CYAN = '#3DD2FF', GREEN = '#2FD968', AMBER = '#FFA318';
+// The developer view's palette, not the broadcast's: this file draws instruments, so the
+// names below are bound to SCR.devtheme rather than to the arcade tokens they started as.
+const TH = () => SCR.devtheme;
+const NIGHT = '#0E1013', STUDIO = '#161A20', TARMAC = '#1C2026';
+const WHITE = '#E7EAEE', CAPTION = '#949BA6', MID = '#5C646F';
+const GOLD = '#F5A524', RED = '#F05E6B', PURPLE = '#A78BFA';
+const CYAN = '#5B8DEF', GREEN = '#3FCF8E', AMBER = '#F5A524';
 
-const PX = "px 'Press Start 2P', monospace";   // labels: shouting, so keep them short
-const VT = "px 'VT323', monospace";            // numbers: the actual content
+// Geist for words, Geist Mono for anything compared by eye. The old pixel faces ran two
+// thirds the optical size of these at the same px, so every call site is scaled to match.
+const SANS = ", ui-sans-serif, system-ui, sans-serif";
+const LB = n => `500 ${Math.round(n * 1.55)}px 'Geist'${SANS}`;
+const NUM = n => `400 ${Math.round(n * 0.82)}px 'Geist Mono', ui-monospace, monospace`;
 
 const TAU = Math.PI * 2;
 const clamp = (v, a, b) => v < a ? a : v > b ? b : v;
@@ -9965,10 +10093,10 @@ function empty (ctx, w, h) {
   ctx.save();
   ctx.globalAlpha = 0.55;
   ctx.fillStyle = MID;
-  ctx.font = 7 + PX;
+  ctx.font = LB(7);
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
-  ctx.fillText('NO DATA', w / 2, h / 2);
+  ctx.fillText('no data', w / 2, h / 2);
   ctx.restore();
 }
 
@@ -10041,7 +10169,7 @@ G.creditGraph = function (ctx, w, h, t, data) {
   }
 
   // ---- nodes ----
-  ctx.font = fs + PX;
+  ctx.font = LB(fs);
   ctx.textBaseline = 'middle';
 
   ctx.textAlign = 'right';
@@ -10130,13 +10258,13 @@ G.failureModes = function (ctx, w, h, t, data) {
 
     ctx.globalAlpha = 0.82;
     ctx.fillStyle = CAPTION;
-    ctx.font = fs + PX;
+    ctx.font = LB(fs);
     ctx.textAlign = 'left';
-    ctx.fillText(String(keys[i]).slice(0, 10).toUpperCase(), 2, y);
+    ctx.fillText(String(keys[i]).slice(0, 12), 2, y);
 
     ctx.globalAlpha = 1;
     ctx.fillStyle = col;
-    ctx.font = (rowH < 18 ? 14 : 18) + VT;
+    ctx.font = NUM(rowH < 18 ? 14 : 18);
     ctx.textAlign = 'right';
     ctx.fillText(String(v), w - 2, y);
   }
@@ -10247,7 +10375,7 @@ G.runHistory = function (ctx, w, h, t, data) {
   // ---- four numbers, no axis furniture ----
   ctx.globalAlpha = 0.7;
   ctx.fillStyle = MID;
-  ctx.font = (tiny ? 14 : 17) + VT;
+  ctx.font = NUM(tiny ? 14 : 17);
   ctx.textBaseline = 'middle';
   ctx.textAlign = 'right';
   ctx.fillText((hi - pad).toFixed(1), padL - 3, padT + 4);
@@ -10260,6 +10388,766 @@ G.runHistory = function (ctx, w, h, t, data) {
   ctx.restore();
 };
 
+})(window.SCR = window.SCR || {});
+
+// ===== devpanels.js =====
+// ============================================================================
+// SCR.devpanels — two readouts about the agent's own judgement: what it thought
+// a change was worth, and where its proposals actually die.
+//
+// Same contract as SCR.devgraphs: pure draw, `t` is the only clock, no state
+// between frames. Colours and type come from SCR.devtheme and nowhere else.
+// ============================================================================
+(function (SCR) {
+'use strict';
+const P = SCR.devpanels = {};
+
+const TAU = Math.PI * 2;
+const clamp = (v, a, b) => v < a ? a : v > b ? b : v;
+
+// tick spacing that lands on 1/2/5 x 10^n, so axis numbers stay readable at any width.
+function niceStep (range, target) {
+  const raw = range / (target || 4);
+  if (!(raw > 0) || !isFinite(raw)) return 1;
+  const mag = Math.pow(10, Math.floor(Math.log(raw) / Math.LN10));
+  const n = raw / mag;
+  const s = n <= 1 ? 1 : n <= 2 ? 2 : n <= 5 ? 5 : 10;
+  return s * mag;
+}
+
+// axis numbers carry one decimal only when the step is finer than a whole unit.
+function fmt (v, step) {
+  if (Math.abs(v) < 1e-9) return '0';
+  return step < 1 ? v.toFixed(1) : String(Math.round(v));
+}
+
+// ---------------------------------------------------------------------------------------
+// 1. calibration — predicted gain against measured gain, on one shared scale
+//
+// Both axes share a domain on purpose. Independent axes would stretch the measured
+// range until the noise looked like signal; shared, the reference line runs corner to
+// corner and every point lies flat along the floor, which is the actual finding.
+// ---------------------------------------------------------------------------------------
+P.calibration = function (ctx, w, h, t, data) {
+  const T = SCR.devtheme;
+  if (!T || !(w > 0) || !(h > 0)) return;
+  const C = T.C;
+
+  const src = data && data.points;
+  const pts = [];
+  if (src && src.length) {
+    for (let i = 0; i < src.length; i++) {
+      const p = src[i]; if (!p) continue;
+      const x = +p.predicted, y = +p.measured;
+      if (!isFinite(x) || !isFinite(y)) continue;
+      pts.push({ x: x, y: y, on: !!p.promoted });
+    }
+  }
+  if (!pts.length) { T.empty(ctx, w, h, 'no calibration data'); return; }
+
+  ctx.save();
+
+  const tiny = w < 380 || h < 190;
+  const padL = tiny ? 26 : 34, padR = tiny ? 10 : 14;
+  const padT = tiny ? 14 : 18, padB = tiny ? 20 : 28;
+  const pw = w - padL - padR, ph = h - padT - padB;
+  if (!(pw > 24) || !(ph > 24)) { ctx.restore(); T.empty(ctx, w, h, 'no room'); return; }
+
+  // zero must be in frame on both axes, and the one negative measurement must fit.
+  let lo = 0, hi = 0;
+  for (let i = 0; i < pts.length; i++) {
+    const a = pts[i].x, b = pts[i].y;
+    if (a < lo) lo = a; if (a > hi) hi = a;
+    if (b < lo) lo = b; if (b > hi) hi = b;
+  }
+  let span = hi - lo;
+  if (!(span > 0)) { lo -= 1; hi += 1; span = 2; }
+  lo -= span * 0.08; hi += span * 0.08; span = hi - lo;
+
+  const xOf = v => padL + pw * (v - lo) / span;
+  const yOf = v => padT + ph * (1 - (v - lo) / span);
+  const x0 = padL, x1 = padL + pw, y0 = padT, y1 = padT + ph;
+
+  // ---- the region of under-delivery: everything below y = x ----
+  ctx.globalAlpha = 1;
+  ctx.fillStyle = C.rose;
+  ctx.globalAlpha = 0.05;
+  ctx.beginPath();
+  ctx.moveTo(xOf(lo), yOf(lo)); ctx.lineTo(xOf(hi), yOf(hi)); ctx.lineTo(xOf(hi), yOf(lo));
+  ctx.closePath(); ctx.fill();
+
+  // ---- grid at the tick values, so gridline and number always agree ----
+  const step = niceStep(span, tiny ? 3 : 4);
+  const first = Math.ceil(lo / step) * step;
+  const ticks = [];
+  for (let v = first, k = 0; v <= hi && k < 40; v += step, k++) ticks.push(v);
+
+  ctx.globalAlpha = 1;
+  ctx.strokeStyle = C.grid; ctx.lineWidth = 1;
+  for (let i = 0; i < ticks.length; i++) {
+    const gy = T.crisp(yOf(ticks[i])), gx = T.crisp(xOf(ticks[i]));
+    ctx.beginPath(); ctx.moveTo(x0, gy); ctx.lineTo(x1, gy); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(gx, y0); ctx.lineTo(gx, y1); ctx.stroke();
+  }
+
+  // zero is the line the measurements actually sit on — give it more weight than the grid.
+  ctx.strokeStyle = C.line;
+  if (lo < 0 && hi > 0) {
+    const zy = T.crisp(yOf(0));
+    ctx.beginPath(); ctx.moveTo(x0, zy); ctx.lineTo(x1, zy); ctx.stroke();
+  }
+  ctx.beginPath(); ctx.moveTo(T.crisp(x0), y0); ctx.lineTo(T.crisp(x0), y1); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(x0, T.crisp(y1)); ctx.lineTo(x1, T.crisp(y1)); ctx.stroke();
+
+  // ---- y = x, dashed and drifting so it reads as a target rather than data ----
+  const ax = xOf(lo), ay = yOf(lo), bx = xOf(hi), by = yOf(hi);
+  ctx.save();
+  ctx.setLineDash([4, 4]);
+  ctx.lineDashOffset = -((t * 9) % 8);
+  ctx.globalAlpha = 0.75;
+  ctx.strokeStyle = C.mute; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(ax, ay); ctx.lineTo(bx, by); ctx.stroke();
+  ctx.restore();
+
+  // a slow bead running the line, the only thing in the panel that ever reaches it.
+  const s = (t * 0.14) % 1;
+  const sx = ax + (bx - ax) * s, sy = ay + (by - ay) * s;
+  ctx.globalAlpha = 0.18;
+  ctx.fillStyle = C.teal;
+  ctx.beginPath(); ctx.arc(sx, sy, 6.5, 0, TAU); ctx.fill();
+  ctx.globalAlpha = 0.85;
+  ctx.beginPath(); ctx.arc(sx, sy, 2, 0, TAU); ctx.fill();
+
+  // ---- the gap itself: a dropped line from the line down to what was measured ----
+  ctx.globalAlpha = 0.22;
+  ctx.strokeStyle = C.rose; ctx.lineWidth = 1;
+  let worst = 0, worstErr = -Infinity;
+  for (let i = 0; i < pts.length; i++) {
+    const p = pts[i];
+    const px = clamp(xOf(p.x), x0, x1);
+    const top = clamp(yOf(p.x), y0, y1), bot = clamp(yOf(p.y), y0, y1);
+    ctx.beginPath(); ctx.moveTo(px, top); ctx.lineTo(px, bot); ctx.stroke();
+    const err = p.x - p.y;
+    if (err > worstErr) { worstErr = err; worst = i; }
+  }
+
+  // ---- points ----
+  for (let i = 0; i < pts.length; i++) {
+    const p = pts[i];
+    const px = clamp(xOf(p.x), x0, x1), py = clamp(yOf(p.y), y0, y1);
+    if (i === worst && worstErr > 0) {
+      // the biggest miss breathes, so the eye lands on it without a callout.
+      const br = 5 + 3.5 * (0.5 + 0.5 * Math.sin(t * 1.5));
+      ctx.globalAlpha = 0.10 + 0.12 * (0.5 + 0.5 * Math.sin(t * 1.5 + Math.PI));
+      ctx.fillStyle = p.on ? C.green : C.blue;
+      ctx.beginPath(); ctx.arc(px, py, br, 0, TAU); ctx.fill();
+    }
+    if (p.on) {
+      ctx.globalAlpha = 1; ctx.fillStyle = C.green;
+      ctx.beginPath(); ctx.arc(px, py, 3.4, 0, TAU); ctx.fill();
+      ctx.globalAlpha = 0.45; ctx.strokeStyle = C.green; ctx.lineWidth = 1.2;
+      ctx.beginPath(); ctx.arc(px, py, 6, 0, TAU); ctx.stroke();
+    } else {
+      ctx.globalAlpha = 0.1; ctx.fillStyle = C.blue;
+      ctx.beginPath(); ctx.arc(px, py, 3.2, 0, TAU); ctx.fill();
+      ctx.globalAlpha = 0.9; ctx.strokeStyle = C.blue; ctx.lineWidth = 1.2;
+      ctx.beginPath(); ctx.arc(px, py, 3.2, 0, TAU); ctx.stroke();
+    }
+  }
+
+  // ---- numbers and two captions ----
+  const fs = tiny ? 8 : 9;
+  ctx.globalAlpha = 1;
+  ctx.fillStyle = C.mute;
+  ctx.font = T.num(fs);
+  ctx.textBaseline = 'middle'; ctx.textAlign = 'right';
+  for (let i = 0; i < ticks.length; i++) ctx.fillText(fmt(ticks[i], step), x0 - 4, yOf(ticks[i]));
+  ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+  for (let i = 0; i < ticks.length; i++) ctx.fillText(fmt(ticks[i], step), xOf(ticks[i]), y1 + 4);
+
+  ctx.fillStyle = C.dim;
+  ctx.font = T.label(tiny ? 9 : 10);
+  ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+  ctx.fillText('measured', x0 - (tiny ? 22 : 30), y0 - 5);
+  ctx.textAlign = 'right';
+  ctx.fillText('predicted', x1, h - 3);
+
+  // sits on the reference line, naming what the line means rather than labelling an axis.
+  ctx.globalAlpha = 0.8;
+  ctx.fillStyle = C.mute;
+  ctx.font = T.label(tiny ? 8 : 9);
+  ctx.textAlign = 'right'; ctx.textBaseline = 'alphabetic';
+  ctx.fillText('perfect calibration', ax + (bx - ax) * 0.66 - 5, ay + (by - ay) * 0.66 - 5);
+
+  ctx.restore();
+};
+
+// ---------------------------------------------------------------------------------------
+// 2. gate funnel — how many proposals are still alive after each gate
+//
+// Survivors are min(alive, pass), not alive - fail: a proposal that fails one gate is
+// never re-tested downstream, so a later gate's fail tally can count corpses. Only a
+// gate that actually shrinks the band is drawn as a cut, and only that cut gets a number.
+// ---------------------------------------------------------------------------------------
+P.gateFunnel = function (ctx, w, h, t, data) {
+  const T = SCR.devtheme;
+  if (!T || !(w > 0) || !(h > 0)) return;
+  const C = T.C;
+
+  const src = data && data.gates;
+  const gates = [];
+  if (src && src.length) {
+    for (let i = 0; i < src.length; i++) {
+      const g = src[i]; if (!g) continue;
+      const pass = +g.pass;
+      if (!isFinite(pass) || pass < 0) continue;
+      gates.push({ name: String(g.gate || g.name || ''), pass: pass });
+    }
+  }
+  if (!gates.length) { T.empty(ctx, w, h, 'no gate data'); return; }
+
+  let entered = +(data && data.entered);
+  if (!isFinite(entered) || entered <= 0) entered = gates[0].pass;
+  if (!(entered > 0)) { T.empty(ctx, w, h, 'no proposals'); return; }
+
+  // vals[0] = entered, vals[i+1] = alive after gate i, last = accepted.
+  const vals = [entered];
+  const kills = [];
+  for (let i = 0; i < gates.length; i++) {
+    const after = Math.min(vals[i], gates[i].pass);
+    kills.push(vals[i] - after);
+    vals.push(after);
+  }
+  let accepted = +(data && data.accepted);
+  if (!isFinite(accepted) || accepted < 0) accepted = vals[vals.length - 1];
+  accepted = Math.min(accepted, vals[vals.length - 1]);
+  const lastGate = vals[vals.length - 1];
+  vals.push(accepted);
+
+  ctx.save();
+
+  const tiny = w < 400 || h < 190;
+  const padL = tiny ? 22 : 30, padR = tiny ? 22 : 30;
+  const padT = tiny ? 12 : 16, padB = tiny ? 16 : 22;
+  const pw = w - padL - padR, ph = h - padT - padB;
+  const n = vals.length;
+  if (!(pw > 40) || !(ph > 20) || n < 2) { ctx.restore(); T.empty(ctx, w, h, 'no room'); return; }
+
+  const cy = padT + ph / 2;
+  const maxBand = clamp(ph * 0.62, 8, 64);
+  const xOf = i => padL + pw * (i / (n - 1));
+  const hhOf = v => Math.max(0.8, (maxBand / 2) * clamp(v / entered, 0, 1));
+  const segW = pw / (n - 1);
+
+  // ---- band outline: hold flat through a gate, then ease down to the new count ----
+  const SAMP = 5;
+  const edge = [];
+  for (let i = 0; i < n - 1; i++) {
+    const xa = xOf(i), xb = xOf(i + 1);
+    const ha = hhOf(vals[i]), hb = hhOf(vals[i + 1]);
+    for (let k = 0; k < SAMP; k++) {
+      const u = k / SAMP;
+      const e = u < 0.45 ? 0 : (u - 0.45) / 0.55;
+      edge.push({ x: xa + (xb - xa) * u, hh: ha + (hb - ha) * (e * e * (3 - 2 * e)) });
+    }
+  }
+  edge.push({ x: xOf(n - 1), hh: hhOf(vals[n - 1]) });
+
+  const bandPath = () => {
+    ctx.beginPath();
+    for (let i = 0; i < edge.length; i++) ctx[i ? 'lineTo' : 'moveTo'](edge[i].x, cy - edge[i].hh);
+    for (let i = edge.length - 1; i >= 0; i--) ctx.lineTo(edge[i].x, cy + edge[i].hh);
+    ctx.closePath();
+  };
+
+  ctx.globalAlpha = 0.16; ctx.fillStyle = C.blue; bandPath(); ctx.fill();
+  ctx.globalAlpha = 0.55; ctx.strokeStyle = C.blue; ctx.lineWidth = 1; bandPath(); ctx.stroke();
+
+  // ---- throughput: slanted ticks travelling with the flow, clipped to the band ----
+  ctx.save();
+  bandPath(); ctx.clip();
+  const gap = 16, lean = 5;
+  const phase = (t * 22) % gap;
+  ctx.globalAlpha = 0.22; ctx.strokeStyle = C.teal; ctx.lineWidth = 1.4;
+  for (let x = padL - gap + phase; x < padL + pw + gap; x += gap) {
+    ctx.beginPath();
+    ctx.moveTo(x, cy - maxBand); ctx.lineTo(x + lean, cy + maxBand);
+    ctx.stroke();
+  }
+  ctx.restore();
+
+  // ---- gate markers ----
+  const showAll = segW >= 52;
+  ctx.textBaseline = 'middle';
+  for (let i = 0; i < gates.length; i++) {
+    const x = xOf(i + 1);
+    const hb = hhOf(vals[i]), ha = hhOf(vals[i + 1]);
+    if (kills[i] > 0) {
+      // a real cut: the notch height is exactly the band the gate removed.
+      ctx.globalAlpha = 0.9; ctx.strokeStyle = C.rose; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.moveTo(x, cy - hb); ctx.lineTo(x, cy - ha); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(x, cy + ha); ctx.lineTo(x, cy + hb); ctx.stroke();
+      ctx.globalAlpha = 0.35; ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(x, cy - hb - 5); ctx.lineTo(x, cy + hb + 5); ctx.stroke();
+    } else {
+      ctx.globalAlpha = 0.45; ctx.strokeStyle = C.mute; ctx.lineWidth = 1;
+      const cx = T.crisp(x);
+      ctx.beginPath(); ctx.moveTo(cx, cy - hb - 3); ctx.lineTo(cx, cy + hb + 3); ctx.stroke();
+    }
+  }
+
+  // names below the band; snake_case is a key, not something to read.
+  ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+  for (let i = 0; i < gates.length; i++) {
+    const cut = kills[i] > 0;
+    if (!cut && !showAll) continue;
+    const x = clamp(xOf(i + 1), padL, padL + pw);
+    const nm = gates[i].name.replace(/_/g, ' ');
+    ctx.globalAlpha = cut ? 1 : 0.75;
+    ctx.fillStyle = cut ? C.dim : C.mute;
+    ctx.font = T.label(tiny ? 9 : 10, cut ? 600 : 500);
+    ctx.fillText(nm, x, cy + maxBand / 2 + (tiny ? 7 : 10));
+  }
+
+  // the kill count rides above the notch, where the band actually steps down.
+  ctx.textBaseline = 'alphabetic';
+  for (let i = 0; i < gates.length; i++) {
+    if (!(kills[i] > 0)) continue;
+    const x = clamp(xOf(i + 1), padL, padL + pw);
+    ctx.globalAlpha = 1; ctx.fillStyle = C.rose;
+    ctx.font = T.num(tiny ? 10 : 11, 500);
+    ctx.fillText('−' + kills[i], x, cy - maxBand / 2 - (tiny ? 5 : 8));
+  }
+
+  // ---- the two counts that matter, at the mouth and at the spout ----
+  ctx.globalAlpha = 1;
+  ctx.textBaseline = 'middle';
+  ctx.font = T.num(tiny ? 12 : 15, 500);
+  ctx.fillStyle = C.text; ctx.textAlign = 'right';
+  ctx.fillText(String(entered), padL - 5, cy);
+  ctx.fillStyle = accepted > 0 ? C.green : C.mute; ctx.textAlign = 'left';
+  ctx.fillText(String(accepted), padL + pw + 5, cy);
+
+  // the last narrowing is not a gate — keep it mute so it cannot be read as one.
+  if (accepted < lastGate) {
+    ctx.globalAlpha = 0.5; ctx.strokeStyle = C.mute; ctx.lineWidth = 1;
+    const cx = T.crisp(xOf(n - 1));
+    ctx.beginPath();
+    ctx.moveTo(cx, cy - hhOf(lastGate) - 3); ctx.lineTo(cx, cy + hhOf(lastGate) + 3);
+    ctx.stroke();
+  }
+
+  ctx.restore();
+};
+
+})(window.SCR = window.SCR || {});
+
+// ===== devaudit.js =====
+// ============================================================================
+// SCR.devaudit — three readouts for the audit half of the developer view.
+//
+// The auditor's output is three different shapes of evidence: a taxonomy of what
+// it flagged, a ranking of what it chose to act on, and an interval that says
+// whether it should have acted at all. Same contract as devgraphs: pure in
+// (ctx, w, h, t, data), `t` is the only clock.
+// ============================================================================
+(function (SCR) {
+'use strict';
+const A = SCR.devaudit = {};
+
+const T = SCR.devtheme, C = T.C;
+const TAU = Math.PI * 2;
+const clamp = (v, a, b) => v < a ? a : v > b ? b : v;
+const fin = (v, d) => (typeof v === 'number' && isFinite(v)) ? v : d;
+
+// truncate to a pixel budget rather than a character count — the labels here are
+// real hinted type, so their width is not a function of length.
+function fit (ctx, s, max) {
+  s = (s === undefined || s === null) ? '' : String(s);
+  if (!(max > 0) || !s) return '';
+  if (ctx.measureText(s).width <= max) return s;
+  let c = s;
+  while (c.length > 1) {
+    c = c.slice(0, -1);
+    if (ctx.measureText(c + '…').width <= max) return c + '…';
+  }
+  return '';
+}
+
+function bad (w, h) { return !(w > 0) || !(h > 0); }
+
+// ---------------------------------------------------------------------------
+// 1. tamper matrix — functional role x obligation, as a heatmap
+// ---------------------------------------------------------------------------
+const ROLES = ['Planning', 'Recording', 'Evaluation', 'Execution', 'Communication'];
+const OBLIG = ['Faithfulness', 'MeasurementValidity', 'Calibration', 'Completeness',
+               'Consistency', 'Authorisation', 'Reversibility'];
+// the taxonomy names are written for a report, not for a 30px column.
+const ABBR = {
+  Faithfulness: 'Faithful', MeasurementValidity: 'Measurement', Calibration: 'Calibration',
+  Completeness: 'Complete', Consistency: 'Consistent', Authorisation: 'Authorise',
+  Reversibility: 'Reversible'
+};
+
+function axis (given, fallback) {
+  if (!given || !given.length) return fallback;
+  const out = [];
+  for (let i = 0; i < given.length; i++) {
+    const v = given[i];
+    if (typeof v === 'string' && v) out.push(v);
+  }
+  return out.length ? out : fallback;
+}
+
+A.tamperMatrix = function (ctx, w, h, t, data) {
+  if (bad(w, h)) return;
+  const flags = (data && data.flags) || null;
+  if (!flags || !flags.length) { T.empty(ctx, w, h, 'no flags'); return; }
+
+  const rows = axis(data && data.roles, ROLES);
+  const cols = axis(data && data.obligations, OBLIG);
+  const nR = rows.length, nC = cols.length;
+  if (!nR || !nC) { T.empty(ctx, w, h, 'no taxonomy'); return; }
+
+  // bucket into cells. a flag naming an axis we were not given is dropped rather
+  // than widening the grid mid-render — the taxonomy is fixed, the flags are not.
+  const cell = {}; let maxN = 0, any = false;
+  for (let i = 0; i < flags.length; i++) {
+    const f = flags[i];
+    if (!f) continue;
+    const r = rows.indexOf(f.functional_role), c = cols.indexOf(f.obligation);
+    if (r < 0 || c < 0) continue;
+    const k = r + ':' + c;
+    const e = cell[k] || (cell[k] = { n: 0, conf: 0, seeded: false, r: r, c: c });
+    e.n++; e.conf += clamp(fin(f.confidence, 0), 0, 1);
+    if (f.seeded) e.seeded = true;
+    if (e.n > maxN) maxN = e.n;
+    any = true;
+  }
+  if (!any) { T.empty(ctx, w, h, 'no flags'); return; }
+
+  ctx.save();
+  const small = w < 420 || h < 200;
+  const fs = small ? 8 : 9;
+  const pad = 6;
+  const capH = (h >= 190) ? 12 : 0;   // room for the one line of prose we allow
+
+  ctx.font = T.label(fs);
+  let leftW = 0;
+  for (let i = 0; i < nR; i++) leftW = Math.max(leftW, ctx.measureText(rows[i]).width);
+  leftW = clamp(leftW + 8, 28, w * 0.34);
+  const topH = clamp(h * 0.34, 26, 74);
+
+  const gx = pad + leftW, gy = topH;
+  const gw = w - gx - pad, gh = h - gy - pad - capH;
+  if (!(gw > 16) || !(gh > 16)) { ctx.restore(); T.empty(ctx, w, h, 'too small'); return; }
+
+  const cw = gw / nC, ch = gh / nR;
+
+  // column labels run bottom-to-top: at seven columns there is never horizontal room.
+  ctx.fillStyle = C.dim; ctx.textBaseline = 'middle'; ctx.textAlign = 'left';
+  for (let c = 0; c < nC; c++) {
+    const name = ABBR[cols[c]] || cols[c];
+    ctx.save();
+    ctx.translate(gx + cw * (c + 0.5), gy - 4);
+    ctx.rotate(-Math.PI / 2);
+    ctx.fillText(fit(ctx, name, topH - 6), 0, 0);
+    ctx.restore();
+  }
+
+  ctx.textAlign = 'right';
+  for (let r = 0; r < nR; r++) {
+    ctx.fillStyle = C.dim;
+    ctx.fillText(fit(ctx, rows[r], leftW - 6), gx - 6, gy + ch * (r + 0.5));
+  }
+
+  for (let r = 0; r < nR; r++) {
+    for (let c = 0; c < nC; c++) {
+      const x = gx + cw * c + 1, y = gy + ch * r + 1;
+      const bw = Math.max(1, cw - 2), bh = Math.max(1, ch - 2);
+      const e = cell[r + ':' + c];
+      if (!e) { // an empty cell is furniture, not information
+        ctx.strokeStyle = C.grid; ctx.lineWidth = 1;
+        T.rr(ctx, T.crisp(x), T.crisp(y), Math.round(bw), Math.round(bh), 2); ctx.stroke();
+        continue;
+      }
+      const k = maxN > 0 ? e.n / maxN : 1;
+      ctx.globalAlpha = 0.16 + 0.62 * k;
+      ctx.fillStyle = C.rose;
+      T.rr(ctx, x, y, bw, bh, 2); ctx.fill();
+      ctx.globalAlpha = 1;
+
+      // mean confidence as an underline — a weak flag should not look like a strong one.
+      const conf = clamp(e.conf / e.n, 0, 1);
+      if (bw > 10 && bh > 8) {
+        ctx.fillStyle = C.rose;
+        ctx.fillRect(x + 2, y + bh - 3, Math.max(1, (bw - 4) * conf), 2);
+      }
+
+      if (bw > 14 && bh > 13) {
+        ctx.font = T.num(Math.max(8, Math.min(12, bh * 0.42)), 500);
+        ctx.fillStyle = C.white; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        ctx.fillText(String(e.n), x + bw / 2, y + bh / 2 - 1);
+        ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
+      }
+
+      // the seeded cell is the whole point of the panel: a canary we planted, caught.
+      // it has to read as "caught on purpose", not as one more hit.
+      if (e.seeded) {
+        ctx.strokeStyle = C.amber; ctx.lineWidth = 1.5;
+        T.rr(ctx, x + 0.5, y + 0.5, bw - 1, bh - 1, 2); ctx.stroke();
+        for (let p = 0; p < 2; p++) {
+          const ph = ((t * 0.7 + p * 0.5) % 1 + 1) % 1;
+          const g = ph * 7;
+          ctx.globalAlpha = 0.5 * (1 - ph);
+          ctx.lineWidth = 1;
+          T.rr(ctx, x - g, y - g, bw + g * 2, bh + g * 2, 2 + g); ctx.stroke();
+        }
+        ctx.globalAlpha = 1;
+      }
+    }
+  }
+
+  if (capH) {
+    ctx.font = T.label(8); ctx.textAlign = 'right'; ctx.textBaseline = 'alphabetic';
+    ctx.fillStyle = C.amber;
+    ctx.fillText('ringed = seeded canary', w - pad, h - 3);
+  }
+  ctx.restore();
+};
+
+// ---------------------------------------------------------------------------
+// 2. selection — why the loop picked the component it picked
+// ---------------------------------------------------------------------------
+A.selection = function (ctx, w, h, t, data) {
+  if (bad(w, h)) return;
+  const src = (data && data.alternatives) || null;
+  if (!src || !src.length) { T.empty(ctx, w, h, 'no candidates'); return; }
+  const alts = [];
+  for (let i = 0; i < src.length; i++) if (src[i]) alts.push(src[i]);
+  if (!alts.length) { T.empty(ctx, w, h, 'no candidates'); return; }
+  alts.sort((a, b) => fin(b.gain_per_usd, 0) - fin(a.gain_per_usd, 0));
+
+  const chosen = (data && typeof data.chosen === 'string') ? data.chosen : null;
+  let maxG = 0;
+  for (let i = 0; i < alts.length; i++) maxG = Math.max(maxG, fin(alts[i].gain_per_usd, 0));
+
+  ctx.save();
+  const pad = 6, headH = h >= 130 ? 13 : 0;
+  const avail = h - headH - 4;
+  const n = alts.length;
+  const rowH = clamp(avail / n, 7, 30);
+  const fs = rowH >= 18 ? 10 : (rowH >= 12 ? 9 : 8);
+
+  let nameW = clamp(w * 0.26, 34, 112);
+  let rightW = clamp(w * 0.22, 0, 92);
+  let barX = pad + 8 + nameW;
+  if (w - pad - rightW - barX < 24) rightW = 0;
+  let barW = w - pad - rightW - barX;
+  if (!(barW > 8)) { barW = 0; }
+
+  if (headH) {
+    ctx.font = T.label(8); ctx.fillStyle = C.mute;
+    ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+    ctx.fillText('gain per $', barX, 9);
+  }
+
+  for (let i = 0; i < n; i++) {
+    const a = alts[i];
+    const y = headH + 2 + rowH * i;
+    const cy = y + rowH / 2;
+    const gain = fin(a.gain_per_usd, 0);
+    const attempts = Math.max(0, Math.round(fin(a.n_attempts, 0)));
+    const never = attempts === 0;
+    const exhausted = !!a.exhausted;
+    const eligible = !!a.eligible && !exhausted;
+    const role = typeof a.role === 'string' ? a.role : '?';
+
+    // the one it acted on gets a rule, not a highlight — the bars still have to be comparable.
+    if (chosen && role === chosen) {
+      ctx.globalAlpha = 0.6 + 0.4 * (0.5 + 0.5 * Math.sin(t * 2.2));
+      ctx.fillStyle = C.amber;
+      T.rr(ctx, pad, y + 1.5, 2, Math.max(2, rowH - 3), 1); ctx.fill();
+      ctx.globalAlpha = 1;
+    }
+
+    ctx.font = T.label(fs, chosen && role === chosen ? 600 : 500);
+    ctx.fillStyle = eligible ? C.text : C.mute;
+    ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+    const shown = fit(ctx, role, nameW);
+    ctx.fillText(shown, pad + 8, cy);
+    if (exhausted) { // retired: attempts spent, no fix. strike it.
+      const tw = ctx.measureText(shown).width;
+      ctx.strokeStyle = C.mute; ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(pad + 8, T.crisp(cy)); ctx.lineTo(pad + 8 + tw, T.crisp(cy)); ctx.stroke();
+    }
+
+    if (barW > 8) {
+      const bh = Math.max(3, Math.min(12, rowH - 6));
+      const by = cy - bh / 2;
+      const len = maxG > 0 ? (gain / maxG) * barW : 0;
+
+      if (never) {
+        // never blamed: leave the row almost empty, that is the finding.
+        ctx.strokeStyle = C.grid; ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(barX, T.crisp(cy)); ctx.lineTo(barX + barW, T.crisp(cy)); ctx.stroke();
+      } else if (exhausted) {
+        ctx.save();
+        T.rr(ctx, barX, by, barW, bh, 2); ctx.clip();
+        ctx.globalAlpha = 0.5; ctx.strokeStyle = C.mute; ctx.lineWidth = 1;
+        for (let x = barX - bh; x < barX + barW; x += 5) {
+          ctx.beginPath(); ctx.moveTo(x, by + bh); ctx.lineTo(x + bh, by); ctx.stroke();
+        }
+        ctx.restore();
+        ctx.globalAlpha = 1;
+      }
+      if (len > 0.5) {
+        ctx.fillStyle = eligible ? C.teal : C.mute;
+        ctx.globalAlpha = eligible ? 1 : 0.5;
+        T.rr(ctx, barX, by, len, bh, 2); ctx.fill();
+        ctx.globalAlpha = 1;
+        if (rowH >= 12 && barX + len + 34 < barX + barW) {
+          ctx.font = T.num(8); ctx.fillStyle = C.dim;
+          ctx.fillText(gain.toFixed(1), barX + len + 4, cy);
+        }
+      }
+      if (exhausted && rowH >= 11) {
+        ctx.font = T.label(8); ctx.fillStyle = C.mute;
+        ctx.fillText(fit(ctx, 'exhausted', barW - 6), barX + 4, cy);
+      }
+    }
+
+    // fix rate: the dots are the attempts, the filled ones are the fixes.
+    if (rightW >= 34) {
+      const rx = w - pad;
+      const fr = (typeof a.fix_rate === 'number' && isFinite(a.fix_rate)) ? clamp(a.fix_rate, 0, 1) : null;
+      ctx.textAlign = 'right'; ctx.font = T.num(8);
+      ctx.fillStyle = fr === null ? C.mute : C.dim;
+      ctx.fillText(fr === null ? '—' : fr.toFixed(2), rx, cy);
+      if (fr !== null && attempts > 0 && rowH >= 11) {
+        const dots = Math.min(attempts, 5);
+        const hits = clamp(Math.round(fr * attempts), 0, dots);
+        for (let d = 0; d < dots; d++) {
+          const dx = rx - 26 - d * 6;
+          if (dx < barX + barW + 4) break;
+          ctx.beginPath(); ctx.arc(dx, cy, 2, 0, TAU);
+          ctx.fillStyle = d < hits ? C.green : C.line; ctx.fill();
+        }
+      }
+      ctx.textAlign = 'left';
+    }
+  }
+  ctx.restore();
+};
+
+// ---------------------------------------------------------------------------
+// 3. blame CI — blame with its confidence interval, against the act/don't-act line
+// ---------------------------------------------------------------------------
+A.blameCI = function (ctx, w, h, t, data) {
+  if (bad(w, h)) return;
+  const src = (data && data.standings) || null;
+  if (!src || !src.length) { T.empty(ctx, w, h, 'no standings'); return; }
+  const thr = fin(data && data.threshold, 0);
+
+  const rows = [];
+  for (let i = 0; i < src.length; i++) {
+    const s = src[i];
+    if (!s) continue;
+    const mid = fin(s.blame_s, NaN);
+    if (!isFinite(mid)) continue;
+    const ci = s.ci || [];
+    let lo = fin(ci[0], mid), hi = fin(ci[1], mid);
+    if (lo > hi) { const q = lo; lo = hi; hi = q; }
+    rows.push({ role: typeof s.role === 'string' ? s.role : '?', n: Math.max(0, Math.round(fin(s.n, 0))), mid, lo, hi });
+  }
+  if (!rows.length) { T.empty(ctx, w, h, 'no standings'); return; }
+
+  let dLo = thr, dHi = thr;
+  for (let i = 0; i < rows.length; i++) {
+    dLo = Math.min(dLo, rows[i].lo, rows[i].mid);
+    dHi = Math.max(dHi, rows[i].hi, rows[i].mid);
+  }
+  if (!(dHi - dLo > 1e-9)) { dLo -= 1; dHi += 1; }
+  const mgn = (dHi - dLo) * 0.08; dLo -= mgn; dHi += mgn;
+
+  ctx.save();
+  const pad = 6, axisH = h >= 120 ? 14 : 0;
+  const nameW = clamp(w * 0.24, 30, 96);
+  const x0 = pad + nameW + 6, x1 = w - pad - 2;
+  const plotW = x1 - x0;
+  if (!(plotW > 20)) { ctx.restore(); T.empty(ctx, w, h, 'too small'); return; }
+  const X = v => x0 + ((v - dLo) / (dHi - dLo)) * plotW;
+
+  const top = 4, plotH = h - top - axisH;
+  if (!(plotH > 8)) { ctx.restore(); T.empty(ctx, w, h, 'too small'); return; }
+  const rowH = plotH / rows.length;
+
+  // axis ticks, then the reference — the reference has to sit on top of the grid.
+  if (axisH) {
+    ctx.font = T.num(8); ctx.textBaseline = 'alphabetic'; ctx.textAlign = 'center';
+    for (let k = 0; k <= 4; k++) {
+      const v = dLo + ((dHi - dLo) * k) / 4, x = T.crisp(X(v));
+      ctx.strokeStyle = C.grid; ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(x, top); ctx.lineTo(x, top + plotH); ctx.stroke();
+      ctx.fillStyle = C.mute;
+      ctx.fillText(v.toFixed(0) + 's', clamp(x, x0 + 10, x1 - 10), h - 3);
+    }
+  }
+  const tx = T.crisp(X(thr));
+  ctx.strokeStyle = C.line; ctx.lineWidth = 1;
+  ctx.setLineDash([3, 3]);
+  ctx.beginPath(); ctx.moveTo(tx, top); ctx.lineTo(tx, top + plotH); ctx.stroke();
+  ctx.setLineDash([]);
+
+  for (let i = 0; i < rows.length; i++) {
+    const r = rows[i], cy = top + rowH * (i + 0.5);
+    const clears = r.lo > thr;          // the rule: act only when the interval clears zero
+    const col = clears ? C.teal : C.amber;
+    const xl = X(r.lo), xh = X(r.hi), len = xh - xl;
+
+    ctx.font = T.label(rowH >= 22 ? 10 : 9);
+    ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+    ctx.fillStyle = clears ? C.text : C.dim;
+    ctx.fillText(fit(ctx, r.role, nameW - 20), pad, cy);
+    ctx.font = T.num(8); ctx.fillStyle = C.mute; ctx.textAlign = 'right';
+    ctx.fillText('n' + r.n, x0 - 5, cy);
+
+    ctx.strokeStyle = col; ctx.lineWidth = 1.5; ctx.globalAlpha = 0.85;
+    ctx.beginPath(); ctx.moveTo(xl, T.crisp(cy)); ctx.lineTo(xh, T.crisp(cy)); ctx.stroke();
+    const capH2 = Math.max(3, Math.min(6, rowH * 0.22));
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(T.crisp(xl), cy - capH2); ctx.lineTo(T.crisp(xl), cy + capH2);
+    ctx.moveTo(T.crisp(xh), cy - capH2); ctx.lineTo(T.crisp(xh), cy + capH2);
+    ctx.stroke();
+    ctx.globalAlpha = 1;
+
+    // shimmer: the interval is an estimate, so it should not sit perfectly still.
+    if (len > 2) {
+      const seg = Math.max(8, len * 0.18);
+      const p = ((t * 0.28 + i * 0.21) % 1 + 1) % 1;
+      const sx = xl - seg + p * (len + seg);
+      ctx.save();
+      ctx.beginPath(); ctx.rect(xl, cy - 4, len, 8); ctx.clip();
+      ctx.globalAlpha = 0.25; ctx.strokeStyle = C.white; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.moveTo(sx, cy); ctx.lineTo(sx + seg, cy); ctx.stroke();
+      ctx.restore();
+    }
+
+    const dx = clamp(X(r.mid), x0 - 2, x1 + 2);
+    ctx.beginPath(); ctx.arc(dx, cy, 3.5, 0, TAU);
+    ctx.fillStyle = col; ctx.fill();
+    ctx.lineWidth = 1; ctx.strokeStyle = C.panel; ctx.stroke();
+
+    if (!clears && rowH >= 18 && plotW > 120) {
+      ctx.font = T.label(8); ctx.textAlign = 'left'; ctx.fillStyle = C.amber;
+      ctx.fillText('crosses', Math.min(xh + 5, x1 - 40), cy - capH2 - 4);
+    }
+  }
+  ctx.restore();
+};
 })(window.SCR = window.SCR || {});
 
 // ===== devview.js =====
@@ -10281,32 +11169,31 @@ const $ = id => document.getElementById(id);
 const el = (t, c, txt) => { const n = document.createElement(t); if (c) n.className = c;
   if (txt !== undefined) n.textContent = txt; return n; };
 
-const C = { night: '#06081A', studio: '#121A4A', tarmac: '#2C2E3A', ink: '#000',
-  white: '#FFF', caption: '#C8CBD8', mid: '#6A6F8A', gold: '#F4C542', red: '#E31E2D',
-  purple: '#B04BFF', cyan: '#3DD2FF', green: '#2FD968', amber: '#FFA318' };
-const PX = n => `${n}px 'Press Start 2P', monospace`;
-const VT = n => `${n}px 'VT323', monospace`;
+const T = () => SCR.devtheme;
+const C = () => SCR.devtheme.C;
+const LB = (px, wt) => SCR.devtheme.label(px, wt);
+const NM = (px, wt) => SCR.devtheme.num(px, wt);
 
 // The five spans a lap actually opens, in the order car/lap.py opens them. The op names are
 // the ones written into the trace store, so a developer can grep for them.
 const OPS = [
-  { op: 'strategist.call',    role: 'BUDGET',       hue: C.purple, out: 'step budget' },
-  { op: 'tyres.profile',      role: 'SAMPLING',     hue: C.amber,  out: 'temp · k' },
-  { op: 'aero.shape_context', role: 'RETRIEVAL',    hue: C.cyan,   out: 'refs · tokens' },
-  { op: 'power_unit.drive',   role: 'MODEL',        hue: C.red,    out: 'completion', remote: true },
-  { op: 'data.run_tools',     role: 'VERIFICATION', hue: C.green,  out: 'score · schema' },
+  { op: 'strategist.call',    role: 'budget',       hue: 'violet' },
+  { op: 'tyres.profile',      role: 'sampling',     hue: 'amber' },
+  { op: 'aero.shape_context', role: 'retrieval',    hue: 'blue' },
+  { op: 'power_unit.drive',   role: 'model',        hue: 'rose', remote: true },
+  { op: 'data.run_tools',     role: 'verification', hue: 'green' },
 ];
 
 // The seven rails, with the label `scrutineer doctor` prints for each. `of` is what the rail
 // reaches when it is live — this is the part that is CoreWeave.
 const RAILS = [
-  { key: 'driver',         name: 'INFERENCE',  of: 'api.inference.wandb.ai' },
-  { key: 'typed_decision', name: 'TYPED',      of: 'strict json schema' },
-  { key: 'sandbox',        name: 'SANDBOX',    of: 'cwsandbox · kata guest' },
-  { key: 'weave',          name: 'WEAVE',      of: 'trace mirror' },
-  { key: 'rl',             name: 'RL',         of: 'serverless training' },
-  { key: 'registry',       name: 'REGISTRY',   of: 'versions · aliases' },
-  { key: 'aria',           name: 'ARIA',       of: 'hypotheses' },
+  { key: 'driver',         name: 'inference',  of: 'api.inference.wandb.ai' },
+  { key: 'typed_decision', name: 'typed',      of: 'strict json schema' },
+  { key: 'sandbox',        name: 'sandbox',    of: 'cwsandbox · kata guest' },
+  { key: 'weave',          name: 'weave',      of: 'trace mirror' },
+  { key: 'rl',             name: 'serverless rl',         of: 'serverless training' },
+  { key: 'registry',       name: 'registry',   of: 'versions · aliases' },
+  { key: 'aria',           name: 'aria',       of: 'hypotheses' },
 ];
 // A rail is only live if the bundle named a real backend for it; these are the stand-in names.
 const STANDIN = /^(local-|aria$|weave$)/;
@@ -10339,6 +11226,37 @@ function readBundle() {
   for (const r of D.rounds) for (const task of (r.tasks || []))
     for (const m of (task.missing || [])) tally[m] = (tally[m] || 0) + 1;
   D.tally = tally;
+
+  // calibration: what the improver forecast against what the sealed circuit measured.
+  // predicted_delta_s is the improver's own number, d_sealed the one it is scored on.
+  D.calib = D.rounds
+    .filter(r => r.manifest && r.manifest.predicted_delta_s !== undefined)
+    .map(r => ({ gen: r.generation, predicted: r.manifest.predicted_delta_s,
+      measured: r.d_sealed, promoted: !!r.promoted }));
+
+  // the audit taxonomy: every black flag the scrutineer raised, in its cell
+  const flags = [];
+  for (const r of D.rounds) for (const f of (r.black_flags || []))
+    flags.push({ functional_role: f.functional_role, obligation: f.obligation,
+      confidence: f.confidence, seeded: !!f.seeded });
+  D.flags = flags;
+
+  // the gates, tallied over the rounds that actually reached them
+  const tal = {};
+  for (const r of D.rounds) for (const g of (r.gates || [])) {
+    const e = tal[g.gate] || (tal[g.gate] = { gate: g.gate, pass: 0, fail: 0 });
+    if (g.ok) e.pass++; else e.fail++;
+  }
+  D.gates = Object.values(tal);
+  D.entered = D.rounds.filter(r => (r.gates || []).length).length;
+  D.accepted = D.rounds.filter(r => r.promoted).length;
+
+  // the selection rule's own shortlist, and the standings it was computed from
+  const lastWith = [...D.rounds].reverse().find(r => (r.alternatives || []).length);
+  D.alternatives = lastWith ? lastWith.alternatives : [];
+  D.chosen = lastWith ? lastWith.role : null;
+  const lastStand = [...D.rounds].reverse().find(r => Object.keys(r.standings || {}).length);
+  D.standings = lastStand ? Object.values(lastStand.standings) : [];
 }
 
 V.setRun = function (i) { D.at = Math.max(0, i | 0); };
@@ -10363,12 +11281,17 @@ V.build = function () {
   readBundle();
   const grid = el('div', 'dgrid');
   host.append(grid);
-  card(grid, 'pipe',  'ONE LAP', 'five spans, in the order they open', 'wide');
-  card(grid, 'infer', 'W&B INFERENCE', 'qwen3-14b · coreweave');
-  card(grid, 'credit', 'WHO CAUSED IT', 'typed decisions, item to component', 'tall');
-  card(grid, 'rails', 'RAILS', 'live or labelled stand-in');
-  card(grid, 'fail',  'WHAT IT KEPT MISSING', 'wcag requirement, summed');
-  card(grid, 'hist',  'CLAIMED vs HELD-OUT', 'per run, with cost', 'wide');
+  card(grid, 'pipe',   'one lap', 'the five spans it opens, by trace op');
+  card(grid, 'calib',  'calibration', 'forecast vs held-out');
+  card(grid, 'tamper', 'tamper taxonomy', 'role × obligation');
+  card(grid, 'infer',  'w&b inference', 'qwen3-14b · coreweave');
+  card(grid, 'rails',  'rails', 'live or labelled stand-in');
+  card(grid, 'credit', 'credit assignment', 'item → blamed component');
+  card(grid, 'funnel', 'gate funnel', 'where proposals die');
+  card(grid, 'select', 'selection', 'gain per dollar');
+  card(grid, 'blame',  'blame', 'with bootstrap interval');
+  card(grid, 'miss',   'what it kept missing', 'wcag requirement, summed');
+  card(grid, 'hist',   'claimed vs held-out', 'per run, with cost');
 };
 
 // Canvas backing stores follow the box, at device resolution so the labels stay sharp.
@@ -10388,56 +11311,61 @@ function size() {
 // 1. one lap, as the five spans it opens
 // ---------------------------------------------------------------------------------------
 function drawPipe(ctx, w, h, t) {
-  const n = OPS.length;
-  const padX = 14, gap = (w - padX * 2) / n;
-  const cy = h * 0.46, r = Math.max(13, Math.min(22, gap * 0.19));
+  const c = C(), th = T();
+  const n = OPS.length, padX = 18, gap = (w - padX * 2) / n;
+  const cy = h * 0.44, r = Math.max(11, Math.min(19, gap * 0.16));
 
-  // the wire first, so nodes sit on top of it
-  ctx.strokeStyle = C.tarmac; ctx.lineWidth = 2;
-  ctx.beginPath(); ctx.moveTo(padX + gap * 0.5, cy); ctx.lineTo(padX + gap * (n - 0.5), cy); ctx.stroke();
+  // the wire, behind everything
+  ctx.strokeStyle = c.line; ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(padX + gap * 0.5, th.crisp(cy)); ctx.lineTo(padX + gap * (n - 0.5), th.crisp(cy));
+  ctx.stroke();
 
-  // packets: one lap every 1.6 s, several in flight, so the wire is never still
-  const PERIOD = 1.6, INFLIGHT = 4;
+  // packets: several in flight, so the pipeline reads as throughput rather than a diagram
+  const PERIOD = 1.9, INFLIGHT = 5;
   for (let k = 0; k < INFLIGHT; k++) {
     const u = ((t / PERIOD) + k / INFLIGHT) % 1;
     const x = padX + gap * 0.5 + u * gap * (n - 1);
     const seg = Math.min(n - 1, Math.floor(u * (n - 1)));
-    // a lap that failed its audit leaves the last node red; 1 in 10 pass, which is the real rate
+    // one lap in ten came back clean, which is the real rate, so most leave the last node red
     const passed = (Math.floor(t / PERIOD) + k) % 10 === 0;
-    ctx.fillStyle = u > 0.97 ? (passed ? C.green : C.red) : OPS[seg].hue;
-    ctx.fillRect(x - 3, cy - 3, 6, 6);
+    ctx.fillStyle = u > 0.95 ? (passed ? c.green : c.rose) : c[OPS[seg].hue];
+    ctx.globalAlpha = u > 0.95 ? 1 : 0.9;
+    th.rr(ctx, x - 2.5, cy - 2.5, 5, 5, 1.5); ctx.fill();
+    ctx.globalAlpha = 1;
   }
 
   for (let i = 0; i < n; i++) {
-    const o = OPS[i], x = padX + gap * (i + 0.5);
-    // a node lights while a packet is inside it
+    const o = OPS[i], x = padX + gap * (i + 0.5), hue = c[o.hue];
     const u = (t / PERIOD) % 1, at = Math.min(n - 1, Math.floor(u * (n - 1)));
     const hot = at === i;
-    ctx.fillStyle = C.night;
-    ctx.fillRect(x - r, cy - r, r * 2, r * 2);
-    ctx.strokeStyle = hot ? C.white : o.hue; ctx.lineWidth = hot ? 3 : 2;
-    ctx.strokeRect(x - r, cy - r, r * 2, r * 2);
-    ctx.fillStyle = o.hue;
-    const ir = r * (hot ? 0.58 : 0.4) * (1 + 0.08 * Math.sin(t * 4 + i));
-    ctx.fillRect(x - ir, cy - ir, ir * 2, ir * 2);
+    ctx.fillStyle = c.panel; th.rr(ctx, x - r, cy - r, r * 2, r * 2, 5); ctx.fill();
+    ctx.strokeStyle = hot ? hue : c.line; ctx.lineWidth = hot ? 1.6 : 1;
+    th.rr(ctx, x - r, cy - r, r * 2, r * 2, 5); ctx.stroke();
+    ctx.fillStyle = hue; ctx.globalAlpha = hot ? 1 : 0.55;
+    const ir = r * 0.38;
+    th.rr(ctx, x - ir, cy - ir, ir * 2, ir * 2, 2); ctx.fill();
+    ctx.globalAlpha = 1;
 
-    // the one span that leaves this machine gets a mast and a label
+    // the one span that leaves this machine gets an uplink
     if (o.remote) {
-      ctx.strokeStyle = C.red; ctx.lineWidth = 1;
-      ctx.beginPath(); ctx.moveTo(x, cy - r); ctx.lineTo(x, cy - r - 16); ctx.stroke();
+      ctx.strokeStyle = c.rose; ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(th.crisp(x), cy - r); ctx.lineTo(th.crisp(x), cy - r - 13); ctx.stroke();
       for (let a = 0; a < 3; a++) {
-        const rr = 5 + a * 4 + ((t * 9) % 12);
-        ctx.globalAlpha = Math.max(0, 1 - rr / 18) * 0.9;
-        ctx.beginPath(); ctx.arc(x, cy - r - 16, rr, Math.PI * 1.15, Math.PI * 1.85); ctx.stroke();
+        const rr = 4 + a * 4 + ((t * 8) % 12);
+        ctx.globalAlpha = Math.max(0, 1 - rr / 17) * 0.85;
+        ctx.beginPath(); ctx.arc(x, cy - r - 13, rr, Math.PI * 1.18, Math.PI * 1.82); ctx.stroke();
       }
       ctx.globalAlpha = 1;
+      ctx.font = LB(9, 500); ctx.fillStyle = c.rose; ctx.textAlign = 'center';
+      ctx.fillText('leaves this machine', x, cy - r - 26);
     }
 
-    ctx.font = PX(7); ctx.textAlign = 'center';
-    ctx.fillStyle = hot ? C.white : C.caption;
-    ctx.fillText(o.role, x, cy + r + 15);
-    ctx.font = VT(14); ctx.fillStyle = C.mid;
-    ctx.fillText(o.op, x, cy + r + 29);
+    ctx.textAlign = 'center';
+    ctx.font = LB(11, 600); ctx.fillStyle = hot ? c.text : c.dim;
+    ctx.fillText(o.role, x, cy + r + 17);
+    ctx.font = NM(10); ctx.fillStyle = c.mute;
+    ctx.fillText(o.op, x, cy + r + 31);
   }
   ctx.textAlign = 'left';
 }
@@ -10446,79 +11374,77 @@ function drawPipe(ctx, w, h, t) {
 // 2. the inference meter — the rail that is CoreWeave
 // ---------------------------------------------------------------------------------------
 function drawInfer(ctx, w, h, t) {
+  const c = C(), th = T();
   const m = D.meters.driver;
-  if (!m) return empty(ctx, w, h, 'no meter in this bundle');
+  if (!m) return th.empty(ctx, w, h, 'no meter in this bundle');
   const calls = m.calls || 0, hits = m.cache_hits || 0, total = calls + hits || 1;
 
-  // laid out as fractions of the box: this card is two thirds as tall in the folded
-  // layout as it is on a desk, and a fixed pixel ladder ran off the bottom there.
-  const bx = 12, bw = w - 24;
-  const bh = Math.max(12, h * 0.1), th = Math.max(9, h * 0.075);
-  const by = h * 0.16, ty = h * 0.42, ty2 = h * 0.64;
+  // laid out as fractions of the box: this card is much shorter in the folded layout
+  // than on a desk, and a fixed pixel ladder ran off the bottom there.
+  const bx = 13, bw = w - 26;
+  const bh = Math.max(9, h * 0.075), tb = Math.max(7, h * 0.055);
+  const by = h * 0.19, ty = h * 0.45, ty2 = h * 0.67;
 
-  // the headline: nine calls in ten were answered from cache, so the split is the story
-  ctx.fillStyle = C.studio; ctx.fillRect(bx, by, bw, bh);
-  const cw = bw * (calls / total);
-  ctx.fillStyle = C.red; ctx.fillRect(bx, by, cw, bh);
-  // a shimmer over the cached portion: it is the part that reached no GPU at all
+  // nine calls in ten were answered from cache, so the split is the headline
+  ctx.fillStyle = c.grid; th.rr(ctx, bx, by, bw, bh, bh / 2); ctx.fill();
+  const cw = Math.max(2, bw * (calls / total));
+  ctx.save(); th.rr(ctx, bx, by, bw, bh, bh / 2); ctx.clip();
+  ctx.fillStyle = c.rose; ctx.fillRect(bx, by, cw, bh);
+  ctx.fillStyle = c.teal; ctx.globalAlpha = 0.22; ctx.fillRect(bx + cw, by, bw - cw, bh);
+  // a pulse over the cached portion: that is the part that reached no GPU at all
   const rest = Math.max(1, bw - cw);
-  ctx.fillStyle = C.cyan; ctx.globalAlpha = 0.45;
-  ctx.fillRect(bx + cw + ((t * 70) % rest), by, 3, bh); ctx.globalAlpha = 1;
+  ctx.globalAlpha = 0.5; ctx.fillStyle = c.teal;
+  ctx.fillRect(bx + cw + ((t * 62) % rest), by, 2, bh);
+  ctx.globalAlpha = 1; ctx.restore();
 
-  ctx.font = PX(6); ctx.fillStyle = C.red;
-  ctx.fillText(calls.toLocaleString() + ' CALLS', bx, by - 5);
-  ctx.textAlign = 'right'; ctx.fillStyle = C.cyan;
-  ctx.fillText(Math.round(hits / total * 100) + '% CACHED', bx + bw, by - 5);
+  ctx.font = LB(10, 500); ctx.fillStyle = c.rose;
+  ctx.fillText(calls.toLocaleString() + ' calls', bx, by - 7);
+  ctx.textAlign = 'right'; ctx.fillStyle = c.teal;
+  ctx.fillText(Math.round(hits / total * 100) + '% cached', bx + bw, by - 7);
   ctx.textAlign = 'left';
 
-  // tokens in and out against a shared scale, so the ratio is readable without reading
+  // tokens in and out on one scale, so the ratio needs no reading
   const ti = m.tokens_in || 0, to = m.tokens_out || 0, tmax = Math.max(ti, to, 1);
   const row = (label, val, col, y) => {
-    ctx.font = PX(6); ctx.fillStyle = C.mid; ctx.fillText(label, bx, y - 5);
-    ctx.fillStyle = C.night; ctx.fillRect(bx, y, bw, th);
-    ctx.fillStyle = col; ctx.fillRect(bx, y, bw * (val / tmax), th);
-    ctx.font = VT(Math.max(15, th * 1.6)); ctx.fillStyle = C.white; ctx.textAlign = 'right';
-    ctx.fillText(val.toLocaleString(), bx + bw - 4, y + th + 15);
+    ctx.font = LB(10, 500); ctx.fillStyle = c.dim; ctx.fillText(label, bx, y - 6);
+    ctx.fillStyle = c.grid; th.rr(ctx, bx, y, bw, tb, tb / 2); ctx.fill();
+    ctx.fillStyle = col; th.rr(ctx, bx, y, Math.max(2, bw * (val / tmax)), tb, tb / 2); ctx.fill();
+    ctx.font = NM(Math.max(12, tb * 1.7)); ctx.fillStyle = c.text; ctx.textAlign = 'right';
+    ctx.fillText(val.toLocaleString(), bx + bw, y - 6);
     ctx.textAlign = 'left';
   };
-  row('TOKENS IN', ti, C.cyan, ty);
-  row('TOKENS OUT', to, C.purple, ty2);
+  row('tokens in', ti, c.blue, ty);
+  row('tokens out', to, c.violet, ty2);
 
   // spend, big, because the cost cap is one of the ten gates
-  ctx.font = VT(Math.max(22, h * 0.17)); ctx.fillStyle = C.gold;
-  ctx.fillText('$' + (m.spend_usd || 0).toFixed(4), bx, h - 6);
-  ctx.font = PX(6); ctx.fillStyle = C.mid;
-  ctx.textAlign = 'right'; ctx.fillText('SPEND', bx + bw, h - 9); ctx.textAlign = 'left';
+  ctx.font = NM(Math.max(19, h * 0.15), 500); ctx.fillStyle = c.amber;
+  ctx.fillText('$' + (m.spend_usd || 0).toFixed(4), bx, h - 9);
+  ctx.font = LB(10, 500); ctx.fillStyle = c.mute;
+  ctx.textAlign = 'right'; ctx.fillText('spend', bx + bw, h - 11); ctx.textAlign = 'left';
 }
 
 // ---------------------------------------------------------------------------------------
 // 3. the rails — which of the seven actually served
 // ---------------------------------------------------------------------------------------
 function drawRails(ctx, w, h, t) {
-  const rowH = Math.min(26, (h - 8) / RAILS.length);
+  const c = C(), th = T();
+  const rowH = Math.min(24, (h - 6) / RAILS.length);
   RAILS.forEach((rl, i) => {
-    const backend = D.backends[rl.key] || '';
-    const short = backend.split('—')[0].trim();
-    const live = !!backend && short === LIVE_OK[rl.key] && !STANDIN.test(short)
-      || (rl.key === 'weave' && short === 'weave')
-      || (rl.key === 'aria' && short === 'aria');
-    const y = 4 + i * rowH;
-    ctx.fillStyle = live ? C.green : C.tarmac;
+    const backend = (D.backends[rl.key] || '').split('—')[0].trim();
+    const live = !!backend && backend === LIVE_OK[rl.key];
+    const y = 3 + i * rowH, midY = y + rowH * 0.5;
     // a live rail breathes; a stand-in sits still, which is the honest difference
-    const p = live ? 0.65 + 0.35 * Math.abs(Math.sin(t * 2 + i * 0.7)) : 1;
-    ctx.globalAlpha = p; ctx.fillRect(6, y + rowH * 0.28, 7, 7); ctx.globalAlpha = 1;
-    ctx.font = PX(7); ctx.fillStyle = live ? C.white : C.mid;
-    ctx.fillText(rl.name, 20, y + rowH * 0.5 + 3);
-    ctx.font = VT(15); ctx.fillStyle = live ? C.caption : C.tarmac;
+    ctx.fillStyle = live ? c.green : c.line;
+    ctx.globalAlpha = live ? 0.6 + 0.4 * Math.abs(Math.sin(t * 1.8 + i * 0.6)) : 1;
+    ctx.beginPath(); ctx.arc(9, midY, 3.2, 0, Math.PI * 2); ctx.fill();
+    ctx.globalAlpha = 1;
+    ctx.font = LB(11, live ? 600 : 500); ctx.fillStyle = live ? c.text : c.mute;
+    ctx.fillText(rl.name, 20, midY + 4);
+    ctx.font = NM(10); ctx.fillStyle = live ? c.dim : c.mute;
     ctx.textAlign = 'right';
-    ctx.fillText(live ? rl.of : 'stand-in', w - 8, y + rowH * 0.5 + 4);
+    ctx.fillText(live ? rl.of : 'stand-in', w - 10, midY + 4);
     ctx.textAlign = 'left';
   });
-}
-
-function empty(ctx, w, h, msg) {
-  ctx.font = VT(16); ctx.fillStyle = C.mid; ctx.textAlign = 'center';
-  ctx.fillText(msg, w / 2, h / 2); ctx.textAlign = 'left';
 }
 
 // ---------------------------------------------------------------------------------------
@@ -10526,7 +11452,7 @@ function empty(ctx, w, h, msg) {
 // ---------------------------------------------------------------------------------------
 function paint(t) {
   size();
-  const G = SCR.devgraphs || {};
+  const G = SCR.devgraphs || {}, P = SCR.devpanels || {}, AU = SCR.devaudit || {};
   const go = (id, fn) => {
     const c = cards[id]; if (!c || !c.w) return;
     c.ctx.clearRect(0, 0, c.w, c.h);
@@ -10535,9 +11461,17 @@ function paint(t) {
   go('pipe', drawPipe);
   go('infer', drawInfer);
   go('rails', drawRails);
+  go('calib', (x, w, h, tt) => P.calibration && P.calibration(x, w, h, tt, { points: D.calib }));
+  go('tamper', (x, w, h, tt) => AU.tamperMatrix && AU.tamperMatrix(x, w, h, tt, { flags: D.flags }));
   go('credit', (x, w, h, tt) => G.creditGraph && G.creditGraph(x, w, h, tt,
     { rows: D.rows, items: D.items, roles: D.roles }));
-  go('fail', (x, w, h, tt) => G.failureModes && G.failureModes(x, w, h, tt, { tally: D.tally }));
+  go('funnel', (x, w, h, tt) => P.gateFunnel && P.gateFunnel(x, w, h, tt,
+    { gates: D.gates, entered: D.entered, accepted: D.accepted }));
+  go('select', (x, w, h, tt) => AU.selection && AU.selection(x, w, h, tt,
+    { alternatives: D.alternatives, chosen: D.chosen }));
+  go('blame', (x, w, h, tt) => AU.blameCI && AU.blameCI(x, w, h, tt,
+    { standings: D.standings, threshold: 0 }));
+  go('miss', (x, w, h, tt) => G.failureModes && G.failureModes(x, w, h, tt, { tally: D.tally }));
   go('hist', (x, w, h, tt) => G.runHistory && G.runHistory(x, w, h, tt,
     { runs: D.runs, at: D.at }));
 }

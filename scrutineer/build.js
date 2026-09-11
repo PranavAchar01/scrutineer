@@ -2,7 +2,7 @@
 // Concatenates src/ into the single artifact fragment scrutineer.html and syntax-checks the script.
 const fs = require('fs'), path = require('path'), cp = require('child_process');
 const root = __dirname, src = path.join(root, 'src');
-const ORDER = ['engine.js', 'car.js', 'world.js', 'sim.js', 'trackscene.js', 'team.js', 'garage.js', 'scenes.js', 'season.js', 'curtain.js', 'dash.js', 'devgraphs.js', 'devview.js', 'ui.js', 'trial.js', 'story.js', 'main.js'];
+const ORDER = ['engine.js', 'car.js', 'world.js', 'sim.js', 'trackscene.js', 'team.js', 'garage.js', 'scenes.js', 'season.js', 'curtain.js', 'dash.js', 'devtheme.js', 'devgraphs.js', 'devpanels.js', 'devaudit.js', 'devview.js', 'ui.js', 'trial.js', 'story.js', 'main.js'];
 const present = ORDER.filter(f => fs.existsSync(path.join(src, f)));
 const missing = ORDER.filter(f => !present.includes(f));
 if (missing.length) console.log('build: skipping missing modules:', missing.join(', '));
@@ -21,7 +21,7 @@ if (fs.existsSync(bundlePath)) {
 } else {
   console.log('build: no loop bundle (run `scrutineer season --export` in loop/)');
 }
-const out = `<title>Scrutineer</title>\n<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap">\n<style>\n${css}\n</style>\n${html}\n<script>\n${loopJs}${js}\n</script>\n`;
+const out = `<title>Scrutineer</title>\n<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap">\n<style>\n${css}\n</style>\n${html}\n<script>\n${loopJs}${js}\n</script>\n`;
 fs.writeFileSync(path.join(root, 'scrutineer.html'), out);
 
 // The same page, wrapped as a standalone document for hosting. The artifact runtime supplies the
@@ -31,7 +31,7 @@ const siteDir = path.join(root, 'site', 'public');
 if (fs.existsSync(path.dirname(siteDir))) {
   fs.mkdirSync(siteDir, { recursive: true });
   const head = `<title>Scrutineer</title>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap">
 <style>
 ${css}
 </style>`;

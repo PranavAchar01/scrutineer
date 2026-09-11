@@ -429,44 +429,85 @@ button:focus-visible{outline:2px solid var(--cyan);outline-offset:2px}
 .tier.bump .tier-top b{animation:tierbumpb .9s ease-out}
 @media (prefers-reduced-motion:reduce){.tier.bump,.tier.bump .tier-top b{animation:none}}
 
-/* ---- the view switch, and the developer view it reveals ---- */
+/* ---- the view switch, and the developer view it reveals ----
+   The developer view does not inherit the broadcast's look. It is an instrument
+   panel, not an arcade cabinet: its own cooler palette, Geist instead of Press
+   Start 2P, hairlines instead of blocks. The tokens live under #dev so neither
+   set can leak into the other. */
 .vswitch{display:flex;gap:2px;flex:none}
 .vtab{font-family:"Press Start 2P","Courier New",monospace;font-size:8px;padding:9px 11px;
   background:#0B1038;color:var(--mid);border:0;border-bottom:3px solid var(--studio);cursor:pointer}
 .vtab:hover{color:var(--caption)}
 .vtab.active{background:var(--studio);color:var(--cyan);border-bottom-color:var(--cyan)}
+.app.devmode .vtab{font-family:"Geist",ui-sans-serif,system-ui,sans-serif;font-weight:500;
+  font-size:12px;letter-spacing:-.01em;text-transform:none;padding:8px 13px;background:#111418;
+  color:#5C646F;border-bottom-color:#1C2026}
+.app.devmode .vtab.active{background:#171B21;color:#E7EAEE;border-bottom-color:#5B8DEF}
+
 /* the developer view takes the whole body of the page, so the app becomes one row */
-.app.devmode{grid-template-rows:54px minmax(0,1fr)}
+.app.devmode{grid-template-rows:54px minmax(0,1fr);background:#08090B}
 .app.devmode .deck,.app.devmode .work{display:none}
-.dev{min-height:0;overflow:hidden;background:#04060F;padding:10px 12px}
-.dgrid{display:grid;height:100%;min-height:0;gap:8px;
-  grid-template-columns:minmax(0,1.35fr) minmax(0,1fr) minmax(0,0.85fr);
-  grid-template-rows:minmax(0,1fr) minmax(0,0.92fr) minmax(0,1.02fr)}
-.dcard{display:flex;flex-direction:column;min-width:0;min-height:0;background:var(--night);
-  border:1px solid var(--studio);border-left:3px solid var(--cyan)}
+.app.devmode .top{background:#0B0D10;border-bottom-color:#1C2026}
+.app.devmode .hdr-chips{display:none}
+.app.devmode .mark{color:#E7EAEE;text-shadow:none}
+.app.devmode .mark::after{background:#5B8DEF;height:2px;background-image:none}
+.app.devmode .runcount{font-family:"Geist Mono",ui-monospace,monospace;font-size:11px;
+  color:#5C646F;text-transform:none}
+.app.devmode .run{font-family:"Geist",ui-sans-serif,system-ui,sans-serif;font-weight:600;
+  font-size:12px;letter-spacing:-.01em;text-transform:none;background:#5B8DEF;color:#08090B;
+  padding:9px 16px;border-radius:5px}
+.app.devmode .run:hover:not(:disabled){background:#7BA3F5}
+.app.devmode .run:disabled{background:#171B21;color:#5C646F}
+.app.devmode .run.armed{animation:none}
+
+.dev{min-height:0;overflow:hidden;background:#08090B;padding:9px 11px}
+.dgrid{display:grid;height:100%;min-height:0;gap:7px;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  grid-template-rows:minmax(0,1fr) minmax(0,1fr) minmax(0,1fr)}
+.dcard{display:flex;flex-direction:column;min-width:0;min-height:0;background:#0E1013;
+  border:1px solid #1C2026;border-radius:7px;overflow:hidden}
 .dcard canvas{flex:1;min-height:0;width:100%;display:block}
-.dcard-h{display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex:none;
-  padding:5px 8px 4px;border-bottom:1px solid var(--studio)}
-.dcard-h span{font-family:"Press Start 2P","Courier New",monospace;font-size:8px;
-  color:var(--white);letter-spacing:.4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.dcard-h em{font-style:normal;font-family:"VT323","Courier New",monospace;font-size:14px;
-  line-height:12px;color:var(--mid);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dcard-h{display:flex;justify-content:space-between;align-items:baseline;gap:9px;flex:none;
+  padding:7px 10px 6px;border-bottom:1px solid #161A20}
+.dcard-h span{font-family:"Geist",ui-sans-serif,system-ui,sans-serif;font-weight:600;
+  font-size:11px;letter-spacing:-.01em;color:#E7EAEE;white-space:nowrap;overflow:hidden;
+  text-overflow:ellipsis}
+.dcard-h em{font-style:normal;font-family:"Geist Mono",ui-monospace,monospace;font-size:10px;
+  color:#5C646F;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:-.02em}
+/* a hairline of accent on the top edge, not a slab down the side */
+.dcard::before{content:"";height:2px;flex:none;background:#1C2026}
+.dgrid>*:nth-child(1)::before{background:#5B8DEF}
+.dgrid>*:nth-child(2)::before{background:#A78BFA}
+.dgrid>*:nth-child(3)::before{background:#F05E6B}
+.dgrid>*:nth-child(4)::before{background:#2DD4BF}
+.dgrid>*:nth-child(5)::before{background:#3FCF8E}
+.dgrid>*:nth-child(6)::before{background:#5B8DEF}
+.dgrid>*:nth-child(7)::before{background:#F5A524}
+.dgrid>*:nth-child(8)::before{background:#2DD4BF}
+.dgrid>*:nth-child(9)::before{background:#A78BFA}
+.dgrid>*:nth-child(10)::before{background:#F05E6B}
+.dgrid>*:nth-child(11)::before{background:#F5A524}
+
 /* Placed explicitly rather than auto-flowed: a spanning card and an auto-placed one fight
    each other for the same cell, and the loser gets whatever height is left over. */
-.dgrid>*:nth-child(1){grid-area:1/1/2/3}   /* one lap, across the top   */
-.dgrid>*:nth-child(2){grid-area:2/1/3/2}   /* inference meter            */
-.dgrid>*:nth-child(3){grid-area:1/3/3/4}   /* credit graph, full height  */
-.dgrid>*:nth-child(4){grid-area:2/2/3/3}   /* rails                      */
-.dgrid>*:nth-child(5){grid-area:3/1/4/2}   /* failure modes              */
-.dgrid>*:nth-child(6){grid-area:3/2/4/4}   /* claimed vs held-out        */
-#dev .dcard:nth-child(2){border-left-color:var(--red)}
-#dev .dcard:nth-child(3){border-left-color:var(--purple)}
-#dev .dcard:nth-child(4){border-left-color:var(--green)}
-#dev .dcard:nth-child(5){border-left-color:var(--amber)}
-#dev .dcard:nth-child(6){border-left-color:var(--gold)}
-@media (max-width:1080px){
+.dgrid>*:nth-child(1){grid-area:1/1/2/3}    /* one lap, across the top */
+.dgrid>*:nth-child(2){grid-area:1/3/2/4}    /* calibration             */
+.dgrid>*:nth-child(3){grid-area:1/4/2/5}    /* tamper matrix           */
+.dgrid>*:nth-child(4){grid-area:2/1/3/2}    /* inference meter         */
+.dgrid>*:nth-child(5){grid-area:2/2/3/3}    /* rails                   */
+.dgrid>*:nth-child(6){grid-area:2/3/3/4}    /* credit graph            */
+.dgrid>*:nth-child(7){grid-area:2/4/3/5}    /* gate funnel             */
+.dgrid>*:nth-child(8){grid-area:3/1/4/2}    /* selection economics     */
+.dgrid>*:nth-child(9){grid-area:3/2/4/3}    /* blame with intervals    */
+.dgrid>*:nth-child(10){grid-area:3/3/4/4}   /* what it kept missing    */
+.dgrid>*:nth-child(11){grid-area:3/4/4/5}   /* claimed vs held-out     */
+
+@media (max-width:1180px){
   .app.devmode{grid-template-rows:52px auto;height:auto;min-height:100vh;overflow:auto}
   .dev{overflow:visible}
-  .dgrid{grid-template-columns:1fr;grid-auto-rows:minmax(190px,auto);height:auto}
+  .dgrid{grid-template-columns:repeat(2,minmax(0,1fr));grid-auto-rows:minmax(180px,auto);height:auto}
   .dgrid>*:nth-child(n){grid-area:auto}
+}
+@media (max-width:720px){
+  .dgrid{grid-template-columns:1fr}
 }
