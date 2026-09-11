@@ -472,38 +472,38 @@ button:focus-visible{outline:2px solid var(--cyan);outline-offset:2px}
 .dcard canvas{flex:1;min-height:0;width:100%;display:block}
 .dcard-h{display:flex;justify-content:space-between;align-items:baseline;gap:9px;flex:none;
   padding:7px 10px 6px;border-bottom:1px solid #161A20}
-.dcard-h span{font-family:"Geist",ui-sans-serif,system-ui,sans-serif;font-weight:600;
+.dcard-h span{display:flex;align-items:center;gap:6px;min-width:0;
+  font-family:"Geist",ui-sans-serif,system-ui,sans-serif;font-weight:600;
   font-size:11px;letter-spacing:-.01em;color:#E7EAEE;white-space:nowrap;overflow:hidden;
   text-overflow:ellipsis}
-.dcard-h em{font-style:normal;font-family:"Geist Mono",ui-monospace,monospace;font-size:10px;
+.dcard-h span svg{flex:none;opacity:.85}
+.dcard-h em{font-style:normal;font-family:"Geist Mono",ui-monospace,monospace;font-size:9px;
   color:#5C646F;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:-.02em}
 /* a hairline of accent on the top edge, not a slab down the side */
 .dcard::before{content:"";height:2px;flex:none;background:#1C2026}
 .dgrid>*:nth-child(1)::before{background:#5B8DEF}
-.dgrid>*:nth-child(2)::before{background:#A78BFA}
+.dgrid>*:nth-child(2)::before{background:#F5A524}
 .dgrid>*:nth-child(3)::before{background:#F05E6B}
-.dgrid>*:nth-child(4)::before{background:#2DD4BF}
-.dgrid>*:nth-child(5)::before{background:#3FCF8E}
-.dgrid>*:nth-child(6)::before{background:#5B8DEF}
-.dgrid>*:nth-child(7)::before{background:#F5A524}
+.dgrid>*:nth-child(4)::before{background:#3FCF8E}
+.dgrid>*:nth-child(5)::before{background:#5B8DEF}
+.dgrid>*:nth-child(6)::before{background:#2DD4BF}
+.dgrid>*:nth-child(7)::before{background:#A78BFA}
 .dgrid>*:nth-child(8)::before{background:#2DD4BF}
-.dgrid>*:nth-child(9)::before{background:#A78BFA}
-.dgrid>*:nth-child(10)::before{background:#F05E6B}
-.dgrid>*:nth-child(11)::before{background:#F5A524}
+.dgrid>*:nth-child(9)::before{background:#F05E6B}
 
 /* Placed explicitly rather than auto-flowed: a spanning card and an auto-placed one fight
-   each other for the same cell, and the loser gets whatever height is left over. */
-.dgrid>*:nth-child(1){grid-area:1/1/2/3}    /* one lap, across the top */
-.dgrid>*:nth-child(2){grid-area:1/3/2/4}    /* calibration             */
-.dgrid>*:nth-child(3){grid-area:1/4/2/5}    /* tamper matrix           */
-.dgrid>*:nth-child(4){grid-area:2/1/3/2}    /* inference meter         */
-.dgrid>*:nth-child(5){grid-area:2/2/3/3}    /* rails                   */
-.dgrid>*:nth-child(6){grid-area:2/3/3/4}    /* credit graph            */
-.dgrid>*:nth-child(7){grid-area:2/4/3/5}    /* gate funnel             */
-.dgrid>*:nth-child(8){grid-area:3/1/4/2}    /* selection economics     */
-.dgrid>*:nth-child(9){grid-area:3/2/4/3}    /* blame with intervals    */
-.dgrid>*:nth-child(10){grid-area:3/3/4/4}   /* what it kept missing    */
-.dgrid>*:nth-child(11){grid-area:3/4/4/5}   /* claimed vs held-out     */
+   each other for the same cell, and the loser gets whatever height is left over.
+   Nine panels. The two that carry the whole argument — what it does, and what the gap
+   between its own score and the held-out one is — get the double width. */
+.dgrid>*:nth-child(1){grid-area:1/1/2/3}   /* one lap                */
+.dgrid>*:nth-child(2){grid-area:1/3/2/5}   /* claimed vs held-out    */
+.dgrid>*:nth-child(3){grid-area:2/1/3/2}   /* inference              */
+.dgrid>*:nth-child(4){grid-area:2/2/3/3}   /* rails                  */
+.dgrid>*:nth-child(5){grid-area:2/3/3/4}   /* attribution            */
+.dgrid>*:nth-child(6){grid-area:2/4/3/5}   /* gates                  */
+.dgrid>*:nth-child(7){grid-area:3/1/4/3}   /* blame and selection    */
+.dgrid>*:nth-child(8){grid-area:3/3/4/4}   /* calibration            */
+.dgrid>*:nth-child(9){grid-area:3/4/4/5}   /* tamper                 */
 
 @media (max-width:1180px){
   .app.devmode{grid-template-rows:52px auto;height:auto;min-height:100vh;overflow:auto}
@@ -9957,15 +9957,20 @@ D.reset = function () {
 
 // ===== devtheme.js =====
 // ============================================================================
-// SCR.devtheme — the developer view's own palette and type.
+// SCR.devtheme — the developer view's palette, type scale, icons and motion rule.
 //
 // The broadcast is a pixel object: four-step ramps, Press Start 2P, a night
 // palette borrowed from a 1994 arcade cabinet. The developer view is not
-// pretending to be that. It is an instrument panel, so it gets a flatter, cooler
-// palette, real hinted type, and hairlines instead of blocks.
+// pretending to be that. It is an instrument panel: a flatter cooler palette,
+// real hinted type, hairlines instead of blocks.
 //
-// Kept deliberately separate from the broadcast tokens so neither can drift into
-// the other: nothing in here is used outside #dev.
+// Three rules this file exists to enforce, because eleven panels drawn by four
+// hands drifted apart on all three:
+//
+//   TYPE    six sizes, no others. Nothing builds a font string by hand.
+//   MOTION  movement means something or it does not happen. See MOTION below.
+//   ICONS   one set, Lucide (MIT, lucide.dev), inlined as primitives so the
+//           page carries no runtime icon dependency.
 // ============================================================================
 (function (SCR) {
 'use strict';
@@ -9989,21 +9994,128 @@ T.C = {
   white:  '#FFFFFF',
 };
 
-// Geist for words, Geist Mono for anything you would compare by eye. Both fall back
-// through the platform stack, so a blocked font file costs weight, not layout.
+// ---------------------------------------------------------------------------------------
+// type: six sizes, and nothing may invent a seventh
+// ---------------------------------------------------------------------------------------
 const SANS = "'Geist', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif";
 const MONO = "'Geist Mono', ui-monospace, 'SF Mono', Menlo, Consolas, monospace";
 T.SANS = SANS;
 T.MONO = MONO;
-T.label = (px, w) => `${w || 500} ${px}px ${SANS}`;
-T.num = (px, w) => `${w || 400} ${px}px ${MONO}`;
+
+// hero  one number a panel is built around      value  a number read in passing
+// label the name of a thing                     sub    a qualifier on a label
+// axis  a tick                                  tag    a state word, never a sentence
+T.F = {
+  hero:  `500 20px ${MONO}`,
+  value: `400 13px ${MONO}`,
+  label: `600 11px ${SANS}`,
+  sub:   `500 10px ${SANS}`,
+  axis:  `400 9px ${MONO}`,
+  tag:   `500 9px ${SANS}`,
+};
+// Cards get shorter than a desk layout in the folded grid. Rather than let each panel
+// invent its own shrink rule, one step down is available and that is the whole ladder.
+T.Fs = {
+  hero:  `500 15px ${MONO}`,
+  value: `400 11px ${MONO}`,
+  label: `600 10px ${SANS}`,
+  sub:   `500 9px ${SANS}`,
+  axis:  `400 8px ${MONO}`,
+  tag:   `500 8px ${SANS}`,
+};
+// `small` is decided from the panel box, once, by the caller — never per string.
+T.font = (name, small) => (small ? T.Fs : T.F)[name] || T.F.label;
+
+// ---------------------------------------------------------------------------------------
+// MOTION. Movement is expensive attention. It is spent on exactly four meanings:
+//
+//   throughput  work moving through a pipeline      (one lap)
+//   liveness    a rail that is actually serving     (rails)
+//   here        where the season currently sits     (claimed vs held-out)
+//   flagged     the one thing that should be looked at (the seeded canary)
+//
+// Everything else is still. A shimmer that means nothing reads as noise once there
+// are nine panels of it, which is exactly what happened.
+// ---------------------------------------------------------------------------------------
+T.MOTION = { throughput: true, liveness: true, here: true, flagged: true };
+
+// ---------------------------------------------------------------------------------------
+// icons: Lucide (MIT). Stored as primitives rather than path strings so the canvas
+// renderer stays four cases long and the same registry serves the DOM headers.
+//   p path d · r [x,y,w,h,rx] · c [cx,cy,r] · l [x1,y1,x2,y2]
+// All on Lucide's 24x24 grid, stroke 2, round caps.
+// ---------------------------------------------------------------------------------------
+T.ICONS = {
+  activity: [{ p: 'M22 12h-2.48a2 2 0 0 0-1.93 1.46l-2.35 8.36a.25.25 0 0 1-.48 0L9.24 2.18a.25.25 0 0 0-.48 0l-2.35 8.36A2 2 0 0 1 4.49 12H2' }],
+  cpu: [{ r: [4, 4, 16, 16, 2] }, { r: [8, 8, 8, 8, 1] },
+    { p: 'M12 2v2' }, { p: 'M17 2v2' }, { p: 'M7 2v2' },
+    { p: 'M12 20v2' }, { p: 'M17 20v2' }, { p: 'M7 20v2' },
+    { p: 'M2 7h2' }, { p: 'M2 12h2' }, { p: 'M2 17h2' },
+    { p: 'M20 7h2' }, { p: 'M20 12h2' }, { p: 'M20 17h2' }],
+  server: [{ r: [2, 2, 20, 8, 2] }, { r: [2, 14, 20, 8, 2] },
+    { l: [6, 6, 6.01, 6] }, { l: [6, 18, 6.01, 18] }],
+  share: [{ c: [18, 5, 3] }, { c: [6, 12, 3] }, { c: [18, 19, 3] },
+    { l: [8.59, 13.51, 15.42, 17.49] }, { l: [15.41, 6.51, 8.59, 10.49] }],
+  filter: [{ p: 'M10 20a1 1 0 0 0 .553.895l2 1A1 1 0 0 0 14 21v-7a2 2 0 0 1 .517-1.341L21.74 4.67A1 1 0 0 0 21 3H3a1 1 0 0 0-.742 1.67l7.225 7.989A2 2 0 0 1 10 14z' }],
+  shield: [{ p: 'M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z' },
+    { p: 'M12 8v4' }, { p: 'M12 16h.01' }],
+  crosshair: [{ c: [12, 12, 10] }, { l: [22, 12, 18, 12] }, { l: [6, 12, 2, 12] },
+    { l: [12, 6, 12, 2] }, { l: [12, 22, 12, 18] }],
+  trending: [{ p: 'M16 17h6v-6' }, { p: 'm22 17-8.5-8.5-5 5L2 7' }],
+  sliders: [{ p: 'M10 5H3' }, { p: 'M12 19H3' }, { p: 'M14 3v4' }, { p: 'M16 17v4' },
+    { p: 'M21 12h-9' }, { p: 'M21 19h-5' }, { p: 'M21 5h-7' }, { p: 'M8 10v4' }, { p: 'M8 12H3' }],
+};
+
+const pathCache = {};
+function shapes(name) {
+  if (pathCache[name]) return pathCache[name];
+  const src = T.ICONS[name];
+  if (!src || typeof Path2D === 'undefined') return null;
+  const p = new Path2D();
+  for (const s of src) {
+    if (s.p) p.addPath(new Path2D(s.p));
+    else if (s.l) { const q = new Path2D(); q.moveTo(s.l[0], s.l[1]); q.lineTo(s.l[2], s.l[3]); p.addPath(q); }
+    else if (s.c) { const q = new Path2D(); q.arc(s.c[0], s.c[1], s.c[2], 0, Math.PI * 2); p.addPath(q); }
+    else if (s.r) { const q = new Path2D(); q.roundRect ? q.roundRect(s.r[0], s.r[1], s.r[2], s.r[3], s.r[4]) : q.rect(s.r[0], s.r[1], s.r[2], s.r[3]); p.addPath(q); }
+  }
+  pathCache[name] = p;
+  return p;
+}
+
+// Draw an icon with its top-left at x,y at `size` css px. Stroke weight is scaled so a
+// 14px icon and a 24px icon read as the same drawing, not as two different weights.
+T.icon = function (ctx, name, x, y, size, colour, alpha) {
+  const p = shapes(name); if (!p) return;
+  const k = size / 24;
+  ctx.save();
+  ctx.translate(x, y); ctx.scale(k, k);
+  ctx.strokeStyle = colour || T.C.dim;
+  ctx.lineWidth = 2; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+  if (alpha !== undefined) ctx.globalAlpha = alpha;
+  ctx.stroke(p);
+  ctx.restore();
+};
+
+// The same registry as markup, for the card headers.
+T.iconSvg = function (name, size, colour) {
+  const src = T.ICONS[name]; if (!src) return '';
+  const body = src.map(s => s.p ? `<path d="${s.p}"/>`
+    : s.l ? `<line x1="${s.l[0]}" y1="${s.l[1]}" x2="${s.l[2]}" y2="${s.l[3]}"/>`
+    : s.c ? `<circle cx="${s.c[0]}" cy="${s.c[1]}" r="${s.c[2]}"/>`
+    : `<rect x="${s.r[0]}" y="${s.r[1]}" width="${s.r[2]}" height="${s.r[3]}" rx="${s.r[4]}"/>`).join('');
+  return `<svg viewBox="0 0 24 24" width="${size || 13}" height="${size || 13}" fill="none" `
+    + `stroke="${colour || T.C.dim}" stroke-width="2" stroke-linecap="round" `
+    + `stroke-linejoin="round" aria-hidden="true">${body}</svg>`;
+};
+
+// ---------------------------------------------------------------------------------------
+// shared furniture
+// ---------------------------------------------------------------------------------------
 
 // A hairline that survives a device-pixel-ratio of 1: canvas strokes straddle the
 // coordinate, so integers blur a 1px line across two rows.
 T.crisp = v => Math.round(v) + 0.5;
 
-// Draw a faint horizontal grid and return the y() mapper, so every plot in the view
-// shares the same axis furniture instead of each inventing its own.
 T.grid = function (ctx, x0, y0, w, h, lines) {
   ctx.save();
   ctx.strokeStyle = T.C.grid; ctx.lineWidth = 1;
@@ -10015,7 +10127,6 @@ T.grid = function (ctx, x0, y0, w, h, lines) {
   ctx.restore();
 };
 
-// Rounded rect, because nothing in this view has a hard pixel corner.
 T.rr = function (ctx, x, y, w, h, r) {
   const rad = Math.min(r === undefined ? 3 : r, Math.abs(w) / 2, Math.abs(h) / 2);
   ctx.beginPath();
@@ -10029,7 +10140,7 @@ T.rr = function (ctx, x, y, w, h, r) {
 
 T.empty = function (ctx, w, h, msg) {
   ctx.save();
-  ctx.font = T.label(11); ctx.fillStyle = T.C.mute;
+  ctx.font = T.F.sub; ctx.fillStyle = T.C.mute;
   ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
   ctx.fillText(msg || 'no data', w / 2, h / 2);
   ctx.restore();
@@ -10044,74 +10155,59 @@ T.empty = function (ctx, w, h, msg) {
 // frame state, no timers — `t` is the only clock, so a caller can scrub, pause
 // or re-render at any rate and get the same picture. That is what lets the
 // dashboard tear down and rebuild panels without motion popping.
+//
+// All three are now still. Under devtheme's MOTION rule movement is spent on
+// throughput, liveness, "you are here" and "flagged"; only runHistory has one
+// of those (the current run), and a still marker says it. So `t` is taken and
+// ignored — the signature stays because the caller passes it.
 // ============================================================================
 (function (SCR) {
 'use strict';
 const G = SCR.devgraphs = {};
-
-// project tokens. nothing here invents a colour.
-// The developer view's palette, not the broadcast's: this file draws instruments, so the
-// names below are bound to SCR.devtheme rather than to the arcade tokens they started as.
-const TH = () => SCR.devtheme;
-const NIGHT = '#0E1013', STUDIO = '#161A20', TARMAC = '#1C2026';
-const WHITE = '#E7EAEE', CAPTION = '#949BA6', MID = '#5C646F';
-const GOLD = '#F5A524', RED = '#F05E6B', PURPLE = '#A78BFA';
-const CYAN = '#5B8DEF', GREEN = '#3FCF8E', AMBER = '#F5A524';
-
-// Geist for words, Geist Mono for anything compared by eye. The old pixel faces ran two
-// thirds the optical size of these at the same px, so every call site is scaled to match.
-const SANS = ", ui-sans-serif, system-ui, sans-serif";
-const LB = n => `500 ${Math.round(n * 1.55)}px 'Geist'${SANS}`;
-const NUM = n => `400 ${Math.round(n * 0.82)}px 'Geist Mono', ui-monospace, monospace`;
 
 const TAU = Math.PI * 2;
 const clamp = (v, a, b) => v < a ? a : v > b ? b : v;
 // alpha is applied via globalAlpha rather than rgba strings — no per-frame string building.
 
 // mast modes are the taxonomy the diagnoser blames; colour is the only legend we get.
-function modeColor (m) {
-  if (m === '1.4-loss-of-history') return CYAN;
-  if (m === '1.5-unaware-of-stopping') return AMBER;
-  if (m === '1.2-tool-schema-error') return RED;
-  return PURPLE;
-}
-
-// a panel with nothing in it should still look deliberate, not broken.
-function empty (ctx, w, h) {
-  ctx.save();
-  ctx.globalAlpha = 0.55;
-  ctx.fillStyle = MID;
-  ctx.font = LB(7);
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-  ctx.fillText('no data', w / 2, h / 2);
-  ctx.restore();
+function modeColor (C, m) {
+  if (m === '1.4-loss-of-history') return C.blue;
+  if (m === '1.5-unaware-of-stopping') return C.amber;
+  if (m === '1.2-tool-schema-error') return C.rose;
+  return C.violet;
 }
 
 // ---------------------------------------------------------------------------------------
 // 1. credit graph — who got blamed for what, and how sure we were
+//
+// Static by design: edge colour is the mast mode, edge width and opacity are the
+// diagnoser's confidence, node size is how many rows landed on that role. Nothing here
+// is in flight, so nothing here moves.
 // ---------------------------------------------------------------------------------------
 G.creditGraph = function (ctx, w, h, t, data) {
-  if (!(w > 0) || !(h > 0)) return;
+  const T = SCR.devtheme;
+  if (!T || !(w > 0) || !(h > 0)) return;
+  const C = T.C;
+
   const rows = data && data.rows;
   let items = data && data.items;
   let roles = data && data.roles;
-  if (!rows || !rows.length) { empty(ctx, w, h); return; }
+  if (!rows || !rows.length) { T.empty(ctx, w, h); return; }
 
   // tolerate a caller that hands us rows only.
   if (!items || !items.length) { items = []; for (let i = 0; i < rows.length; i++) { const v = rows[i] && rows[i].item; if (v && items.indexOf(v) < 0) items.push(v); } }
   if (!roles || !roles.length) { roles = []; for (let i = 0; i < rows.length; i++) { const v = rows[i] && rows[i].blamed_role; if (v && roles.indexOf(v) < 0) roles.push(v); } }
-  if (!items.length || !roles.length) { empty(ctx, w, h); return; }
+  if (!items.length || !roles.length) { T.empty(ctx, w, h); return; }
 
   ctx.save();
 
-  const tiny = w < 380 || h < 190;
-  const fs = tiny ? 6 : 7;
-  const padX = tiny ? 20 : 30;
-  const padY = tiny ? 12 : 16;
+  // one decision from the box, taken once — every font call downstream reads it.
+  const small = h < 190 || w < 300;
+  const padX = small ? 20 : 30;
+  const padY = small ? 12 : 16;
   const xL = padX, xR = w - padX;
   const span = xR - xL;
-  if (span < 24) { ctx.restore(); empty(ctx, w, h); return; }
+  if (span < 24) { ctx.restore(); T.empty(ctx, w, h); return; }
 
   const yOf = (i, n) => n < 2 ? h / 2 : padY + (h - padY * 2) * (i / (n - 1));
 
@@ -10133,59 +10229,54 @@ G.creditGraph = function (ctx, w, h, t, data) {
     const conf = clamp(typeof r.confidence === 'number' ? r.confidence : 0.5, 0, 1);
     const y0 = yOf(ii, items.length), y1 = yOf(ri, roles.length);
     const c0 = xL + span * 0.42, c1 = xR - span * 0.42;
-    const col = modeColor(r.mast_mode);
 
     ctx.globalAlpha = 0.14 + conf * 0.42;
-    ctx.strokeStyle = col;
+    ctx.strokeStyle = modeColor(C, r.mast_mode);
     ctx.lineWidth = 0.6 + conf * 1.7;
     ctx.beginPath();
     ctx.moveTo(xL, y0);
     ctx.bezierCurveTo(c0, y0, c1, y1, xR, y1);
     ctx.stroke();
-
-    // packet. the phase offset is per-edge so the bundle shimmers instead of marching.
-    const s = ((t * 0.28 + i * 0.0773 + ii * 0.17) % 1);
-    const u = 1 - s, a = u * u * u, b = 3 * u * u * s, c = 3 * u * s * s, d = s * s * s;
-    const px = a * xL + b * c0 + c * c1 + d * xR;
-    const py = a * y0 + b * y0 + c * y1 + d * y1;
-    ctx.globalAlpha = 0.35 + 0.55 * Math.sin(s * Math.PI);   // fade in and out at the ends
-    ctx.fillStyle = col;
-    const pr = 0.9 + conf * 1.5;
-    ctx.beginPath();
-    ctx.arc(px, py, pr, 0, TAU);
-    ctx.fill();
   }
 
   // ---- nodes ----
-  ctx.font = LB(fs);
+  ctx.font = T.font('label', small);
   ctx.textBaseline = 'middle';
 
   ctx.textAlign = 'right';
   for (let i = 0; i < items.length; i++) {
     const y = yOf(i, items.length);
     ctx.globalAlpha = 1;
-    ctx.fillStyle = STUDIO;
+    ctx.fillStyle = C.grid;
     ctx.beginPath(); ctx.arc(xL, y, 3.2, 0, TAU); ctx.fill();
     ctx.globalAlpha = 0.85;
-    ctx.strokeStyle = CAPTION; ctx.lineWidth = 1;
+    ctx.strokeStyle = C.dim; ctx.lineWidth = 1;
     ctx.beginPath(); ctx.arc(xL, y, 3.2, 0, TAU); ctx.stroke();
-    if (items.length <= 14) { ctx.globalAlpha = 0.7; ctx.fillStyle = CAPTION; ctx.fillText(String(items[i]), xL - 6, y); }
+    if (items.length <= 14) { ctx.globalAlpha = 0.7; ctx.fillStyle = C.dim; ctx.fillText(String(items[i]), xL - 6, y); }
   }
 
   ctx.textAlign = 'left';
   for (let i = 0; i < roles.length; i++) {
     const y = yOf(i, roles.length);
     const share = counts[i] / maxCount;
-    const rr = 3 + share * (tiny ? 4 : 7) + Math.sin(t * 1.3 + i) * 0.35 * share;
+    const rr = 3 + share * (small ? 4 : 7);
     ctx.globalAlpha = 0.18 + share * 0.3;
-    ctx.fillStyle = GOLD;
+    ctx.fillStyle = C.amber;
     ctx.beginPath(); ctx.arc(xR, y, rr + 3.5, 0, TAU); ctx.fill();      // halo carries the weight
     ctx.globalAlpha = 0.45 + share * 0.55;
     ctx.beginPath(); ctx.arc(xR, y, rr, 0, TAU); ctx.fill();
     if (roles.length <= 14) {
+      const tx = xR + rr + 5;
       ctx.globalAlpha = 0.5 + share * 0.5;
-      ctx.fillStyle = share > 0.5 ? WHITE : CAPTION;
-      ctx.fillText(String(roles[i]), xR + rr + 5, y);
+      ctx.fillStyle = share > 0.5 ? C.text : C.dim;
+      ctx.font = T.font('label', small);
+      const nm = String(roles[i]);
+      ctx.fillText(nm, tx, y);
+      // the count says what the disc size means, so the disc needs no legend.
+      ctx.globalAlpha = 0.6;
+      ctx.fillStyle = C.mute;
+      ctx.font = T.font('value', small);
+      ctx.fillText(String(counts[i]), tx + ctx.measureText(nm).width + 5, y);
     }
   }
 
@@ -10196,63 +10287,59 @@ G.creditGraph = function (ctx, w, h, t, data) {
 // 2. failure modes — which WCAG tags the agent keeps missing
 // ---------------------------------------------------------------------------------------
 G.failureModes = function (ctx, w, h, t, data) {
-  if (!(w > 0) || !(h > 0)) return;
+  const T = SCR.devtheme;
+  if (!T || !(w > 0) || !(h > 0)) return;
+  const C = T.C;
+
   const tally = data && data.tally;
-  if (!tally) { empty(ctx, w, h); return; }
+  if (!tally) { T.empty(ctx, w, h); return; }
 
   const keys = Object.keys(tally);
-  if (!keys.length) { empty(ctx, w, h); return; }
+  if (!keys.length) { T.empty(ctx, w, h); return; }
   keys.sort((a, b) => (tally[b] - tally[a]) || (a < b ? -1 : 1));
   const n = Math.min(keys.length, 8);
 
   let max = 0;
   for (let i = 0; i < n; i++) { const v = +tally[keys[i]] || 0; if (v > max) max = v; }
-  if (!(max > 0)) { empty(ctx, w, h); return; }
+  if (!(max > 0)) { T.empty(ctx, w, h); return; }
 
   ctx.save();
 
-  const tiny = w < 400;
+  const small = h < 190 || w < 300;
   const labelW = clamp(w * 0.28, 44, 96);
-  const numW = tiny ? 30 : 40;
+  const numW = small ? 30 : 40;
   const x0 = labelW + 6;
   const track = w - x0 - numW - 4;
-  if (track < 12) { ctx.restore(); empty(ctx, w, h); return; }
+  if (track < 12) { ctx.restore(); T.empty(ctx, w, h); return; }
 
   const rowH = h / n;
   const barH = clamp(rowH * 0.5, 3, 16);
-  const fs = rowH < 18 ? 6 : 7;
   ctx.textBaseline = 'middle';
 
   for (let i = 0; i < n; i++) {
     const v = +tally[keys[i]] || 0;
     const y = rowH * (i + 0.5);
-    const col = i < 2 ? RED : i < 4 ? AMBER : CYAN;
+    const col = i < 2 ? C.rose : i < 4 ? C.amber : C.blue;
     const bw = Math.max(1, track * (v / max));
 
     // rail first, so short bars still read as a position on a scale
     ctx.globalAlpha = 1;
-    ctx.fillStyle = TARMAC;
+    ctx.fillStyle = C.line;
     ctx.fillRect(x0, y - barH / 2, track, barH);
 
     ctx.globalAlpha = 0.9;
     ctx.fillStyle = col;
     ctx.fillRect(x0, y - barH / 2, bw, barH);
 
-    // t never resets, so there is no grow-in to play — the leading edge breathes instead.
-    const pulse = 0.5 + 0.5 * Math.sin(t * 2.2 - i * 0.55);
-    ctx.globalAlpha = 0.25 + pulse * 0.65;
-    ctx.fillStyle = WHITE;
-    ctx.fillRect(x0 + bw - 2, y - barH / 2, 2, barH);
-
     ctx.globalAlpha = 0.82;
-    ctx.fillStyle = CAPTION;
-    ctx.font = LB(fs);
+    ctx.fillStyle = C.dim;
+    ctx.font = T.font('label', small);
     ctx.textAlign = 'left';
     ctx.fillText(String(keys[i]).slice(0, 12), 2, y);
 
     ctx.globalAlpha = 1;
     ctx.fillStyle = col;
-    ctx.font = NUM(rowH < 18 ? 14 : 18);
+    ctx.font = T.font('value', small);
     ctx.textAlign = 'right';
     ctx.fillText(String(v), w - 2, y);
   }
@@ -10264,19 +10351,22 @@ G.failureModes = function (ctx, w, h, t, data) {
 // 3. run history — claimed vs held-out, and what it cost
 // ---------------------------------------------------------------------------------------
 G.runHistory = function (ctx, w, h, t, data) {
-  if (!(w > 0) || !(h > 0)) return;
+  const T = SCR.devtheme;
+  if (!T || !(w > 0) || !(h > 0)) return;
+  const C = T.C;
+
   const runs = data && data.runs;
-  if (!runs || runs.length < 1) { empty(ctx, w, h); return; }
+  if (!runs || runs.length < 1) { T.empty(ctx, w, h); return; }
 
   ctx.save();
 
-  const tiny = w < 400 || h < 190;
-  const padL = tiny ? 22 : 30, padR = tiny ? 8 : 12;
-  const padT = tiny ? 10 : 14;
+  const small = h < 190 || w < 300;
+  const padL = small ? 22 : 30, padR = small ? 8 : 12;
+  const padT = small ? 14 : 18;
   const costH = clamp(h * 0.16, 10, 34);
-  const padB = costH + (tiny ? 12 : 16);
+  const padB = costH + (small ? 12 : 16);
   const pw = w - padL - padR, ph = h - padT - padB;
-  if (pw < 10 || ph < 10) { ctx.restore(); empty(ctx, w, h); return; }
+  if (pw < 10 || ph < 10) { ctx.restore(); T.empty(ctx, w, h); return; }
 
   // y never starts at zero: the whole story lives in the third significant figure.
   let lo = Infinity, hi = -Infinity, cmax = 0;
@@ -10287,7 +10377,7 @@ G.runHistory = function (ctx, w, h, t, data) {
     if (isFinite(b)) { if (b < lo) lo = b; if (b > hi) hi = b; }
     if (isFinite(c) && c > cmax) cmax = c;
   }
-  if (!isFinite(lo) || !isFinite(hi)) { ctx.restore(); empty(ctx, w, h); return; }
+  if (!isFinite(lo) || !isFinite(hi)) { ctx.restore(); T.empty(ctx, w, h); return; }
   const pad = (hi - lo) * 0.12 || Math.max(Math.abs(hi) * 0.01, 0.5);
   lo -= pad; hi += pad;
 
@@ -10297,7 +10387,7 @@ G.runHistory = function (ctx, w, h, t, data) {
 
   // ---- band: the gap between what was claimed and what held out is the whole point ----
   ctx.globalAlpha = 0.16;
-  ctx.fillStyle = PURPLE;
+  ctx.fillStyle = C.violet;
   ctx.beginPath();
   for (let i = 0; i < n; i++) { const v = runs[i] ? +runs[i].claimed : NaN; ctx[i ? 'lineTo' : 'moveTo'](xOf(i), yOf(isFinite(v) ? v : lo)); }
   for (let i = n - 1; i >= 0; i--) { const v = runs[i] ? +runs[i].official : NaN; ctx.lineTo(xOf(i), yOf(isFinite(v) ? v : lo)); }
@@ -10324,15 +10414,15 @@ G.runHistory = function (ctx, w, h, t, data) {
       ctx.beginPath(); ctx.arc(xOf(i), yOf(v), 1.6, 0, TAU); ctx.fill();
     }
   };
-  line('claimed', PURPLE, 1.4);
-  line('official', GOLD, 1.8);
+  line('claimed', C.violet, 1.4);
+  line('official', C.amber, 1.8);
 
   // ---- cost, along the floor ----
+  const base = h - (small ? 8 : 12);
   if (cmax > 0) {
     const bw = Math.max(1.5, pw / n * 0.34);
-    const base = h - (tiny ? 8 : 12);
     ctx.globalAlpha = 0.7;
-    ctx.fillStyle = CYAN;
+    ctx.fillStyle = C.blue;
     for (let i = 0; i < n; i++) {
       const c = runs[i] ? +runs[i].cost : NaN; if (!isFinite(c)) continue;
       const bh = Math.max(1, costH * (c / cmax));
@@ -10340,30 +10430,28 @@ G.runHistory = function (ctx, w, h, t, data) {
     }
   }
 
-  // ---- the run we are standing in ----
+  // ---- the run we are standing in — "you are here", still ----
   const at = (data && typeof data.at === 'number') ? clamp(data.at | 0, 0, n - 1) : -1;
   if (at >= 0 && runs[at]) {
     const mx = xOf(at);
     ctx.globalAlpha = 0.55;
-    ctx.strokeStyle = WHITE;
+    ctx.strokeStyle = C.text;
     ctx.lineWidth = 1;
     ctx.beginPath(); ctx.moveTo(mx, padT - 4); ctx.lineTo(mx, h - 4); ctx.stroke();
     const v = +runs[at].official;
     if (isFinite(v)) {
       const my = yOf(v);
-      const p = (t * 0.8) % 1;                       // pulse rings out and dies, forever
-      ctx.globalAlpha = (1 - p) * 0.8;
-      ctx.strokeStyle = WHITE; ctx.lineWidth = 1.2;
-      ctx.beginPath(); ctx.arc(mx, my, 2 + p * 9, 0, TAU); ctx.stroke();
-      ctx.globalAlpha = 1; ctx.fillStyle = WHITE;
+      ctx.globalAlpha = 0.35; ctx.strokeStyle = C.text; ctx.lineWidth = 1.2;
+      ctx.beginPath(); ctx.arc(mx, my, 5.5, 0, TAU); ctx.stroke();
+      ctx.globalAlpha = 1; ctx.fillStyle = C.text;
       ctx.beginPath(); ctx.arc(mx, my, 2.2, 0, TAU); ctx.fill();
     }
   }
 
   // ---- four numbers, no axis furniture ----
   ctx.globalAlpha = 0.7;
-  ctx.fillStyle = MID;
-  ctx.font = NUM(tiny ? 14 : 17);
+  ctx.fillStyle = C.mute;
+  ctx.font = T.font('axis', small);
   ctx.textBaseline = 'middle';
   ctx.textAlign = 'right';
   ctx.fillText((hi - pad).toFixed(1), padL - 3, padT + 4);
@@ -10372,6 +10460,16 @@ G.runHistory = function (ctx, w, h, t, data) {
   ctx.fillText(String(runs[0] && runs[0].i !== undefined ? runs[0].i : 0), padL, h - 3);
   ctx.textAlign = 'right';
   ctx.fillText(String(runs[n - 1] && runs[n - 1].i !== undefined ? runs[n - 1].i : n - 1), w - padR, h - 3);
+
+  // ---- what the numbers are in. three axes, three units, no sentence ----
+  ctx.globalAlpha = 0.6;
+  ctx.fillStyle = C.mute;
+  ctx.font = T.font('sub', small);
+  ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+  ctx.fillText('seconds', padL - (small ? 20 : 28), padT - 5);
+  ctx.textBaseline = 'middle';
+  ctx.fillText('run', padL + 14, h - 3);
+  if (cmax > 0) { ctx.textAlign = 'right'; ctx.fillText('cost $', w - padR, base - costH - 4); }
 
   ctx.restore();
 };
@@ -10383,8 +10481,10 @@ G.runHistory = function (ctx, w, h, t, data) {
 // SCR.devpanels — two readouts about the agent's own judgement: what it thought
 // a change was worth, and where its proposals actually die.
 //
-// Same contract as SCR.devgraphs: pure draw, `t` is the only clock, no state
-// between frames. Colours and type come from SCR.devtheme and nowhere else.
+// Same contract as SCR.devgraphs: pure draw, no state between frames. Colours and
+// type come from SCR.devtheme and nowhere else. Both panels are still: neither shows
+// throughput, liveness, "you are here" or a flag, which are the only four things
+// devtheme lets move. `t` is taken and ignored so the caller's signature holds.
 // ============================================================================
 (function (SCR) {
 'use strict';
@@ -10435,9 +10535,10 @@ P.calibration = function (ctx, w, h, t, data) {
 
   ctx.save();
 
-  const tiny = w < 380 || h < 190;
-  const padL = tiny ? 26 : 34, padR = tiny ? 10 : 14;
-  const padT = tiny ? 14 : 18, padB = tiny ? 20 : 28;
+  // one decision from the box, taken once — every font call downstream reads it.
+  const small = h < 190 || w < 300;
+  const padL = small ? 26 : 34, padR = small ? 10 : 14;
+  const padT = small ? 14 : 18, padB = small ? 20 : 28;
   const pw = w - padL - padR, ph = h - padT - padB;
   if (!(pw > 24) || !(ph > 24)) { ctx.restore(); T.empty(ctx, w, h, 'no room'); return; }
 
@@ -10465,7 +10566,7 @@ P.calibration = function (ctx, w, h, t, data) {
   ctx.closePath(); ctx.fill();
 
   // ---- grid at the tick values, so gridline and number always agree ----
-  const step = niceStep(span, tiny ? 3 : 4);
+  const step = niceStep(span, small ? 3 : 4);
   const first = Math.ceil(lo / step) * step;
   const ticks = [];
   for (let v = first, k = 0; v <= hi && k < 40; v += step, k++) ticks.push(v);
@@ -10487,24 +10588,14 @@ P.calibration = function (ctx, w, h, t, data) {
   ctx.beginPath(); ctx.moveTo(T.crisp(x0), y0); ctx.lineTo(T.crisp(x0), y1); ctx.stroke();
   ctx.beginPath(); ctx.moveTo(x0, T.crisp(y1)); ctx.lineTo(x1, T.crisp(y1)); ctx.stroke();
 
-  // ---- y = x, dashed and drifting so it reads as a target rather than data ----
+  // ---- y = x, dashed so it reads as a target rather than as data ----
   const ax = xOf(lo), ay = yOf(lo), bx = xOf(hi), by = yOf(hi);
   ctx.save();
   ctx.setLineDash([4, 4]);
-  ctx.lineDashOffset = -((t * 9) % 8);
   ctx.globalAlpha = 0.75;
   ctx.strokeStyle = C.mute; ctx.lineWidth = 1;
   ctx.beginPath(); ctx.moveTo(ax, ay); ctx.lineTo(bx, by); ctx.stroke();
   ctx.restore();
-
-  // a slow bead running the line, the only thing in the panel that ever reaches it.
-  const s = (t * 0.14) % 1;
-  const sx = ax + (bx - ax) * s, sy = ay + (by - ay) * s;
-  ctx.globalAlpha = 0.18;
-  ctx.fillStyle = C.teal;
-  ctx.beginPath(); ctx.arc(sx, sy, 6.5, 0, TAU); ctx.fill();
-  ctx.globalAlpha = 0.85;
-  ctx.beginPath(); ctx.arc(sx, sy, 2, 0, TAU); ctx.fill();
 
   // ---- the gap itself: a dropped line from the line down to what was measured ----
   ctx.globalAlpha = 0.22;
@@ -10524,11 +10615,10 @@ P.calibration = function (ctx, w, h, t, data) {
     const p = pts[i];
     const px = clamp(xOf(p.x), x0, x1), py = clamp(yOf(p.y), y0, y1);
     if (i === worst && worstErr > 0) {
-      // the biggest miss breathes, so the eye lands on it without a callout.
-      const br = 5 + 3.5 * (0.5 + 0.5 * Math.sin(t * 1.5));
-      ctx.globalAlpha = 0.10 + 0.12 * (0.5 + 0.5 * Math.sin(t * 1.5 + Math.PI));
+      // the biggest miss gets a still disc behind it — size, not motion, lands the eye.
+      ctx.globalAlpha = 0.16;
       ctx.fillStyle = p.on ? C.green : C.blue;
-      ctx.beginPath(); ctx.arc(px, py, br, 0, TAU); ctx.fill();
+      ctx.beginPath(); ctx.arc(px, py, 8, 0, TAU); ctx.fill();
     }
     if (p.on) {
       ctx.globalAlpha = 1; ctx.fillStyle = C.green;
@@ -10543,29 +10633,35 @@ P.calibration = function (ctx, w, h, t, data) {
     }
   }
 
-  // ---- numbers and two captions ----
-  const fs = tiny ? 8 : 9;
+  // ---- ticks, then the two axis names, then the unit both axes are in ----
   ctx.globalAlpha = 1;
   ctx.fillStyle = C.mute;
-  ctx.font = T.num(fs);
+  ctx.font = T.font('axis', small);
   ctx.textBaseline = 'middle'; ctx.textAlign = 'right';
   for (let i = 0; i < ticks.length; i++) ctx.fillText(fmt(ticks[i], step), x0 - 4, yOf(ticks[i]));
   ctx.textAlign = 'center'; ctx.textBaseline = 'top';
   for (let i = 0; i < ticks.length; i++) ctx.fillText(fmt(ticks[i], step), xOf(ticks[i]), y1 + 4);
 
   ctx.fillStyle = C.dim;
-  ctx.font = T.label(tiny ? 9 : 10);
+  ctx.font = T.font('label', small);
   ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
-  ctx.fillText('measured', x0 - (tiny ? 22 : 30), y0 - 5);
+  const mx0 = x0 - (small ? 22 : 30);
+  ctx.fillText('measured', mx0, y0 - 5);
+  const mw = ctx.measureText('measured ').width;
   ctx.textAlign = 'right';
   ctx.fillText('predicted', x1, h - 3);
 
+  // both axes are the same quantity, so the unit is said once and qualifies both.
+  ctx.globalAlpha = 0.75;
+  ctx.fillStyle = C.mute;
+  ctx.font = T.font('sub', small);
+  ctx.textAlign = 'left';
+  ctx.fillText('seconds', mx0 + mw, y0 - 5);
+
   // sits on the reference line, naming what the line means rather than labelling an axis.
   ctx.globalAlpha = 0.8;
-  ctx.fillStyle = C.mute;
-  ctx.font = T.label(tiny ? 8 : 9);
-  ctx.textAlign = 'right'; ctx.textBaseline = 'alphabetic';
-  ctx.fillText('perfect calibration', ax + (bx - ax) * 0.66 - 5, ay + (by - ay) * 0.66 - 5);
+  ctx.textAlign = 'right';
+  ctx.fillText('as forecast', ax + (bx - ax) * 0.66 - 5, ay + (by - ay) * 0.66 - 5);
 
   ctx.restore();
 };
@@ -10614,9 +10710,10 @@ P.gateFunnel = function (ctx, w, h, t, data) {
 
   ctx.save();
 
-  const tiny = w < 400 || h < 190;
-  const padL = tiny ? 22 : 30, padR = tiny ? 22 : 30;
-  const padT = tiny ? 12 : 16, padB = tiny ? 16 : 22;
+  // one decision from the box, taken once — every font call downstream reads it.
+  const small = h < 190 || w < 300;
+  const padL = small ? 22 : 30, padR = small ? 22 : 30;
+  const padT = small ? 12 : 16, padB = small ? 16 : 22;
   const pw = w - padL - padR, ph = h - padT - padB;
   const n = vals.length;
   if (!(pw > 40) || !(ph > 20) || n < 2) { ctx.restore(); T.empty(ctx, w, h, 'no room'); return; }
@@ -10651,19 +10748,6 @@ P.gateFunnel = function (ctx, w, h, t, data) {
   ctx.globalAlpha = 0.16; ctx.fillStyle = C.blue; bandPath(); ctx.fill();
   ctx.globalAlpha = 0.55; ctx.strokeStyle = C.blue; ctx.lineWidth = 1; bandPath(); ctx.stroke();
 
-  // ---- throughput: slanted ticks travelling with the flow, clipped to the band ----
-  ctx.save();
-  bandPath(); ctx.clip();
-  const gap = 16, lean = 5;
-  const phase = (t * 22) % gap;
-  ctx.globalAlpha = 0.22; ctx.strokeStyle = C.teal; ctx.lineWidth = 1.4;
-  for (let x = padL - gap + phase; x < padL + pw + gap; x += gap) {
-    ctx.beginPath();
-    ctx.moveTo(x, cy - maxBand); ctx.lineTo(x + lean, cy + maxBand);
-    ctx.stroke();
-  }
-  ctx.restore();
-
   // ---- gate markers ----
   const showAll = segW >= 52;
   ctx.textBaseline = 'middle';
@@ -10693,8 +10777,8 @@ P.gateFunnel = function (ctx, w, h, t, data) {
     const nm = gates[i].name.replace(/_/g, ' ');
     ctx.globalAlpha = cut ? 1 : 0.75;
     ctx.fillStyle = cut ? C.dim : C.mute;
-    ctx.font = T.label(tiny ? 9 : 10, cut ? 600 : 500);
-    ctx.fillText(nm, x, cy + maxBand / 2 + (tiny ? 7 : 10));
+    ctx.font = T.font('label', small);
+    ctx.fillText(nm, x, cy + maxBand / 2 + (small ? 7 : 10));
   }
 
   // the kill count rides above the notch, where the band actually steps down.
@@ -10703,18 +10787,26 @@ P.gateFunnel = function (ctx, w, h, t, data) {
     if (!(kills[i] > 0)) continue;
     const x = clamp(xOf(i + 1), padL, padL + pw);
     ctx.globalAlpha = 1; ctx.fillStyle = C.rose;
-    ctx.font = T.num(tiny ? 10 : 11, 500);
-    ctx.fillText('−' + kills[i], x, cy - maxBand / 2 - (tiny ? 5 : 8));
+    ctx.font = T.font('value', small);
+    ctx.fillText('−' + kills[i], x, cy - maxBand / 2 - (small ? 5 : 8));
   }
 
   // ---- the two counts that matter, at the mouth and at the spout ----
+  // accepted is what the funnel is for, so it is the one number in hero.
   ctx.globalAlpha = 1;
   ctx.textBaseline = 'middle';
-  ctx.font = T.num(tiny ? 12 : 15, 500);
   ctx.fillStyle = C.text; ctx.textAlign = 'right';
+  ctx.font = T.font('value', small);
   ctx.fillText(String(entered), padL - 5, cy);
   ctx.fillStyle = accepted > 0 ? C.green : C.mute; ctx.textAlign = 'left';
+  ctx.font = T.font('hero', small);
   ctx.fillText(String(accepted), padL + pw + 5, cy);
+
+  // the band is a headcount, not a rate — say so once, under the mouth.
+  ctx.globalAlpha = 0.7;
+  ctx.fillStyle = C.mute; ctx.textAlign = 'right';
+  ctx.font = T.font('sub', small);
+  ctx.fillText('proposals', padL - 5, cy + (small ? 10 : 13));
 
   // the last narrowing is not a gate — keep it mute so it cannot be read as one.
   if (accepted < lastGate) {
@@ -10732,12 +10824,14 @@ P.gateFunnel = function (ctx, w, h, t, data) {
 
 // ===== devaudit.js =====
 // ============================================================================
-// SCR.devaudit — three readouts for the audit half of the developer view.
+// SCR.devaudit — two readouts for the audit half of the developer view.
 //
-// The auditor's output is three different shapes of evidence: a taxonomy of what
-// it flagged, a ranking of what it chose to act on, and an interval that says
-// whether it should have acted at all. Same contract as devgraphs: pure in
-// (ctx, w, h, t, data), `t` is the only clock.
+// The auditor's output is two shapes of evidence: a taxonomy of what it flagged,
+// and a table of what it blamed and what it then chose to act on. Those last two
+// used to be separate panels (selection, blameCI) asking the same question from
+// two sides — "which component is at fault, and which one got changed" — so they
+// are one panel now. Same contract as devgraphs: pure in (ctx, w, h, t, data),
+// `t` is the only clock.
 // ============================================================================
 (function (SCR) {
 'use strict';
@@ -10763,6 +10857,9 @@ function fit (ctx, s, max) {
 }
 
 function bad (w, h) { return !(w > 0) || !(h > 0); }
+
+// one shrink decision per panel, taken from the panel's own box — never per string.
+function isSmall (w, h) { return h < 190 || w < 300; }
 
 // ---------------------------------------------------------------------------
 // 1. tamper matrix — functional role x obligation, as a heatmap
@@ -10815,12 +10912,11 @@ A.tamperMatrix = function (ctx, w, h, t, data) {
   if (!any) { T.empty(ctx, w, h, 'no flags'); return; }
 
   ctx.save();
-  const small = w < 420 || h < 200;
-  const fs = small ? 8 : 9;
+  const small = isSmall(w, h);
   const pad = 6;
   const capH = (h >= 190) ? 12 : 0;   // room for the one line of prose we allow
 
-  ctx.font = T.label(fs);
+  ctx.font = T.font('label', small);
   let leftW = 0;
   for (let i = 0; i < nR; i++) leftW = Math.max(leftW, ctx.measureText(rows[i]).width);
   leftW = clamp(leftW + 8, 28, w * 0.34);
@@ -10849,6 +10945,10 @@ A.tamperMatrix = function (ctx, w, h, t, data) {
     ctx.fillText(fit(ctx, rows[r], leftW - 6), gx - 6, gy + ch * (r + 0.5));
   }
 
+  // the count inside a cell is a number read in passing, so it is `value` — and the
+  // cell has to be tall enough for the size the scale hands us, not the other way round.
+  const numH = small ? 13 : 16;
+
   for (let r = 0; r < nR; r++) {
     for (let c = 0; c < nC; c++) {
       const x = gx + cw * c + 1, y = gy + ch * r + 1;
@@ -10872,22 +10972,22 @@ A.tamperMatrix = function (ctx, w, h, t, data) {
         ctx.fillRect(x + 2, y + bh - 3, Math.max(1, (bw - 4) * conf), 2);
       }
 
-      if (bw > 14 && bh > 13) {
-        ctx.font = T.num(Math.max(8, Math.min(12, bh * 0.42)), 500);
+      if (bw > 14 && bh >= numH) {
+        ctx.font = T.font('value', small);
         ctx.fillStyle = C.white; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
         ctx.fillText(String(e.n), x + bw / 2, y + bh / 2 - 1);
         ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
       }
 
       // the seeded cell is the whole point of the panel: a canary we planted, caught.
-      // it has to read as "caught on purpose", not as one more hit.
+      // this is the one animation left in the file — motion here means "flagged".
       if (e.seeded) {
         ctx.strokeStyle = C.amber; ctx.lineWidth = 1.5;
         T.rr(ctx, x + 0.5, y + 0.5, bw - 1, bh - 1, 2); ctx.stroke();
         for (let p = 0; p < 2; p++) {
-          const ph = ((t * 0.7 + p * 0.5) % 1 + 1) % 1;
+          const ph = ((fin(t, 0) * 0.7 + p * 0.5) % 1 + 1) % 1;
           const g = ph * 7;
-          ctx.globalAlpha = 0.5 * (1 - ph);
+          ctx.globalAlpha = clamp(0.5 * (1 - ph), 0, 1);
           ctx.lineWidth = 1;
           T.rr(ctx, x - g, y - g, bw + g * 2, bh + g * 2, 2 + g); ctx.stroke();
         }
@@ -10897,7 +10997,7 @@ A.tamperMatrix = function (ctx, w, h, t, data) {
   }
 
   if (capH) {
-    ctx.font = T.label(8); ctx.textAlign = 'right'; ctx.textBaseline = 'alphabetic';
+    ctx.font = T.font('tag', small); ctx.textAlign = 'right'; ctx.textBaseline = 'alphabetic';
     ctx.fillStyle = C.amber;
     ctx.fillText('ringed = seeded canary', w - pad, h - 3);
   }
@@ -10905,178 +11005,102 @@ A.tamperMatrix = function (ctx, w, h, t, data) {
 };
 
 // ---------------------------------------------------------------------------
-// 2. selection — why the loop picked the component it picked
+// 2. role table — everything the loop knew, and the one it picked
+//
+// One row per component. The whisker is the blame interval against the act line;
+// the state is a single mark on the left; gain per dollar is the price of acting.
+// Nothing moves: none of the four motion meanings apply to a static ranking, and
+// a shimmering interval only ever read as decoration.
 // ---------------------------------------------------------------------------
-A.selection = function (ctx, w, h, t, data) {
+A.roleTable = function (ctx, w, h, t, data) {
   if (bad(w, h)) return;
-  const src = (data && data.alternatives) || null;
-  if (!src || !src.length) { T.empty(ctx, w, h, 'no candidates'); return; }
-  const alts = [];
-  for (let i = 0; i < src.length; i++) if (src[i]) alts.push(src[i]);
-  if (!alts.length) { T.empty(ctx, w, h, 'no candidates'); return; }
-  alts.sort((a, b) => fin(b.gain_per_usd, 0) - fin(a.gain_per_usd, 0));
+  const src = (data && data.rows) || null;
+  if (!src || !src.length) { T.empty(ctx, w, h, 'no roles'); return; }
 
-  const chosen = (data && typeof data.chosen === 'string') ? data.chosen : null;
-  let maxG = 0;
-  for (let i = 0; i < alts.length; i++) maxG = Math.max(maxG, fin(alts[i].gain_per_usd, 0));
-
-  ctx.save();
-  const pad = 6, headH = h >= 130 ? 13 : 0;
-  const avail = h - headH - 4;
-  const n = alts.length;
-  const rowH = clamp(avail / n, 7, 30);
-  const fs = rowH >= 18 ? 10 : (rowH >= 12 ? 9 : 8);
-
-  let nameW = clamp(w * 0.26, 34, 112);
-  let rightW = clamp(w * 0.22, 0, 92);
-  let barX = pad + 8 + nameW;
-  if (w - pad - rightW - barX < 24) rightW = 0;
-  let barW = w - pad - rightW - barX;
-  if (!(barW > 8)) { barW = 0; }
-
-  if (headH) {
-    ctx.font = T.label(8); ctx.fillStyle = C.mute;
-    ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
-    ctx.fillText('gain per $', barX, 9);
-  }
-
-  for (let i = 0; i < n; i++) {
-    const a = alts[i];
-    const y = headH + 2 + rowH * i;
-    const cy = y + rowH / 2;
-    const gain = fin(a.gain_per_usd, 0);
-    const attempts = Math.max(0, Math.round(fin(a.n_attempts, 0)));
-    const never = attempts === 0;
-    const exhausted = !!a.exhausted;
-    const eligible = !!a.eligible && !exhausted;
-    const role = typeof a.role === 'string' ? a.role : '?';
-
-    // the one it acted on gets a rule, not a highlight — the bars still have to be comparable.
-    if (chosen && role === chosen) {
-      ctx.globalAlpha = 0.6 + 0.4 * (0.5 + 0.5 * Math.sin(t * 2.2));
-      ctx.fillStyle = C.amber;
-      T.rr(ctx, pad, y + 1.5, 2, Math.max(2, rowH - 3), 1); ctx.fill();
-      ctx.globalAlpha = 1;
-    }
-
-    ctx.font = T.label(fs, chosen && role === chosen ? 600 : 500);
-    ctx.fillStyle = eligible ? C.text : C.mute;
-    ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
-    const shown = fit(ctx, role, nameW);
-    ctx.fillText(shown, pad + 8, cy);
-    if (exhausted) { // retired: attempts spent, no fix. strike it.
-      const tw = ctx.measureText(shown).width;
-      ctx.strokeStyle = C.mute; ctx.lineWidth = 1;
-      ctx.beginPath();
-      ctx.moveTo(pad + 8, T.crisp(cy)); ctx.lineTo(pad + 8 + tw, T.crisp(cy)); ctx.stroke();
-    }
-
-    if (barW > 8) {
-      const bh = Math.max(3, Math.min(12, rowH - 6));
-      const by = cy - bh / 2;
-      const len = maxG > 0 ? (gain / maxG) * barW : 0;
-
-      if (never) {
-        // never blamed: leave the row almost empty, that is the finding.
-        ctx.strokeStyle = C.grid; ctx.lineWidth = 1;
-        ctx.beginPath();
-        ctx.moveTo(barX, T.crisp(cy)); ctx.lineTo(barX + barW, T.crisp(cy)); ctx.stroke();
-      } else if (exhausted) {
-        ctx.save();
-        T.rr(ctx, barX, by, barW, bh, 2); ctx.clip();
-        ctx.globalAlpha = 0.5; ctx.strokeStyle = C.mute; ctx.lineWidth = 1;
-        for (let x = barX - bh; x < barX + barW; x += 5) {
-          ctx.beginPath(); ctx.moveTo(x, by + bh); ctx.lineTo(x + bh, by); ctx.stroke();
-        }
-        ctx.restore();
-        ctx.globalAlpha = 1;
-      }
-      if (len > 0.5) {
-        ctx.fillStyle = eligible ? C.teal : C.mute;
-        ctx.globalAlpha = eligible ? 1 : 0.5;
-        T.rr(ctx, barX, by, len, bh, 2); ctx.fill();
-        ctx.globalAlpha = 1;
-        if (rowH >= 12 && barX + len + 34 < barX + barW) {
-          ctx.font = T.num(8); ctx.fillStyle = C.dim;
-          ctx.fillText(gain.toFixed(1), barX + len + 4, cy);
-        }
-      }
-      if (exhausted && rowH >= 11) {
-        ctx.font = T.label(8); ctx.fillStyle = C.mute;
-        ctx.fillText(fit(ctx, 'exhausted', barW - 6), barX + 4, cy);
-      }
-    }
-
-    // fix rate: the dots are the attempts, the filled ones are the fixes.
-    if (rightW >= 34) {
-      const rx = w - pad;
-      const fr = (typeof a.fix_rate === 'number' && isFinite(a.fix_rate)) ? clamp(a.fix_rate, 0, 1) : null;
-      ctx.textAlign = 'right'; ctx.font = T.num(8);
-      ctx.fillStyle = fr === null ? C.mute : C.dim;
-      ctx.fillText(fr === null ? '—' : fr.toFixed(2), rx, cy);
-      if (fr !== null && attempts > 0 && rowH >= 11) {
-        const dots = Math.min(attempts, 5);
-        const hits = clamp(Math.round(fr * attempts), 0, dots);
-        for (let d = 0; d < dots; d++) {
-          const dx = rx - 26 - d * 6;
-          if (dx < barX + barW + 4) break;
-          ctx.beginPath(); ctx.arc(dx, cy, 2, 0, TAU);
-          ctx.fillStyle = d < hits ? C.green : C.line; ctx.fill();
-        }
-      }
-      ctx.textAlign = 'left';
-    }
-  }
-  ctx.restore();
-};
-
-// ---------------------------------------------------------------------------
-// 3. blame CI — blame with its confidence interval, against the act/don't-act line
-// ---------------------------------------------------------------------------
-A.blameCI = function (ctx, w, h, t, data) {
-  if (bad(w, h)) return;
-  const src = (data && data.standings) || null;
-  if (!src || !src.length) { T.empty(ctx, w, h, 'no standings'); return; }
   const thr = fin(data && data.threshold, 0);
+  const chosen = (data && typeof data.chosen === 'string') ? data.chosen : null;
 
+  // per field, not per row: a standings-only row and an alternatives-only row are
+  // both real rows — they just leave different columns blank.
   const rows = [];
   for (let i = 0; i < src.length; i++) {
     const s = src[i];
     if (!s) continue;
-    const mid = fin(s.blame_s, NaN);
-    if (!isFinite(mid)) continue;
+    const mid = fin(s.blame_s, 0);
     const ci = s.ci || [];
-    let lo = fin(ci[0], mid), hi = fin(ci[1], mid);
+    const rawLo = fin(ci[0], NaN), rawHi = fin(ci[1], NaN);
+    const hasCI = isFinite(rawLo) && isFinite(rawHi);
+    let lo = hasCI ? rawLo : mid, hi = hasCI ? rawHi : mid;
     if (lo > hi) { const q = lo; lo = hi; hi = q; }
-    rows.push({ role: typeof s.role === 'string' ? s.role : '?', n: Math.max(0, Math.round(fin(s.n, 0))), mid, lo, hi });
+    const n = Math.max(0, Math.round(fin(s.n, 0)));
+    const exhausted = !!s.exhausted;
+    rows.push({
+      role: (typeof s.role === 'string' && s.role) ? s.role : '?',
+      n: n, mid: mid, lo: lo, hi: hi, hasCI: hasCI,
+      gain: fin(s.gain_per_usd, 0),
+      exhausted: exhausted,
+      eligible: !!s.eligible && !exhausted,
+      never: n === 0,                    // never blamed: the empty row is the finding
+      clears: hasCI ? (lo > thr) : (mid > thr),
+    });
   }
-  if (!rows.length) { T.empty(ctx, w, h, 'no standings'); return; }
+  if (!rows.length) { T.empty(ctx, w, h, 'no roles'); return; }
+  rows.sort((a, b) => b.mid - a.mid);
 
+  // one x-scale for every row, or the whiskers are not comparable.
   let dLo = thr, dHi = thr;
   for (let i = 0; i < rows.length; i++) {
-    dLo = Math.min(dLo, rows[i].lo, rows[i].mid);
-    dHi = Math.max(dHi, rows[i].hi, rows[i].mid);
+    const r = rows[i];
+    if (r.never && !r.hasCI && r.mid === 0) continue;   // don't let empties pin the scale
+    dLo = Math.min(dLo, r.lo, r.mid);
+    dHi = Math.max(dHi, r.hi, r.mid);
   }
   if (!(dHi - dLo > 1e-9)) { dLo -= 1; dHi += 1; }
   const mgn = (dHi - dLo) * 0.08; dLo -= mgn; dHi += mgn;
 
   ctx.save();
-  const pad = 6, axisH = h >= 120 ? 14 : 0;
-  const nameW = clamp(w * 0.24, 30, 96);
-  const x0 = pad + nameW + 6, x1 = w - pad - 2;
+  const small = isSmall(w, h);
+  const pad = 6;
+  const ruleX = 2, ruleW = 2;            // the chosen row's left rule lives here
+  const nameX = ruleX + ruleW + 4;
+
+  ctx.font = T.font('label', small);
+  let nameW = 0;
+  for (let i = 0; i < rows.length; i++) nameW = Math.max(nameW, ctx.measureText(rows[i].role).width);
+  nameW = clamp(nameW + 4, 26, w * 0.26);
+
+  ctx.font = T.font('value', small);
+  const nW = Math.ceil(ctx.measureText('n99').width) + 6;
+  let gainW = Math.ceil(ctx.measureText('999.9').width) + 6;
+
+  const headH = h >= 130 ? (small ? 11 : 13) : 0;
+  const axisH = h >= 120 ? (small ? 11 : 13) : 0;
+
+  let x0 = nameX + nameW + nW + 6;
+  let x1 = w - pad - gainW;
+  if (x1 - x0 < 40) { gainW = 0; x1 = w - pad - 2; }   // the whisker outranks the price
   const plotW = x1 - x0;
   if (!(plotW > 20)) { ctx.restore(); T.empty(ctx, w, h, 'too small'); return; }
-  const X = v => x0 + ((v - dLo) / (dHi - dLo)) * plotW;
+  const X = v => x0 + ((clamp(v, dLo, dHi) - dLo) / (dHi - dLo)) * plotW;
 
-  const top = 4, plotH = h - top - axisH;
-  if (!(plotH > 8)) { ctx.restore(); T.empty(ctx, w, h, 'too small'); return; }
+  const top = headH + 2;
+  const plotH = h - top - axisH - 2;
+  if (!(plotH > 6)) { ctx.restore(); T.empty(ctx, w, h, 'too small'); return; }
   const rowH = plotH / rows.length;
 
-  // axis ticks, then the reference — the reference has to sit on top of the grid.
+  if (headH) {
+    ctx.font = T.font('tag', small);
+    ctx.fillStyle = C.mute; ctx.textBaseline = 'alphabetic'; ctx.textAlign = 'left';
+    ctx.fillText('blame ci', x0, headH - 2);
+    if (gainW) { ctx.textAlign = 'right'; ctx.fillText('gain/$', w - pad, headH - 2); }
+  }
+
+  // ticks first, reference line on top of them.
   if (axisH) {
-    ctx.font = T.num(8); ctx.textBaseline = 'alphabetic'; ctx.textAlign = 'center';
+    ctx.font = T.font('axis', small);
+    ctx.textBaseline = 'alphabetic'; ctx.textAlign = 'center';
     for (let k = 0; k <= 4; k++) {
-      const v = dLo + ((dHi - dLo) * k) / 4, x = T.crisp(X(v));
+      const v = dLo + ((dHi - dLo) * k) / 4, x = T.crisp(x0 + (plotW * k) / 4);
       ctx.strokeStyle = C.grid; ctx.lineWidth = 1;
       ctx.beginPath(); ctx.moveTo(x, top); ctx.lineTo(x, top + plotH); ctx.stroke();
       ctx.fillStyle = C.mute;
@@ -11089,49 +11113,92 @@ A.blameCI = function (ctx, w, h, t, data) {
   ctx.beginPath(); ctx.moveTo(tx, top); ctx.lineTo(tx, top + plotH); ctx.stroke();
   ctx.setLineDash([]);
 
+  const dotR = clamp(rowH * 0.22, 2, 3.5);
+
   for (let i = 0; i < rows.length; i++) {
-    const r = rows[i], cy = top + rowH * (i + 0.5);
-    const clears = r.lo > thr;          // the rule: act only when the interval clears zero
-    const col = clears ? C.teal : C.amber;
-    const xl = X(r.lo), xh = X(r.hi), len = xh - xl;
+    const r = rows[i];
+    const y = top + rowH * i, cy = y + rowH / 2;
+    const isChosen = !!chosen && r.role === chosen;
+    // teal only when the interval clears the act line; otherwise the loop may not act.
+    const col = r.exhausted ? C.mute : (r.clears ? C.teal : C.amber);
 
-    ctx.font = T.label(rowH >= 22 ? 10 : 9);
-    ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
-    ctx.fillStyle = clears ? C.text : C.dim;
-    ctx.fillText(fit(ctx, r.role, nameW - 20), pad, cy);
-    ctx.font = T.num(8); ctx.fillStyle = C.mute; ctx.textAlign = 'right';
-    ctx.fillText('n' + r.n, x0 - 5, cy);
-
-    ctx.strokeStyle = col; ctx.lineWidth = 1.5; ctx.globalAlpha = 0.85;
-    ctx.beginPath(); ctx.moveTo(xl, T.crisp(cy)); ctx.lineTo(xh, T.crisp(cy)); ctx.stroke();
-    const capH2 = Math.max(3, Math.min(6, rowH * 0.22));
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    ctx.moveTo(T.crisp(xl), cy - capH2); ctx.lineTo(T.crisp(xl), cy + capH2);
-    ctx.moveTo(T.crisp(xh), cy - capH2); ctx.lineTo(T.crisp(xh), cy + capH2);
-    ctx.stroke();
-    ctx.globalAlpha = 1;
-
-    // shimmer: the interval is an estimate, so it should not sit perfectly still.
-    if (len > 2) {
-      const seg = Math.max(8, len * 0.18);
-      const p = ((t * 0.28 + i * 0.21) % 1 + 1) % 1;
-      const sx = xl - seg + p * (len + seg);
-      ctx.save();
-      ctx.beginPath(); ctx.rect(xl, cy - 4, len, 8); ctx.clip();
-      ctx.globalAlpha = 0.25; ctx.strokeStyle = C.white; ctx.lineWidth = 2;
-      ctx.beginPath(); ctx.moveTo(sx, cy); ctx.lineTo(sx + seg, cy); ctx.stroke();
-      ctx.restore();
+    // state, as exactly one mark per row.
+    if (isChosen) {
+      ctx.fillStyle = C.amber;
+      T.rr(ctx, ruleX, y + 1.5, ruleW, Math.max(2, rowH - 3), 1); ctx.fill();
     }
 
-    const dx = clamp(X(r.mid), x0 - 2, x1 + 2);
-    ctx.beginPath(); ctx.arc(dx, cy, 3.5, 0, TAU);
-    ctx.fillStyle = col; ctx.fill();
-    ctx.lineWidth = 1; ctx.strokeStyle = C.panel; ctx.stroke();
+    ctx.font = T.font('label', small);
+    ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+    ctx.fillStyle = isChosen ? C.text
+      : r.exhausted ? C.mute
+      : r.never ? C.mute
+      : r.eligible ? C.dim : C.mute;
+    const shown = fit(ctx, r.role, nameW);
+    ctx.fillText(shown, nameX, cy);
+    if (r.exhausted) {   // retired: attempts spent, no fix. strike the name.
+      const tw = ctx.measureText(shown).width;
+      ctx.strokeStyle = C.mute; ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(nameX, T.crisp(cy)); ctx.lineTo(nameX + tw, T.crisp(cy)); ctx.stroke();
+    }
 
-    if (!clears && rowH >= 18 && plotW > 120) {
-      ctx.font = T.label(8); ctx.textAlign = 'left'; ctx.fillStyle = C.amber;
-      ctx.fillText('crosses', Math.min(xh + 5, x1 - 40), cy - capH2 - 4);
+    ctx.font = T.font('value', small);
+    ctx.textAlign = 'right';
+    ctx.fillStyle = r.never ? C.line : C.mute;
+    ctx.fillText('n' + r.n, x0 - 6, cy);
+
+    if (r.never && !r.hasCI) {
+      // never blamed: a hairline where the interval would be, and nothing else.
+      ctx.strokeStyle = C.grid; ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(x0, T.crisp(cy)); ctx.lineTo(x1, T.crisp(cy)); ctx.stroke();
+    } else {
+      const xl = X(r.lo), xh = X(r.hi), len = xh - xl;
+      const capH2 = clamp(rowH * 0.22, 2.5, 6);
+
+      ctx.strokeStyle = col; ctx.lineWidth = 1.5;
+      ctx.globalAlpha = r.exhausted ? 0.55 : 0.85;
+      ctx.beginPath(); ctx.moveTo(xl, T.crisp(cy)); ctx.lineTo(xh, T.crisp(cy)); ctx.stroke();
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(T.crisp(xl), cy - capH2); ctx.lineTo(T.crisp(xl), cy + capH2);
+      ctx.moveTo(T.crisp(xh), cy - capH2); ctx.lineTo(T.crisp(xh), cy + capH2);
+      ctx.stroke();
+      ctx.globalAlpha = 1;
+
+      // hatch the span of an exhausted row so the state reads from the whisker too,
+      // without needing the name to be legible at 8px.
+      if (r.exhausted && len > 2) {
+        ctx.save();
+        ctx.beginPath(); ctx.rect(xl, cy - capH2, len, capH2 * 2); ctx.clip();
+        ctx.globalAlpha = 0.45; ctx.strokeStyle = C.mute; ctx.lineWidth = 1;
+        for (let x = xl - capH2 * 2; x < xh; x += 5) {
+          ctx.beginPath();
+          ctx.moveTo(x, cy + capH2); ctx.lineTo(x + capH2 * 2, cy - capH2);
+          ctx.stroke();
+        }
+        ctx.restore();
+      }
+
+      const dx = X(r.mid);
+      ctx.beginPath(); ctx.arc(dx, cy, dotR, 0, TAU);
+      if (r.exhausted) { ctx.strokeStyle = C.mute; ctx.lineWidth = 1.2; ctx.stroke(); }
+      else { ctx.fillStyle = col; ctx.fill(); ctx.lineWidth = 1; ctx.strokeStyle = C.panel; ctx.stroke(); }
+    }
+
+    // one state word, and only when there is a row tall enough to carry it.
+    if (r.exhausted && rowH >= 11 && plotW > 110) {
+      ctx.font = T.font('tag', small);
+      ctx.textAlign = 'left'; ctx.fillStyle = C.mute;
+      ctx.fillText(fit(ctx, 'exhausted', x1 - x0 - 6), x0 + 4, cy - clamp(rowH * 0.3, 4, 8));
+    }
+
+    if (gainW && r.gain !== 0) {
+      ctx.font = T.font('value', small);
+      ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
+      ctx.fillStyle = isChosen ? C.text : C.dim;
+      ctx.fillText(r.gain.toFixed(1), w - pad, cy);
     }
   }
   ctx.restore();
@@ -11159,8 +11226,7 @@ const el = (t, c, txt) => { const n = document.createElement(t); if (c) n.classN
 
 const T = () => SCR.devtheme;
 const C = () => SCR.devtheme.C;
-const LB = (px, wt) => SCR.devtheme.label(px, wt);
-const NM = (px, wt) => SCR.devtheme.num(px, wt);
+const FN = (name, small) => SCR.devtheme.font(name, small);
 
 // The five spans a lap actually opens, in the order car/lap.py opens them. The op names are
 // the ones written into the trace store, so a developer can grep for them.
@@ -11245,6 +11311,13 @@ function readBundle() {
   D.chosen = lastWith ? lastWith.role : null;
   const lastStand = [...D.rounds].reverse().find(r => Object.keys(r.standings || {}).length);
   D.standings = lastStand ? Object.values(lastStand.standings) : [];
+
+  // blame and selection were the same question asked twice — what did each component cost,
+  // and which one is worth changing — so they share one row per component now.
+  const by = {};
+  for (const st_ of D.standings) by[st_.role] = { ...st_ };
+  for (const a of D.alternatives) by[a.role] = { ...(by[a.role] || { role: a.role }), ...a };
+  D.roleRows = Object.values(by);
 }
 
 V.setRun = function (i) { D.at = Math.max(0, i | 0); };
@@ -11252,10 +11325,11 @@ V.setRun = function (i) { D.at = Math.max(0, i | 0); };
 // ---------------------------------------------------------------------------------------
 // furniture
 // ---------------------------------------------------------------------------------------
-function card(host, id, title, note, cls) {
-  const n = el('div', 'dcard' + (cls ? ' ' + cls : ''));
+function card(host, id, icon, title, note) {
+  const n = el('div', 'dcard');
   const h = el('div', 'dcard-h');
-  h.innerHTML = `<span>${title}</span>` + (note ? `<em>${note}</em>` : '');
+  h.innerHTML = `<span>${SCR.devtheme.iconSvg(icon, 13)}${title}</span>`
+    + (note ? `<em>${note}</em>` : '');
   const cv = el('canvas');
   n.append(h, cv);
   host.append(n);
@@ -11263,23 +11337,23 @@ function card(host, id, title, note, cls) {
   return n;
 }
 
+// Nine panels, down from eleven. Blame and selection were one question asked twice, so
+// they are one table now; the WCAG tag counts are already a panel in the broadcast.
 V.build = function () {
   const host = $('dev'); if (!host || host.dataset.built) return;
   host.dataset.built = '1';
   readBundle();
   const grid = el('div', 'dgrid');
   host.append(grid);
-  card(grid, 'pipe',   'one lap', 'the five spans it opens, by trace op');
-  card(grid, 'calib',  'calibration', 'forecast vs held-out');
-  card(grid, 'tamper', 'tamper taxonomy', 'role × obligation');
-  card(grid, 'infer',  'w&b inference', 'qwen3-14b · coreweave');
-  card(grid, 'rails',  'rails', 'live or labelled stand-in');
-  card(grid, 'credit', 'credit assignment', 'item → blamed component');
-  card(grid, 'funnel', 'gate funnel', 'where proposals die');
-  card(grid, 'select', 'selection', 'gain per dollar');
-  card(grid, 'blame',  'blame', 'with bootstrap interval');
-  card(grid, 'miss',   'what it kept missing', 'wcag requirement, summed');
-  card(grid, 'hist',   'claimed vs held-out', 'per run, with cost');
+  card(grid, 'pipe',   'activity',  'one lap', 'five spans');
+  card(grid, 'hist',   'trending',  'claimed vs held-out', 'seconds');
+  card(grid, 'infer',  'cpu',       'inference', 'qwen3-14b');
+  card(grid, 'rails',  'server',    'rails', '');
+  card(grid, 'credit', 'share',     'attribution', 'item to component');
+  card(grid, 'funnel', 'filter',    'gates', '7 in, 1 out');
+  card(grid, 'roles',  'sliders',   'blame and selection', 'seconds');
+  card(grid, 'calib',  'crosshair', 'calibration', 'seconds');
+  card(grid, 'tamper', 'shield',    'tamper', 'role / obligation');
 };
 
 // Canvas backing stores follow the box, at device resolution so the labels stay sharp.
@@ -11296,31 +11370,28 @@ function size() {
 }
 
 // ---------------------------------------------------------------------------------------
-// 1. one lap, as the five spans it opens
+// 1. one lap, as the five spans it opens.
+// The only panel allowed to move: the motion is throughput, which is the thing it is about.
 // ---------------------------------------------------------------------------------------
 function drawPipe(ctx, w, h, t) {
-  const c = C(), th = T();
-  const n = OPS.length, padX = 18, gap = (w - padX * 2) / n;
-  const cy = h * 0.44, r = Math.max(11, Math.min(19, gap * 0.16));
+  const c = C(), th = T(), small = h < 190 || w < 380;
+  const n = OPS.length, padX = 16, gap = (w - padX * 2) / n;
+  const cy = h * 0.42, r = Math.max(10, Math.min(17, gap * 0.15));
 
-  // the wire, behind everything
   ctx.strokeStyle = c.line; ctx.lineWidth = 1;
   ctx.beginPath();
   ctx.moveTo(padX + gap * 0.5, th.crisp(cy)); ctx.lineTo(padX + gap * (n - 0.5), th.crisp(cy));
   ctx.stroke();
 
-  // packets: several in flight, so the pipeline reads as throughput rather than a diagram
   const PERIOD = 1.9, INFLIGHT = 5;
   for (let k = 0; k < INFLIGHT; k++) {
     const u = ((t / PERIOD) + k / INFLIGHT) % 1;
     const x = padX + gap * 0.5 + u * gap * (n - 1);
     const seg = Math.min(n - 1, Math.floor(u * (n - 1)));
-    // one lap in ten came back clean, which is the real rate, so most leave the last node red
+    // one lap in ten came back clean, which is the real rate
     const passed = (Math.floor(t / PERIOD) + k) % 10 === 0;
     ctx.fillStyle = u > 0.95 ? (passed ? c.green : c.rose) : c[OPS[seg].hue];
-    ctx.globalAlpha = u > 0.95 ? 1 : 0.9;
     th.rr(ctx, x - 2.5, cy - 2.5, 5, 5, 1.5); ctx.fill();
-    ctx.globalAlpha = 1;
   }
 
   for (let i = 0; i < n; i++) {
@@ -11330,105 +11401,93 @@ function drawPipe(ctx, w, h, t) {
     ctx.fillStyle = c.panel; th.rr(ctx, x - r, cy - r, r * 2, r * 2, 5); ctx.fill();
     ctx.strokeStyle = hot ? hue : c.line; ctx.lineWidth = hot ? 1.6 : 1;
     th.rr(ctx, x - r, cy - r, r * 2, r * 2, 5); ctx.stroke();
-    ctx.fillStyle = hue; ctx.globalAlpha = hot ? 1 : 0.55;
-    const ir = r * 0.38;
+    ctx.fillStyle = hue; ctx.globalAlpha = hot ? 1 : 0.5;
+    const ir = r * 0.36;
     th.rr(ctx, x - ir, cy - ir, ir * 2, ir * 2, 2); ctx.fill();
     ctx.globalAlpha = 1;
 
-    // the one span that leaves this machine gets an uplink
+    // the one span that leaves this machine. The icon replaces the sentence that was here.
     if (o.remote) {
+      th.icon(ctx, 'server', x - 7, cy - r - 21, 14, c.rose);
       ctx.strokeStyle = c.rose; ctx.lineWidth = 1;
-      ctx.beginPath(); ctx.moveTo(th.crisp(x), cy - r); ctx.lineTo(th.crisp(x), cy - r - 13); ctx.stroke();
-      for (let a = 0; a < 3; a++) {
-        const rr = 4 + a * 4 + ((t * 8) % 12);
-        ctx.globalAlpha = Math.max(0, 1 - rr / 17) * 0.85;
-        ctx.beginPath(); ctx.arc(x, cy - r - 13, rr, Math.PI * 1.18, Math.PI * 1.82); ctx.stroke();
-      }
-      ctx.globalAlpha = 1;
-      ctx.font = LB(9, 500); ctx.fillStyle = c.rose; ctx.textAlign = 'center';
-      ctx.fillText('leaves this machine', x, cy - r - 26);
+      ctx.setLineDash([2, 2]);
+      ctx.beginPath(); ctx.moveTo(th.crisp(x), cy - r - 4); ctx.lineTo(th.crisp(x), cy - r - 22);
+      ctx.stroke(); ctx.setLineDash([]);
     }
 
     ctx.textAlign = 'center';
-    ctx.font = LB(11, 600); ctx.fillStyle = hot ? c.text : c.dim;
-    ctx.fillText(o.role, x, cy + r + 17);
-    ctx.font = NM(10); ctx.fillStyle = c.mute;
-    ctx.fillText(o.op, x, cy + r + 31);
+    ctx.font = FN('label', small); ctx.fillStyle = hot ? c.text : c.dim;
+    ctx.fillText(o.role, x, cy + r + 16);
+    ctx.font = FN('axis', small); ctx.fillStyle = c.mute;
+    ctx.fillText(o.op, x, cy + r + 29);
   }
   ctx.textAlign = 'left';
 }
 
 // ---------------------------------------------------------------------------------------
-// 2. the inference meter — the rail that is CoreWeave
+// 2. the inference meter — the rail that is CoreWeave. Static: a spend figure that
+// shimmered implied it was still moving, and it is not.
 // ---------------------------------------------------------------------------------------
-function drawInfer(ctx, w, h, t) {
-  const c = C(), th = T();
+function drawInfer(ctx, w, h) {
+  const c = C(), th = T(), small = h < 190 || w < 300;
   const m = D.meters.driver;
-  if (!m) return th.empty(ctx, w, h, 'no meter in this bundle');
+  if (!m) return th.empty(ctx, w, h, 'no meter');
   const calls = m.calls || 0, hits = m.cache_hits || 0, total = calls + hits || 1;
 
-  // laid out as fractions of the box: this card is much shorter in the folded layout
-  // than on a desk, and a fixed pixel ladder ran off the bottom there.
   const bx = 13, bw = w - 26;
-  const bh = Math.max(9, h * 0.075), tb = Math.max(7, h * 0.055);
-  const by = h * 0.19, ty = h * 0.45, ty2 = h * 0.67;
+  const bh = Math.max(8, h * 0.07), tb = Math.max(6, h * 0.05);
+  const by = h * 0.22, ty = h * 0.47, ty2 = h * 0.68;
 
   // nine calls in ten were answered from cache, so the split is the headline
   ctx.fillStyle = c.grid; th.rr(ctx, bx, by, bw, bh, bh / 2); ctx.fill();
   const cw = Math.max(2, bw * (calls / total));
   ctx.save(); th.rr(ctx, bx, by, bw, bh, bh / 2); ctx.clip();
   ctx.fillStyle = c.rose; ctx.fillRect(bx, by, cw, bh);
-  ctx.fillStyle = c.teal; ctx.globalAlpha = 0.22; ctx.fillRect(bx + cw, by, bw - cw, bh);
-  // a pulse over the cached portion: that is the part that reached no GPU at all
-  const rest = Math.max(1, bw - cw);
-  ctx.globalAlpha = 0.5; ctx.fillStyle = c.teal;
-  ctx.fillRect(bx + cw + ((t * 62) % rest), by, 2, bh);
+  ctx.fillStyle = c.teal; ctx.globalAlpha = 0.3; ctx.fillRect(bx + cw, by, bw - cw, bh);
   ctx.globalAlpha = 1; ctx.restore();
 
-  ctx.font = LB(10, 500); ctx.fillStyle = c.rose;
+  ctx.font = FN('sub', small); ctx.fillStyle = c.rose;
   ctx.fillText(calls.toLocaleString() + ' calls', bx, by - 7);
   ctx.textAlign = 'right'; ctx.fillStyle = c.teal;
   ctx.fillText(Math.round(hits / total * 100) + '% cached', bx + bw, by - 7);
   ctx.textAlign = 'left';
 
-  // tokens in and out on one scale, so the ratio needs no reading
   const ti = m.tokens_in || 0, to = m.tokens_out || 0, tmax = Math.max(ti, to, 1);
   const row = (label, val, col, y) => {
-    ctx.font = LB(10, 500); ctx.fillStyle = c.dim; ctx.fillText(label, bx, y - 6);
+    ctx.font = FN('sub', small); ctx.fillStyle = c.dim; ctx.fillText(label, bx, y - 6);
     ctx.fillStyle = c.grid; th.rr(ctx, bx, y, bw, tb, tb / 2); ctx.fill();
     ctx.fillStyle = col; th.rr(ctx, bx, y, Math.max(2, bw * (val / tmax)), tb, tb / 2); ctx.fill();
-    ctx.font = NM(Math.max(12, tb * 1.7)); ctx.fillStyle = c.text; ctx.textAlign = 'right';
+    ctx.font = FN('value', small); ctx.fillStyle = c.text; ctx.textAlign = 'right';
     ctx.fillText(val.toLocaleString(), bx + bw, y - 6);
     ctx.textAlign = 'left';
   };
   row('tokens in', ti, c.blue, ty);
   row('tokens out', to, c.violet, ty2);
 
-  // spend, big, because the cost cap is one of the ten gates
-  ctx.font = NM(Math.max(19, h * 0.15), 500); ctx.fillStyle = c.amber;
-  ctx.fillText('$' + (m.spend_usd || 0).toFixed(4), bx, h - 9);
-  ctx.font = LB(10, 500); ctx.fillStyle = c.mute;
+  ctx.font = FN('hero', small); ctx.fillStyle = c.amber;
+  ctx.fillText('$' + (m.spend_usd || 0).toFixed(4), bx, h - 10);
+  ctx.font = FN('sub', small); ctx.fillStyle = c.mute;
   ctx.textAlign = 'right'; ctx.fillText('spend', bx + bw, h - 11); ctx.textAlign = 'left';
 }
 
 // ---------------------------------------------------------------------------------------
-// 3. the rails — which of the seven actually served
+// 3. the rails. The dot breathes only on a rail that is actually serving, which is the
+// one thing on this card worth a glance.
 // ---------------------------------------------------------------------------------------
 function drawRails(ctx, w, h, t) {
-  const c = C(), th = T();
-  const rowH = Math.min(24, (h - 6) / RAILS.length);
+  const c = C(), small = h < 190 || w < 300;
+  const rowH = Math.min(22, (h - 6) / RAILS.length);
   RAILS.forEach((rl, i) => {
     const backend = (D.backends[rl.key] || '').split('—')[0].trim();
     const live = !!backend && backend === LIVE_OK[rl.key];
-    const y = 3 + i * rowH, midY = y + rowH * 0.5;
-    // a live rail breathes; a stand-in sits still, which is the honest difference
+    const midY = 3 + i * rowH + rowH * 0.5;
     ctx.fillStyle = live ? c.green : c.line;
-    ctx.globalAlpha = live ? 0.6 + 0.4 * Math.abs(Math.sin(t * 1.8 + i * 0.6)) : 1;
-    ctx.beginPath(); ctx.arc(9, midY, 3.2, 0, Math.PI * 2); ctx.fill();
+    ctx.globalAlpha = live ? 0.55 + 0.45 * Math.abs(Math.sin(t * 1.6 + i * 0.6)) : 1;
+    ctx.beginPath(); ctx.arc(9, midY, 3, 0, Math.PI * 2); ctx.fill();
     ctx.globalAlpha = 1;
-    ctx.font = LB(11, live ? 600 : 500); ctx.fillStyle = live ? c.text : c.mute;
-    ctx.fillText(rl.name, 20, midY + 4);
-    ctx.font = NM(10); ctx.fillStyle = live ? c.dim : c.mute;
+    ctx.font = FN('label', small); ctx.fillStyle = live ? c.text : c.mute;
+    ctx.fillText(rl.name, 19, midY + 4);
+    ctx.font = FN('axis', small); ctx.fillStyle = live ? c.dim : c.mute;
     ctx.textAlign = 'right';
     ctx.fillText(live ? rl.of : 'stand-in', w - 10, midY + 4);
     ctx.textAlign = 'left';
@@ -11449,19 +11508,16 @@ function paint(t) {
   go('pipe', drawPipe);
   go('infer', drawInfer);
   go('rails', drawRails);
-  go('calib', (x, w, h, tt) => P.calibration && P.calibration(x, w, h, tt, { points: D.calib }));
-  go('tamper', (x, w, h, tt) => AU.tamperMatrix && AU.tamperMatrix(x, w, h, tt, { flags: D.flags }));
+  go('hist', (x, w, h, tt) => G.runHistory && G.runHistory(x, w, h, tt,
+    { runs: D.runs, at: D.at }));
   go('credit', (x, w, h, tt) => G.creditGraph && G.creditGraph(x, w, h, tt,
     { rows: D.rows, items: D.items, roles: D.roles }));
   go('funnel', (x, w, h, tt) => P.gateFunnel && P.gateFunnel(x, w, h, tt,
     { gates: D.gates, entered: D.entered, accepted: D.accepted }));
-  go('select', (x, w, h, tt) => AU.selection && AU.selection(x, w, h, tt,
-    { alternatives: D.alternatives, chosen: D.chosen }));
-  go('blame', (x, w, h, tt) => AU.blameCI && AU.blameCI(x, w, h, tt,
-    { standings: D.standings, threshold: 0 }));
-  go('miss', (x, w, h, tt) => G.failureModes && G.failureModes(x, w, h, tt, { tally: D.tally }));
-  go('hist', (x, w, h, tt) => G.runHistory && G.runHistory(x, w, h, tt,
-    { runs: D.runs, at: D.at }));
+  go('roles', (x, w, h, tt) => AU.roleTable && AU.roleTable(x, w, h, tt,
+    { rows: D.roleRows, chosen: D.chosen, threshold: 0 }));
+  go('calib', (x, w, h, tt) => P.calibration && P.calibration(x, w, h, tt, { points: D.calib }));
+  go('tamper', (x, w, h, tt) => AU.tamperMatrix && AU.tamperMatrix(x, w, h, tt, { flags: D.flags }));
 }
 
 function tick(ts) {

@@ -18,8 +18,7 @@ const el = (t, c, txt) => { const n = document.createElement(t); if (c) n.classN
 
 const T = () => SCR.devtheme;
 const C = () => SCR.devtheme.C;
-const LB = (px, wt) => SCR.devtheme.label(px, wt);
-const NM = (px, wt) => SCR.devtheme.num(px, wt);
+const FN = (name, small) => SCR.devtheme.font(name, small);
 
 // The five spans a lap actually opens, in the order car/lap.py opens them. The op names are
 // the ones written into the trace store, so a developer can grep for them.
@@ -104,6 +103,13 @@ function readBundle() {
   D.chosen = lastWith ? lastWith.role : null;
   const lastStand = [...D.rounds].reverse().find(r => Object.keys(r.standings || {}).length);
   D.standings = lastStand ? Object.values(lastStand.standings) : [];
+
+  // blame and selection were the same question asked twice — what did each component cost,
+  // and which one is worth changing — so they share one row per component now.
+  const by = {};
+  for (const st_ of D.standings) by[st_.role] = { ...st_ };
+  for (const a of D.alternatives) by[a.role] = { ...(by[a.role] || { role: a.role }), ...a };
+  D.roleRows = Object.values(by);
 }
 
 V.setRun = function (i) { D.at = Math.max(0, i | 0); };
@@ -111,10 +117,11 @@ V.setRun = function (i) { D.at = Math.max(0, i | 0); };
 // ---------------------------------------------------------------------------------------
 // furniture
 // ---------------------------------------------------------------------------------------
-function card(host, id, title, note, cls) {
-  const n = el('div', 'dcard' + (cls ? ' ' + cls : ''));
+function card(host, id, icon, title, note) {
+  const n = el('div', 'dcard');
   const h = el('div', 'dcard-h');
-  h.innerHTML = `<span>${title}</span>` + (note ? `<em>${note}</em>` : '');
+  h.innerHTML = `<span>${SCR.devtheme.iconSvg(icon, 13)}${title}</span>`
+    + (note ? `<em>${note}</em>` : '');
   const cv = el('canvas');
   n.append(h, cv);
   host.append(n);
@@ -122,23 +129,23 @@ function card(host, id, title, note, cls) {
   return n;
 }
 
+// Nine panels, down from eleven. Blame and selection were one question asked twice, so
+// they are one table now; the WCAG tag counts are already a panel in the broadcast.
 V.build = function () {
   const host = $('dev'); if (!host || host.dataset.built) return;
   host.dataset.built = '1';
   readBundle();
   const grid = el('div', 'dgrid');
   host.append(grid);
-  card(grid, 'pipe',   'one lap', 'the five spans it opens, by trace op');
-  card(grid, 'calib',  'calibration', 'forecast vs held-out');
-  card(grid, 'tamper', 'tamper taxonomy', 'role × obligation');
-  card(grid, 'infer',  'w&b inference', 'qwen3-14b · coreweave');
-  card(grid, 'rails',  'rails', 'live or labelled stand-in');
-  card(grid, 'credit', 'credit assignment', 'item → blamed component');
-  card(grid, 'funnel', 'gate funnel', 'where proposals die');
-  card(grid, 'select', 'selection', 'gain per dollar');
-  card(grid, 'blame',  'blame', 'with bootstrap interval');
-  card(grid, 'miss',   'what it kept missing', 'wcag requirement, summed');
-  card(grid, 'hist',   'claimed vs held-out', 'per run, with cost');
+  card(grid, 'pipe',   'activity',  'one lap', 'five spans');
+  card(grid, 'hist',   'trending',  'claimed vs held-out', 'seconds');
+  card(grid, 'infer',  'cpu',       'inference', 'qwen3-14b');
+  card(grid, 'rails',  'server',    'rails', '');
+  card(grid, 'credit', 'share',     'attribution', 'item to component');
+  card(grid, 'funnel', 'filter',    'gates', '7 in, 1 out');
+  card(grid, 'roles',  'sliders',   'blame and selection', 'seconds');
+  card(grid, 'calib',  'crosshair', 'calibration', 'seconds');
+  card(grid, 'tamper', 'shield',    'tamper', 'role / obligation');
 };
 
 // Canvas backing stores follow the box, at device resolution so the labels stay sharp.
@@ -155,31 +162,28 @@ function size() {
 }
 
 // ---------------------------------------------------------------------------------------
-// 1. one lap, as the five spans it opens
+// 1. one lap, as the five spans it opens.
+// The only panel allowed to move: the motion is throughput, which is the thing it is about.
 // ---------------------------------------------------------------------------------------
 function drawPipe(ctx, w, h, t) {
-  const c = C(), th = T();
-  const n = OPS.length, padX = 18, gap = (w - padX * 2) / n;
-  const cy = h * 0.44, r = Math.max(11, Math.min(19, gap * 0.16));
+  const c = C(), th = T(), small = h < 190 || w < 380;
+  const n = OPS.length, padX = 16, gap = (w - padX * 2) / n;
+  const cy = h * 0.42, r = Math.max(10, Math.min(17, gap * 0.15));
 
-  // the wire, behind everything
   ctx.strokeStyle = c.line; ctx.lineWidth = 1;
   ctx.beginPath();
   ctx.moveTo(padX + gap * 0.5, th.crisp(cy)); ctx.lineTo(padX + gap * (n - 0.5), th.crisp(cy));
   ctx.stroke();
 
-  // packets: several in flight, so the pipeline reads as throughput rather than a diagram
   const PERIOD = 1.9, INFLIGHT = 5;
   for (let k = 0; k < INFLIGHT; k++) {
     const u = ((t / PERIOD) + k / INFLIGHT) % 1;
     const x = padX + gap * 0.5 + u * gap * (n - 1);
     const seg = Math.min(n - 1, Math.floor(u * (n - 1)));
-    // one lap in ten came back clean, which is the real rate, so most leave the last node red
+    // one lap in ten came back clean, which is the real rate
     const passed = (Math.floor(t / PERIOD) + k) % 10 === 0;
     ctx.fillStyle = u > 0.95 ? (passed ? c.green : c.rose) : c[OPS[seg].hue];
-    ctx.globalAlpha = u > 0.95 ? 1 : 0.9;
     th.rr(ctx, x - 2.5, cy - 2.5, 5, 5, 1.5); ctx.fill();
-    ctx.globalAlpha = 1;
   }
 
   for (let i = 0; i < n; i++) {
@@ -189,105 +193,93 @@ function drawPipe(ctx, w, h, t) {
     ctx.fillStyle = c.panel; th.rr(ctx, x - r, cy - r, r * 2, r * 2, 5); ctx.fill();
     ctx.strokeStyle = hot ? hue : c.line; ctx.lineWidth = hot ? 1.6 : 1;
     th.rr(ctx, x - r, cy - r, r * 2, r * 2, 5); ctx.stroke();
-    ctx.fillStyle = hue; ctx.globalAlpha = hot ? 1 : 0.55;
-    const ir = r * 0.38;
+    ctx.fillStyle = hue; ctx.globalAlpha = hot ? 1 : 0.5;
+    const ir = r * 0.36;
     th.rr(ctx, x - ir, cy - ir, ir * 2, ir * 2, 2); ctx.fill();
     ctx.globalAlpha = 1;
 
-    // the one span that leaves this machine gets an uplink
+    // the one span that leaves this machine. The icon replaces the sentence that was here.
     if (o.remote) {
+      th.icon(ctx, 'server', x - 7, cy - r - 21, 14, c.rose);
       ctx.strokeStyle = c.rose; ctx.lineWidth = 1;
-      ctx.beginPath(); ctx.moveTo(th.crisp(x), cy - r); ctx.lineTo(th.crisp(x), cy - r - 13); ctx.stroke();
-      for (let a = 0; a < 3; a++) {
-        const rr = 4 + a * 4 + ((t * 8) % 12);
-        ctx.globalAlpha = Math.max(0, 1 - rr / 17) * 0.85;
-        ctx.beginPath(); ctx.arc(x, cy - r - 13, rr, Math.PI * 1.18, Math.PI * 1.82); ctx.stroke();
-      }
-      ctx.globalAlpha = 1;
-      ctx.font = LB(9, 500); ctx.fillStyle = c.rose; ctx.textAlign = 'center';
-      ctx.fillText('leaves this machine', x, cy - r - 26);
+      ctx.setLineDash([2, 2]);
+      ctx.beginPath(); ctx.moveTo(th.crisp(x), cy - r - 4); ctx.lineTo(th.crisp(x), cy - r - 22);
+      ctx.stroke(); ctx.setLineDash([]);
     }
 
     ctx.textAlign = 'center';
-    ctx.font = LB(11, 600); ctx.fillStyle = hot ? c.text : c.dim;
-    ctx.fillText(o.role, x, cy + r + 17);
-    ctx.font = NM(10); ctx.fillStyle = c.mute;
-    ctx.fillText(o.op, x, cy + r + 31);
+    ctx.font = FN('label', small); ctx.fillStyle = hot ? c.text : c.dim;
+    ctx.fillText(o.role, x, cy + r + 16);
+    ctx.font = FN('axis', small); ctx.fillStyle = c.mute;
+    ctx.fillText(o.op, x, cy + r + 29);
   }
   ctx.textAlign = 'left';
 }
 
 // ---------------------------------------------------------------------------------------
-// 2. the inference meter — the rail that is CoreWeave
+// 2. the inference meter — the rail that is CoreWeave. Static: a spend figure that
+// shimmered implied it was still moving, and it is not.
 // ---------------------------------------------------------------------------------------
-function drawInfer(ctx, w, h, t) {
-  const c = C(), th = T();
+function drawInfer(ctx, w, h) {
+  const c = C(), th = T(), small = h < 190 || w < 300;
   const m = D.meters.driver;
-  if (!m) return th.empty(ctx, w, h, 'no meter in this bundle');
+  if (!m) return th.empty(ctx, w, h, 'no meter');
   const calls = m.calls || 0, hits = m.cache_hits || 0, total = calls + hits || 1;
 
-  // laid out as fractions of the box: this card is much shorter in the folded layout
-  // than on a desk, and a fixed pixel ladder ran off the bottom there.
   const bx = 13, bw = w - 26;
-  const bh = Math.max(9, h * 0.075), tb = Math.max(7, h * 0.055);
-  const by = h * 0.19, ty = h * 0.45, ty2 = h * 0.67;
+  const bh = Math.max(8, h * 0.07), tb = Math.max(6, h * 0.05);
+  const by = h * 0.22, ty = h * 0.47, ty2 = h * 0.68;
 
   // nine calls in ten were answered from cache, so the split is the headline
   ctx.fillStyle = c.grid; th.rr(ctx, bx, by, bw, bh, bh / 2); ctx.fill();
   const cw = Math.max(2, bw * (calls / total));
   ctx.save(); th.rr(ctx, bx, by, bw, bh, bh / 2); ctx.clip();
   ctx.fillStyle = c.rose; ctx.fillRect(bx, by, cw, bh);
-  ctx.fillStyle = c.teal; ctx.globalAlpha = 0.22; ctx.fillRect(bx + cw, by, bw - cw, bh);
-  // a pulse over the cached portion: that is the part that reached no GPU at all
-  const rest = Math.max(1, bw - cw);
-  ctx.globalAlpha = 0.5; ctx.fillStyle = c.teal;
-  ctx.fillRect(bx + cw + ((t * 62) % rest), by, 2, bh);
+  ctx.fillStyle = c.teal; ctx.globalAlpha = 0.3; ctx.fillRect(bx + cw, by, bw - cw, bh);
   ctx.globalAlpha = 1; ctx.restore();
 
-  ctx.font = LB(10, 500); ctx.fillStyle = c.rose;
+  ctx.font = FN('sub', small); ctx.fillStyle = c.rose;
   ctx.fillText(calls.toLocaleString() + ' calls', bx, by - 7);
   ctx.textAlign = 'right'; ctx.fillStyle = c.teal;
   ctx.fillText(Math.round(hits / total * 100) + '% cached', bx + bw, by - 7);
   ctx.textAlign = 'left';
 
-  // tokens in and out on one scale, so the ratio needs no reading
   const ti = m.tokens_in || 0, to = m.tokens_out || 0, tmax = Math.max(ti, to, 1);
   const row = (label, val, col, y) => {
-    ctx.font = LB(10, 500); ctx.fillStyle = c.dim; ctx.fillText(label, bx, y - 6);
+    ctx.font = FN('sub', small); ctx.fillStyle = c.dim; ctx.fillText(label, bx, y - 6);
     ctx.fillStyle = c.grid; th.rr(ctx, bx, y, bw, tb, tb / 2); ctx.fill();
     ctx.fillStyle = col; th.rr(ctx, bx, y, Math.max(2, bw * (val / tmax)), tb, tb / 2); ctx.fill();
-    ctx.font = NM(Math.max(12, tb * 1.7)); ctx.fillStyle = c.text; ctx.textAlign = 'right';
+    ctx.font = FN('value', small); ctx.fillStyle = c.text; ctx.textAlign = 'right';
     ctx.fillText(val.toLocaleString(), bx + bw, y - 6);
     ctx.textAlign = 'left';
   };
   row('tokens in', ti, c.blue, ty);
   row('tokens out', to, c.violet, ty2);
 
-  // spend, big, because the cost cap is one of the ten gates
-  ctx.font = NM(Math.max(19, h * 0.15), 500); ctx.fillStyle = c.amber;
-  ctx.fillText('$' + (m.spend_usd || 0).toFixed(4), bx, h - 9);
-  ctx.font = LB(10, 500); ctx.fillStyle = c.mute;
+  ctx.font = FN('hero', small); ctx.fillStyle = c.amber;
+  ctx.fillText('$' + (m.spend_usd || 0).toFixed(4), bx, h - 10);
+  ctx.font = FN('sub', small); ctx.fillStyle = c.mute;
   ctx.textAlign = 'right'; ctx.fillText('spend', bx + bw, h - 11); ctx.textAlign = 'left';
 }
 
 // ---------------------------------------------------------------------------------------
-// 3. the rails — which of the seven actually served
+// 3. the rails. The dot breathes only on a rail that is actually serving, which is the
+// one thing on this card worth a glance.
 // ---------------------------------------------------------------------------------------
 function drawRails(ctx, w, h, t) {
-  const c = C(), th = T();
-  const rowH = Math.min(24, (h - 6) / RAILS.length);
+  const c = C(), small = h < 190 || w < 300;
+  const rowH = Math.min(22, (h - 6) / RAILS.length);
   RAILS.forEach((rl, i) => {
     const backend = (D.backends[rl.key] || '').split('—')[0].trim();
     const live = !!backend && backend === LIVE_OK[rl.key];
-    const y = 3 + i * rowH, midY = y + rowH * 0.5;
-    // a live rail breathes; a stand-in sits still, which is the honest difference
+    const midY = 3 + i * rowH + rowH * 0.5;
     ctx.fillStyle = live ? c.green : c.line;
-    ctx.globalAlpha = live ? 0.6 + 0.4 * Math.abs(Math.sin(t * 1.8 + i * 0.6)) : 1;
-    ctx.beginPath(); ctx.arc(9, midY, 3.2, 0, Math.PI * 2); ctx.fill();
+    ctx.globalAlpha = live ? 0.55 + 0.45 * Math.abs(Math.sin(t * 1.6 + i * 0.6)) : 1;
+    ctx.beginPath(); ctx.arc(9, midY, 3, 0, Math.PI * 2); ctx.fill();
     ctx.globalAlpha = 1;
-    ctx.font = LB(11, live ? 600 : 500); ctx.fillStyle = live ? c.text : c.mute;
-    ctx.fillText(rl.name, 20, midY + 4);
-    ctx.font = NM(10); ctx.fillStyle = live ? c.dim : c.mute;
+    ctx.font = FN('label', small); ctx.fillStyle = live ? c.text : c.mute;
+    ctx.fillText(rl.name, 19, midY + 4);
+    ctx.font = FN('axis', small); ctx.fillStyle = live ? c.dim : c.mute;
     ctx.textAlign = 'right';
     ctx.fillText(live ? rl.of : 'stand-in', w - 10, midY + 4);
     ctx.textAlign = 'left';
@@ -308,19 +300,16 @@ function paint(t) {
   go('pipe', drawPipe);
   go('infer', drawInfer);
   go('rails', drawRails);
-  go('calib', (x, w, h, tt) => P.calibration && P.calibration(x, w, h, tt, { points: D.calib }));
-  go('tamper', (x, w, h, tt) => AU.tamperMatrix && AU.tamperMatrix(x, w, h, tt, { flags: D.flags }));
+  go('hist', (x, w, h, tt) => G.runHistory && G.runHistory(x, w, h, tt,
+    { runs: D.runs, at: D.at }));
   go('credit', (x, w, h, tt) => G.creditGraph && G.creditGraph(x, w, h, tt,
     { rows: D.rows, items: D.items, roles: D.roles }));
   go('funnel', (x, w, h, tt) => P.gateFunnel && P.gateFunnel(x, w, h, tt,
     { gates: D.gates, entered: D.entered, accepted: D.accepted }));
-  go('select', (x, w, h, tt) => AU.selection && AU.selection(x, w, h, tt,
-    { alternatives: D.alternatives, chosen: D.chosen }));
-  go('blame', (x, w, h, tt) => AU.blameCI && AU.blameCI(x, w, h, tt,
-    { standings: D.standings, threshold: 0 }));
-  go('miss', (x, w, h, tt) => G.failureModes && G.failureModes(x, w, h, tt, { tally: D.tally }));
-  go('hist', (x, w, h, tt) => G.runHistory && G.runHistory(x, w, h, tt,
-    { runs: D.runs, at: D.at }));
+  go('roles', (x, w, h, tt) => AU.roleTable && AU.roleTable(x, w, h, tt,
+    { rows: D.roleRows, chosen: D.chosen, threshold: 0 }));
+  go('calib', (x, w, h, tt) => P.calibration && P.calibration(x, w, h, tt, { points: D.calib }));
+  go('tamper', (x, w, h, tt) => AU.tamperMatrix && AU.tamperMatrix(x, w, h, tt, { flags: D.flags }));
 }
 
 function tick(ts) {

@@ -469,38 +469,38 @@ button:focus-visible{outline:2px solid var(--cyan);outline-offset:2px}
 .dcard canvas{flex:1;min-height:0;width:100%;display:block}
 .dcard-h{display:flex;justify-content:space-between;align-items:baseline;gap:9px;flex:none;
   padding:7px 10px 6px;border-bottom:1px solid #161A20}
-.dcard-h span{font-family:"Geist",ui-sans-serif,system-ui,sans-serif;font-weight:600;
+.dcard-h span{display:flex;align-items:center;gap:6px;min-width:0;
+  font-family:"Geist",ui-sans-serif,system-ui,sans-serif;font-weight:600;
   font-size:11px;letter-spacing:-.01em;color:#E7EAEE;white-space:nowrap;overflow:hidden;
   text-overflow:ellipsis}
-.dcard-h em{font-style:normal;font-family:"Geist Mono",ui-monospace,monospace;font-size:10px;
+.dcard-h span svg{flex:none;opacity:.85}
+.dcard-h em{font-style:normal;font-family:"Geist Mono",ui-monospace,monospace;font-size:9px;
   color:#5C646F;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:-.02em}
 /* a hairline of accent on the top edge, not a slab down the side */
 .dcard::before{content:"";height:2px;flex:none;background:#1C2026}
 .dgrid>*:nth-child(1)::before{background:#5B8DEF}
-.dgrid>*:nth-child(2)::before{background:#A78BFA}
+.dgrid>*:nth-child(2)::before{background:#F5A524}
 .dgrid>*:nth-child(3)::before{background:#F05E6B}
-.dgrid>*:nth-child(4)::before{background:#2DD4BF}
-.dgrid>*:nth-child(5)::before{background:#3FCF8E}
-.dgrid>*:nth-child(6)::before{background:#5B8DEF}
-.dgrid>*:nth-child(7)::before{background:#F5A524}
+.dgrid>*:nth-child(4)::before{background:#3FCF8E}
+.dgrid>*:nth-child(5)::before{background:#5B8DEF}
+.dgrid>*:nth-child(6)::before{background:#2DD4BF}
+.dgrid>*:nth-child(7)::before{background:#A78BFA}
 .dgrid>*:nth-child(8)::before{background:#2DD4BF}
-.dgrid>*:nth-child(9)::before{background:#A78BFA}
-.dgrid>*:nth-child(10)::before{background:#F05E6B}
-.dgrid>*:nth-child(11)::before{background:#F5A524}
+.dgrid>*:nth-child(9)::before{background:#F05E6B}
 
 /* Placed explicitly rather than auto-flowed: a spanning card and an auto-placed one fight
-   each other for the same cell, and the loser gets whatever height is left over. */
-.dgrid>*:nth-child(1){grid-area:1/1/2/3}    /* one lap, across the top */
-.dgrid>*:nth-child(2){grid-area:1/3/2/4}    /* calibration             */
-.dgrid>*:nth-child(3){grid-area:1/4/2/5}    /* tamper matrix           */
-.dgrid>*:nth-child(4){grid-area:2/1/3/2}    /* inference meter         */
-.dgrid>*:nth-child(5){grid-area:2/2/3/3}    /* rails                   */
-.dgrid>*:nth-child(6){grid-area:2/3/3/4}    /* credit graph            */
-.dgrid>*:nth-child(7){grid-area:2/4/3/5}    /* gate funnel             */
-.dgrid>*:nth-child(8){grid-area:3/1/4/2}    /* selection economics     */
-.dgrid>*:nth-child(9){grid-area:3/2/4/3}    /* blame with intervals    */
-.dgrid>*:nth-child(10){grid-area:3/3/4/4}   /* what it kept missing    */
-.dgrid>*:nth-child(11){grid-area:3/4/4/5}   /* claimed vs held-out     */
+   each other for the same cell, and the loser gets whatever height is left over.
+   Nine panels. The two that carry the whole argument — what it does, and what the gap
+   between its own score and the held-out one is — get the double width. */
+.dgrid>*:nth-child(1){grid-area:1/1/2/3}   /* one lap                */
+.dgrid>*:nth-child(2){grid-area:1/3/2/5}   /* claimed vs held-out    */
+.dgrid>*:nth-child(3){grid-area:2/1/3/2}   /* inference              */
+.dgrid>*:nth-child(4){grid-area:2/2/3/3}   /* rails                  */
+.dgrid>*:nth-child(5){grid-area:2/3/3/4}   /* attribution            */
+.dgrid>*:nth-child(6){grid-area:2/4/3/5}   /* gates                  */
+.dgrid>*:nth-child(7){grid-area:3/1/4/3}   /* blame and selection    */
+.dgrid>*:nth-child(8){grid-area:3/3/4/4}   /* calibration            */
+.dgrid>*:nth-child(9){grid-area:3/4/4/5}   /* tamper                 */
 
 @media (max-width:1180px){
   .app.devmode{grid-template-rows:52px auto;height:auto;min-height:100vh;overflow:auto}

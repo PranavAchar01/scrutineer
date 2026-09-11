@@ -2,8 +2,10 @@
 // SCR.devpanels — two readouts about the agent's own judgement: what it thought
 // a change was worth, and where its proposals actually die.
 //
-// Same contract as SCR.devgraphs: pure draw, `t` is the only clock, no state
-// between frames. Colours and type come from SCR.devtheme and nowhere else.
+// Same contract as SCR.devgraphs: pure draw, no state between frames. Colours and
+// type come from SCR.devtheme and nowhere else. Both panels are still: neither shows
+// throughput, liveness, "you are here" or a flag, which are the only four things
+// devtheme lets move. `t` is taken and ignored so the caller's signature holds.
 // ============================================================================
 (function (SCR) {
 'use strict';
@@ -54,9 +56,10 @@ P.calibration = function (ctx, w, h, t, data) {
 
   ctx.save();
 
-  const tiny = w < 380 || h < 190;
-  const padL = tiny ? 26 : 34, padR = tiny ? 10 : 14;
-  const padT = tiny ? 14 : 18, padB = tiny ? 20 : 28;
+  // one decision from the box, taken once — every font call downstream reads it.
+  const small = h < 190 || w < 300;
+  const padL = small ? 26 : 34, padR = small ? 10 : 14;
+  const padT = small ? 14 : 18, padB = small ? 20 : 28;
   const pw = w - padL - padR, ph = h - padT - padB;
   if (!(pw > 24) || !(ph > 24)) { ctx.restore(); T.empty(ctx, w, h, 'no room'); return; }
 
@@ -84,7 +87,7 @@ P.calibration = function (ctx, w, h, t, data) {
   ctx.closePath(); ctx.fill();
 
   // ---- grid at the tick values, so gridline and number always agree ----
-  const step = niceStep(span, tiny ? 3 : 4);
+  const step = niceStep(span, small ? 3 : 4);
   const first = Math.ceil(lo / step) * step;
   const ticks = [];
   for (let v = first, k = 0; v <= hi && k < 40; v += step, k++) ticks.push(v);
@@ -106,24 +109,14 @@ P.calibration = function (ctx, w, h, t, data) {
   ctx.beginPath(); ctx.moveTo(T.crisp(x0), y0); ctx.lineTo(T.crisp(x0), y1); ctx.stroke();
   ctx.beginPath(); ctx.moveTo(x0, T.crisp(y1)); ctx.lineTo(x1, T.crisp(y1)); ctx.stroke();
 
-  // ---- y = x, dashed and drifting so it reads as a target rather than data ----
+  // ---- y = x, dashed so it reads as a target rather than as data ----
   const ax = xOf(lo), ay = yOf(lo), bx = xOf(hi), by = yOf(hi);
   ctx.save();
   ctx.setLineDash([4, 4]);
-  ctx.lineDashOffset = -((t * 9) % 8);
   ctx.globalAlpha = 0.75;
   ctx.strokeStyle = C.mute; ctx.lineWidth = 1;
   ctx.beginPath(); ctx.moveTo(ax, ay); ctx.lineTo(bx, by); ctx.stroke();
   ctx.restore();
-
-  // a slow bead running the line, the only thing in the panel that ever reaches it.
-  const s = (t * 0.14) % 1;
-  const sx = ax + (bx - ax) * s, sy = ay + (by - ay) * s;
-  ctx.globalAlpha = 0.18;
-  ctx.fillStyle = C.teal;
-  ctx.beginPath(); ctx.arc(sx, sy, 6.5, 0, TAU); ctx.fill();
-  ctx.globalAlpha = 0.85;
-  ctx.beginPath(); ctx.arc(sx, sy, 2, 0, TAU); ctx.fill();
 
   // ---- the gap itself: a dropped line from the line down to what was measured ----
   ctx.globalAlpha = 0.22;
@@ -143,11 +136,10 @@ P.calibration = function (ctx, w, h, t, data) {
     const p = pts[i];
     const px = clamp(xOf(p.x), x0, x1), py = clamp(yOf(p.y), y0, y1);
     if (i === worst && worstErr > 0) {
-      // the biggest miss breathes, so the eye lands on it without a callout.
-      const br = 5 + 3.5 * (0.5 + 0.5 * Math.sin(t * 1.5));
-      ctx.globalAlpha = 0.10 + 0.12 * (0.5 + 0.5 * Math.sin(t * 1.5 + Math.PI));
+      // the biggest miss gets a still disc behind it — size, not motion, lands the eye.
+      ctx.globalAlpha = 0.16;
       ctx.fillStyle = p.on ? C.green : C.blue;
-      ctx.beginPath(); ctx.arc(px, py, br, 0, TAU); ctx.fill();
+      ctx.beginPath(); ctx.arc(px, py, 8, 0, TAU); ctx.fill();
     }
     if (p.on) {
       ctx.globalAlpha = 1; ctx.fillStyle = C.green;
@@ -162,29 +154,35 @@ P.calibration = function (ctx, w, h, t, data) {
     }
   }
 
-  // ---- numbers and two captions ----
-  const fs = tiny ? 8 : 9;
+  // ---- ticks, then the two axis names, then the unit both axes are in ----
   ctx.globalAlpha = 1;
   ctx.fillStyle = C.mute;
-  ctx.font = T.num(fs);
+  ctx.font = T.font('axis', small);
   ctx.textBaseline = 'middle'; ctx.textAlign = 'right';
   for (let i = 0; i < ticks.length; i++) ctx.fillText(fmt(ticks[i], step), x0 - 4, yOf(ticks[i]));
   ctx.textAlign = 'center'; ctx.textBaseline = 'top';
   for (let i = 0; i < ticks.length; i++) ctx.fillText(fmt(ticks[i], step), xOf(ticks[i]), y1 + 4);
 
   ctx.fillStyle = C.dim;
-  ctx.font = T.label(tiny ? 9 : 10);
+  ctx.font = T.font('label', small);
   ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
-  ctx.fillText('measured', x0 - (tiny ? 22 : 30), y0 - 5);
+  const mx0 = x0 - (small ? 22 : 30);
+  ctx.fillText('measured', mx0, y0 - 5);
+  const mw = ctx.measureText('measured ').width;
   ctx.textAlign = 'right';
   ctx.fillText('predicted', x1, h - 3);
 
+  // both axes are the same quantity, so the unit is said once and qualifies both.
+  ctx.globalAlpha = 0.75;
+  ctx.fillStyle = C.mute;
+  ctx.font = T.font('sub', small);
+  ctx.textAlign = 'left';
+  ctx.fillText('seconds', mx0 + mw, y0 - 5);
+
   // sits on the reference line, naming what the line means rather than labelling an axis.
   ctx.globalAlpha = 0.8;
-  ctx.fillStyle = C.mute;
-  ctx.font = T.label(tiny ? 8 : 9);
-  ctx.textAlign = 'right'; ctx.textBaseline = 'alphabetic';
-  ctx.fillText('perfect calibration', ax + (bx - ax) * 0.66 - 5, ay + (by - ay) * 0.66 - 5);
+  ctx.textAlign = 'right';
+  ctx.fillText('as forecast', ax + (bx - ax) * 0.66 - 5, ay + (by - ay) * 0.66 - 5);
 
   ctx.restore();
 };
@@ -233,9 +231,10 @@ P.gateFunnel = function (ctx, w, h, t, data) {
 
   ctx.save();
 
-  const tiny = w < 400 || h < 190;
-  const padL = tiny ? 22 : 30, padR = tiny ? 22 : 30;
-  const padT = tiny ? 12 : 16, padB = tiny ? 16 : 22;
+  // one decision from the box, taken once — every font call downstream reads it.
+  const small = h < 190 || w < 300;
+  const padL = small ? 22 : 30, padR = small ? 22 : 30;
+  const padT = small ? 12 : 16, padB = small ? 16 : 22;
   const pw = w - padL - padR, ph = h - padT - padB;
   const n = vals.length;
   if (!(pw > 40) || !(ph > 20) || n < 2) { ctx.restore(); T.empty(ctx, w, h, 'no room'); return; }
@@ -270,19 +269,6 @@ P.gateFunnel = function (ctx, w, h, t, data) {
   ctx.globalAlpha = 0.16; ctx.fillStyle = C.blue; bandPath(); ctx.fill();
   ctx.globalAlpha = 0.55; ctx.strokeStyle = C.blue; ctx.lineWidth = 1; bandPath(); ctx.stroke();
 
-  // ---- throughput: slanted ticks travelling with the flow, clipped to the band ----
-  ctx.save();
-  bandPath(); ctx.clip();
-  const gap = 16, lean = 5;
-  const phase = (t * 22) % gap;
-  ctx.globalAlpha = 0.22; ctx.strokeStyle = C.teal; ctx.lineWidth = 1.4;
-  for (let x = padL - gap + phase; x < padL + pw + gap; x += gap) {
-    ctx.beginPath();
-    ctx.moveTo(x, cy - maxBand); ctx.lineTo(x + lean, cy + maxBand);
-    ctx.stroke();
-  }
-  ctx.restore();
-
   // ---- gate markers ----
   const showAll = segW >= 52;
   ctx.textBaseline = 'middle';
@@ -312,8 +298,8 @@ P.gateFunnel = function (ctx, w, h, t, data) {
     const nm = gates[i].name.replace(/_/g, ' ');
     ctx.globalAlpha = cut ? 1 : 0.75;
     ctx.fillStyle = cut ? C.dim : C.mute;
-    ctx.font = T.label(tiny ? 9 : 10, cut ? 600 : 500);
-    ctx.fillText(nm, x, cy + maxBand / 2 + (tiny ? 7 : 10));
+    ctx.font = T.font('label', small);
+    ctx.fillText(nm, x, cy + maxBand / 2 + (small ? 7 : 10));
   }
 
   // the kill count rides above the notch, where the band actually steps down.
@@ -322,18 +308,26 @@ P.gateFunnel = function (ctx, w, h, t, data) {
     if (!(kills[i] > 0)) continue;
     const x = clamp(xOf(i + 1), padL, padL + pw);
     ctx.globalAlpha = 1; ctx.fillStyle = C.rose;
-    ctx.font = T.num(tiny ? 10 : 11, 500);
-    ctx.fillText('−' + kills[i], x, cy - maxBand / 2 - (tiny ? 5 : 8));
+    ctx.font = T.font('value', small);
+    ctx.fillText('−' + kills[i], x, cy - maxBand / 2 - (small ? 5 : 8));
   }
 
   // ---- the two counts that matter, at the mouth and at the spout ----
+  // accepted is what the funnel is for, so it is the one number in hero.
   ctx.globalAlpha = 1;
   ctx.textBaseline = 'middle';
-  ctx.font = T.num(tiny ? 12 : 15, 500);
   ctx.fillStyle = C.text; ctx.textAlign = 'right';
+  ctx.font = T.font('value', small);
   ctx.fillText(String(entered), padL - 5, cy);
   ctx.fillStyle = accepted > 0 ? C.green : C.mute; ctx.textAlign = 'left';
+  ctx.font = T.font('hero', small);
   ctx.fillText(String(accepted), padL + pw + 5, cy);
+
+  // the band is a headcount, not a rate — say so once, under the mouth.
+  ctx.globalAlpha = 0.7;
+  ctx.fillStyle = C.mute; ctx.textAlign = 'right';
+  ctx.font = T.font('sub', small);
+  ctx.fillText('proposals', padL - 5, cy + (small ? 10 : 13));
 
   // the last narrowing is not a gate — keep it mute so it cannot be read as one.
   if (accepted < lastGate) {
