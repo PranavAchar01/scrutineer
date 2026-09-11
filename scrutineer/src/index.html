@@ -4,6 +4,10 @@
     <div class="mark">SCRUTINEER</div>
     <div class="hdr-chips" id="hdrChips"></div>
     <div class="top-right">
+      <div class="vswitch" id="vswitch" role="tablist">
+        <button class="vtab active" data-view="broadcast" role="tab" aria-selected="true">BROADCAST</button>
+        <button class="vtab" data-view="dev" role="tab" aria-selected="false">DEVELOPER</button>
+      </div>
       <span class="runcount" id="runCount"></span>
       <button class="run" id="runBtn">RUN THE AGENT</button>
     </div>
@@ -36,5 +40,6 @@
   </main>
 
   <section class="work" id="work" aria-label="The agent's work"></section>
+  <section class="dev" id="dev" hidden aria-label="Developer view"></section>
   <div class="regs" id="regs" hidden></div>
 </div>

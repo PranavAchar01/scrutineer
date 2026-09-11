@@ -290,6 +290,7 @@ S.init = function (app) {
   A = app; R = app.R;
   if (SCR.dash) { SCR.dash.build(); SCR.dash.watchStage(); }
   if (SCR.curtain) SCR.curtain.attach($('curtain'));
+  if (SCR.dev) SCR.dev.init(app);
   const L = window.SCRUTINEER_LOOP;
   st.bundle = L || null;
   st.rounds = (L && L.rounds) || [];
@@ -646,6 +647,7 @@ function startRun() {
 
 function phase(name) {
   st.phase = name; st.t = 0; st.shown = 0;
+  if (SCR.dev) SCR.dev.setRun(st.i);
   // The verdict lamp answers one question — was the change kept — so until the checks have run
   // it says so rather than borrowing whatever word the previous phase left there.
   if (D()) { D().phase(name);

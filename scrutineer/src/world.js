@@ -46,11 +46,39 @@ E.hooks[M.CROWD] = function (mx, my, mz, a) {
     return hh < 0.2 ? M.BODY : hh < 0.34 ? M.STRIPE : hh < 0.44 ? M.GOLD : hh < 0.56 ? M.CYAN : hh < 0.86 ? M.NAVY : M.PURPLE; }
   return M.STAND;
 };
+// M.SCREEN ships with a ramp but no hook. garage.js registers a richer one and loads after this
+// file, so claim the slot only when it is free: a trackside screen still has to animate in a build
+// that ships the world without the garage. Both hooks read the same {w,h,kind} descriptor.
+if (E.hooks[M.SCREEN] === undefined) E.hooks[M.SCREEN] = function (mx, my, mz, a) {
+  const sg = E.signs[a]; if (!sg) return M.CYAN; const [u, v] = E.signUV(sg, mx, my, mz);
+  const w = sg.w || 1, h = sg.h || 1; if (u < 0.05 || u > w - 0.05 || v < 0.05 || v > h - 0.05) return M.CARBON;
+  const row = Math.floor((v / h) * 9), col = Math.floor((u / w) * 20 + E.time * 5 + row * 3);
+  return (col % 3) < 2 && E.hash2(col, row) > 0.35 ? M.CYAN : M.NAVY;
+};
 // build(circuit, opts) -> { mesh, lightpools, tvcams, circuit }
+// opts.tier 0..4 walks the same layout from a 1994 club circuit up to a floodlit modern venue.
 Wd.build = function (c, opts = {}) {
   const cp = c.pts, cn = c.n, at = c.at, pos = c.pos, outside = c.outside, geomInside = c.geomInside, clearOfTrack = c.clearOfTrack;
   const maxInside = i => 0.85 / Math.max(Math.abs(at(i).curv), 1e-4), safeOff = (i, side, w) => (side === geomInside(i)) ? Math.min(w, maxInside(i)) : w;
   const LIGHTPOOLS = [], TVCAMS = [], signs = E.signs, tris = () => E.current();
+  // one knob for the whole venue. every decision below reads a row of this table rather than
+  // testing `tier` inline, so a tier is legible as a column and a new rung is one entry per row.
+  const tier = Math.max(0, Math.min(4, Math.round(opts.tier || 0))), TIER = {
+    kerbCurv: [0.006, 0.0035, 0.0035, 0.0035, 0.0035][tier],  // club circuits only painted the hairpins
+    runoff:   [0, 1, 1, 2, 2][tier],                          // 0 grass verge · 1 gravel trap · 2 paved
+    stands:   [1, 2, 2, 2, 3][tier],
+    rows:     [4, 7, 7, 10, 11][tier],
+    pitH:     [4.0, 5.2, 6.8, 6.8, 6.8][tier],
+    masts:    [0, 0, 9, 9, 16][tier],                         // 0 masts also means 0 light pools
+    cams:     [6, 6, 10, 10, 12][tier],
+    screens:  [0, 0, 0, 1, 3][tier],
+    towers:   tier >= 2, bigSign: tier >= 2, gantry: tier >= 3, neon: tier >= 4,
+  };
+  // hoisted above the per-segment loop because the tier-4 barrier strips need segWall while the
+  // road is still being laid down.
+  const segQuad = (k, side, w0, w1, y0, y1, m) => { const A = pos(k, side * w0, y0), B = pos(k + 1, side * w0, y0), Cq = pos(k + 1, side * w1, y1), Dq = pos(k, side * w1, y1); if (side > 0) Q(A, Dq, Cq, B, m); else Q(A, B, Cq, Dq, m); };
+  const segWall = (k, side, w, y0, y1, m) => { const A = pos(k, side * w, y0), B = pos(k + 1, side * w, y0), Cq = pos(k + 1, side * w, y1), Dq = pos(k, side * w, y1); if (side > 0) Q(A, B, Cq, Dq, m); else Q(A, Dq, Cq, B, m); };
+  const segSign = (k, side, w, y0, y1, text, u0, cell, fg, bg) => { const t = at(k), A = pos(k, side * w, y0); E.setAux(signs.length); signs.push({ text, o: A, r: [t.tx, 0, t.tz], u: [0, 1, 0], cell, fg, bg, u0 }); segWall(k, side, w, y0, y1, M.SIGN); E.setAux(0); };
   E.begin(); E.setGroup(0); E.setAux(0);
   let minx = 1e9, maxx = -1e9, minz = 1e9, maxz = -1e9;
   for (const p of cp) { minx = Math.min(minx, p.x); maxx = Math.max(maxx, p.x); minz = Math.min(minz, p.z); maxz = Math.max(maxz, p.z); }
@@ -61,7 +89,7 @@ Wd.build = function (c, opts = {}) {
     Q(pos(i, ROAD_W), pos(i + 1, ROAD_W), pos(i + 1, -ROAD_W), pos(i, -ROAD_W), M.ASPHALT);
     const rl0 = pos(i, Math.max(-3.5, Math.min(3.5, -a.curv * 180)), 0.01), rl1 = pos(i + 1, Math.max(-3.5, Math.min(3.5, -b.curv * 180)), 0.01);
     Q([rl0[0] + a.nx * 1.1, 0.012, rl0[2] + a.nz * 1.1], [rl1[0] + b.nx * 1.1, 0.012, rl1[2] + b.nz * 1.1], [rl1[0] - b.nx * 1.1, 0.012, rl1[2] - b.nz * 1.1], [rl0[0] - a.nx * 1.1, 0.012, rl0[2] - a.nz * 1.1], M.RUBBER);
-    if (k > 0.006) {
+    if (k > TIER.kerbCurv) {
       const km = ((i >> 1) & 1) ? M.KERB_R : M.KERB_W, side = left ? 1 : -1;
       const ki0 = pos(i, side * ROAD_W, 0.02), ki1 = pos(i + 1, side * ROAD_W, 0.02), ko0 = pos(i, side * (ROAD_W + 1.3), 0.06), ko1 = pos(i + 1, side * (ROAD_W + 1.3), 0.06);
       if (side > 0) Q(ki0, ko0, ko1, ki1, km); else Q(ki0, ki1, ko1, ko0, km);
@@ -69,26 +97,29 @@ Wd.build = function (c, opts = {}) {
       if (side > 0) Q(kx0, kx1, ky1, ky0, km); else Q(kx0, ky0, ky1, kx1, km);
     }
     for (const side of [1, -1]) {
-      const isOut = side !== geomInside(i), gravel = isOut && k > 0.008;
-      let w0 = ROAD_W + 1.7, w1 = gravel ? ROAD_W + 22 : ROAD_W + 9; w1 = safeOff(i, side, w1); if (w1 <= w0 + 0.5) continue;
-      const g0 = pos(i, side * w0), g1 = pos(i + 1, side * w0), h0 = pos(i, side * w1), h1 = pos(i + 1, side * w1), gm = gravel ? M.GRAVEL : (((i >> 2) & 1) ? M.GRASS : M.GRASS2);
+      // the runoff surface is the fastest read of a circuit's era from the chase cam: green verge,
+      // tan gravel, or black tarmac. tier 0 never opens a trap at all, so the verge stays narrow.
+      const isOut = side !== geomInside(i), trap = isOut && k > 0.008 && TIER.runoff > 0;
+      let w0 = ROAD_W + 1.7, w1 = trap ? ROAD_W + 22 : ROAD_W + 9; w1 = safeOff(i, side, w1); if (w1 <= w0 + 0.5) continue;
+      const g0 = pos(i, side * w0), g1 = pos(i + 1, side * w0), h0 = pos(i, side * w1), h1 = pos(i + 1, side * w1), gm = trap ? (TIER.runoff === 2 ? M.ASPHALT : M.GRAVEL) : (((i >> 2) & 1) ? M.GRASS : M.GRASS2);
       if (side > 0) Q(g0, h0, h1, g1, gm); else Q(g0, g1, h1, h0, gm);
-      const bw = safeOff(i, side, gravel ? w1 : ROAD_W + 12); if (bw < ROAD_W + 4) continue;
-      const b0 = pos(i, side * bw), b1 = pos(i + 1, side * bw), bh = gravel ? 1.2 : 0.8, bm = gravel ? M.TYRE : M.STEEL, t0 = [b0[0], bh, b0[2]], t1 = [b1[0], bh, b1[2]];
+      const bw = safeOff(i, side, trap ? w1 : ROAD_W + 12); if (bw < ROAD_W + 4) continue;
+      // tyre stacks belong to the gravel era; once the runoff is paved the barrier goes back to armco
+      const tyres = trap && TIER.runoff === 1;
+      const b0 = pos(i, side * bw), b1 = pos(i + 1, side * bw), bh = tyres ? 1.2 : 0.8, bm = tyres ? M.TYRE : M.STEEL, t0 = [b0[0], bh, b0[2]], t1 = [b1[0], bh, b1[2]];
       if (side > 0) { Q(b0, b1, t1, t0, bm); Q(t0, t1, [t1[0] + a.nx * 0.5, bh, t1[2] + a.nz * 0.5], [t0[0] + a.nx * 0.5, bh, t0[2] + a.nz * 0.5], M.BODY); }
       else { Q(b0, t0, t1, b1, bm); Q(t0, [t0[0] - a.nx * 0.5, bh, t0[2] - a.nz * 0.5], [t1[0] - b.nx * 0.5, bh, t1[2] - b.nz * 0.5], t1, M.BODY); }
+      // a continuous LED rail on the barrier face is what sells a night race: it is emissive, so it
+      // survives the dark ramp, and it is the one tier-4 cue the chase cam sees on every corner.
+      if (TIER.neon) segWall(i, side, bw - 0.06, bh - 0.3, bh - 0.08, ((i >> 3) & 1) ? M.NEON_C : M.NEON_P);
     }
   }
   const straights = []; let i = 0;
   while (i < cn) { if (Math.abs(at(i).curv) < 0.004) { let j = i; while (j < cn && Math.abs(at(j).curv) < 0.004) j++; straights.push([i, j - i]); i = j; } else i++; }
   straights.sort((a, b) => b[1] - a[1]);
   const clearRun = (i0, len, side, wmax) => { for (let q = i0; q <= i0 + len; q += 2) { const p = pos(q, side * wmax); if (!clearOfTrack(p[0], p[2], ROAD_W + 3)) return false; } return true; };
-  const segQuad = (k, side, w0, w1, y0, y1, m) => { const A = pos(k, side * w0, y0), B = pos(k + 1, side * w0, y0), Cq = pos(k + 1, side * w1, y1), Dq = pos(k, side * w1, y1); if (side > 0) Q(A, Dq, Cq, B, m); else Q(A, B, Cq, Dq, m); };
-  const segWall = (k, side, w, y0, y1, m) => { const A = pos(k, side * w, y0), B = pos(k + 1, side * w, y0), Cq = pos(k + 1, side * w, y1), Dq = pos(k, side * w, y1); if (side > 0) Q(A, B, Cq, Dq, m); else Q(A, Dq, Cq, B, m); };
-  const segSign = (k, side, w, y0, y1, text, u0, cell, fg, bg) => { const t = at(k), A = pos(k, side * w, y0); E.setAux(signs.length); signs.push({ text, o: A, r: [t.tx, 0, t.tz], u: [0, 1, 0], cell, fg, bg, u0 }); segWall(k, side, w, y0, y1, M.SIGN); E.setAux(0); };
   const teamName = opts.teamName || 'SCRUTINEER';
-  const placeStand = (i0, len, side) => {
-    const rows = 7;
+  const placeStand = (i0, len, side, rows) => {
     for (let k = i0; k < i0 + len; k++) {
       const t = at(k);
       for (let r = 0; r < rows; r++) { const w0 = ROAD_W + 15 + r * 1.6, y0 = 0.3 + r * 1.15;
@@ -104,54 +135,99 @@ Wd.build = function (c, opts = {}) {
     }
   };
   let standsPlaced = 0;
-  for (const [s0, sl] of straights) { if (standsPlaced >= 2 || sl < 10) continue; const i0 = s0 + 2, len = sl - 4, side = outside(s0 + Math.floor(sl / 2)); if (clearRun(i0, len, side, ROAD_W + 36)) { placeStand(i0, len, side); standsPlaced++; } }
+  for (const [s0, sl] of straights) { if (standsPlaced >= TIER.stands || sl < 10) continue; const i0 = s0 + 2, len = sl - 4, side = outside(s0 + Math.floor(sl / 2)); if (clearRun(i0, len, side, ROAD_W + 36)) { placeStand(i0, len, side, TIER.rows); standsPlaced++; } }
   if (straights.length) {
     const [s0, sl] = straights[0]; const i0 = s0 + 3, len = sl - 6; let side = -outside(s0 + Math.floor(sl / 2));
     if (!clearRun(i0, len, side, ROAD_W + 15)) side = -side;
     if (clearRun(i0, len, side, ROAD_W + 15)) {
-      const wf = ROAD_W + 4.6, wb = ROAD_W + 13.6, hgt = 5.2;
+      // the pit building grows with the tier, so every band is measured off the roof or off the
+      // garage-door head rather than pinned to the old 5.2m box.
+      const wf = ROAD_W + 4.6, wb = ROAD_W + 13.6, hgt = TIER.pitH, dh = hgt - 2.3;
       for (let k = i0; k < i0 + len; k++) {
         segWall(k, side, wf, 0, hgt, M.BODY); segQuad(k, side, wf, wb, hgt, hgt, M.STEEL);
         const A = pos(k, side * wb, 0), B = pos(k + 1, side * wb, 0), Cq = pos(k + 1, side * wb, hgt), Dq = pos(k, side * wb, hgt); if (side > 0) Q(A, Dq, Cq, B, M.BODY); else Q(A, B, Cq, Dq, M.BODY);
-        segWall(k, side, wf - 0.05, hgt - 0.5, hgt, M.NAVY); segWall(k, side, wf - 0.06, 3.1, 4.0, M.CYAN);
-        if ((k - i0) % 2 === 0) { segWall(k, side, wf - 0.08, 0.1, 2.9, M.STEEL); segWall(k, side, wf - 0.1, 2.95, 3.05, M.GOLD); }
-        if ((k - i0) % 2 === 1) { const p = pos(k, side * (wf - 0.12)); box(p[0], 1.5, p[2], 0.16, 2.9, 0.16, M.CARBON); }
-        if (k > i0 + 1 && k < i0 + len - 2) segSign(k, side, wf - 0.14, 4.1, 4.9, 'PIT LANE · PARC FERME · SCRUTINEERING BAY · PIT LANE · PARC FERME', (k - i0 - 2) * 4, 0.3, M.CYAN, M.NAVY);
+        segWall(k, side, wf - 0.05, hgt - 0.5, hgt, M.NAVY); segWall(k, side, wf - 0.06, hgt - 2.1, hgt - 1.2, M.CYAN);
+        if ((k - i0) % 2 === 0) { segWall(k, side, wf - 0.08, 0.1, dh, M.STEEL); segWall(k, side, wf - 0.1, dh + 0.05, dh + 0.15, M.GOLD); }
+        if ((k - i0) % 2 === 1) { const p = pos(k, side * (wf - 0.12)); box(p[0], dh / 2, p[2], 0.16, dh, 0.16, M.CARBON); }
+        if (k > i0 + 1 && k < i0 + len - 2) segSign(k, side, wf - 0.14, hgt - 1.1, hgt - 0.3, 'PIT LANE · PARC FERME · SCRUTINEERING BAY · PIT LANE · PARC FERME', (k - i0 - 2) * 4, 0.3, M.CYAN, M.NAVY);
         segWall(k, side, ROAD_W + 2.4, 0, 1.0, M.ARMCO);
       }
       const mid = pos(i0 + Math.floor(len / 2), side * (wf + 4.5)); box(mid[0], hgt + 0.8, mid[2], 3, 1.6, 8, M.STEEL); box(mid[0], hgt + 2.2, mid[2], 0.3, 2.6, 0.3, M.STEEL);
     }
   }
   { const p = at(0), l = pos(0, ROAD_W + 2.5), r = pos(0, -(ROAD_W + 2.5));
-    box(l[0], 4, l[2], 0.8, 8, 0.8, M.STEEL); box(r[0], 4, r[2], 0.8, 8, 0.8, M.STEEL);
-    const cx = (l[0] + r[0]) / 2, cz = (l[2] + r[2]) / 2, yaw = Math.atan2(p.tx, p.tz), save = tris().length;
-    box(0, 8.4, 0, 2 * (ROAD_W + 2.9), 1.6, 1.0, M.NAVY); for (let k = -2; k <= 2; k++) box(k * 1.6, 7.3, 0.55, 0.8, 0.5, 0.2, M.STRIPE);
-    E.rotateRange(save, yaw, cx, cz);
-    E.setAux(signs.length); const so = [cx + p.nx * (ROAD_W + 2.4) - p.tx * 0.51, 7.7, cz + p.nz * (ROAD_W + 2.4) - p.tz * 0.51];
-    signs.push({ text: `${teamName} · SEALED CIRCUIT`, o: so, r: [-p.nx, 0, -p.nz], u: [0, 1, 0], cell: 0.36, fg: M.GOLD, bg: M.NAVY });
-    const se = [so[0] - p.nx * 2 * (ROAD_W + 2.4), 7.7, so[2] - p.nz * 2 * (ROAD_W + 2.4)]; Q(so, se, [se[0], 9.1, se[2]], [so[0], 9.1, so[2]], M.SIGN); E.setAux(0);
+    // a club circuit has nothing to hang over the line, so its posts are stumps and the paint does
+    // all the work. everything above it gets the full gantry and the sealed-circuit banner.
+    const mh = tier > 0 ? 8 : 3;
+    box(l[0], mh / 2, l[2], 0.8, mh, 0.8, M.STEEL); box(r[0], mh / 2, r[2], 0.8, mh, 0.8, M.STEEL);
+    if (tier > 0) {
+      const cx = (l[0] + r[0]) / 2, cz = (l[2] + r[2]) / 2, yaw = Math.atan2(p.tx, p.tz), save = tris().length;
+      box(0, 8.4, 0, 2 * (ROAD_W + 2.9), 1.6, 1.0, M.NAVY); for (let k = -2; k <= 2; k++) box(k * 1.6, 7.3, 0.55, 0.8, 0.5, 0.2, M.STRIPE);
+      E.rotateRange(save, yaw, cx, cz);
+      E.setAux(signs.length); const so = [cx + p.nx * (ROAD_W + 2.4) - p.tx * 0.51, 7.7, cz + p.nz * (ROAD_W + 2.4) - p.tz * 0.51];
+      signs.push({ text: `${teamName} · SEALED CIRCUIT`, o: so, r: [-p.nx, 0, -p.nz], u: [0, 1, 0], cell: 0.36, fg: M.GOLD, bg: M.NAVY });
+      const se = [so[0] - p.nx * 2 * (ROAD_W + 2.4), 7.7, so[2] - p.nz * 2 * (ROAD_W + 2.4)]; Q(so, se, [se[0], 9.1, se[2]], [so[0], 9.1, so[2]], M.SIGN); E.setAux(0);
+    }
     const s0 = pos(0, ROAD_W, 0.015), s1 = pos(0, -ROAD_W, 0.015), s2 = pos(-1, -ROAD_W, 0.015), s3 = pos(-1, ROAD_W, 0.015);
     for (let k = 0; k < 6; k++) { const f = k / 6, g = (k + 1) / 6, A = [s0[0] + (s1[0] - s0[0]) * f, 0.015, s0[2] + (s1[2] - s0[2]) * f], B = [s0[0] + (s1[0] - s0[0]) * g, 0.015, s0[2] + (s1[2] - s0[2]) * g], Cc = [s3[0] + (s2[0] - s3[0]) * g, 0.015, s3[2] + (s2[2] - s3[2]) * g], D = [s3[0] + (s2[0] - s3[0]) * f, 0.015, s3[2] + (s2[2] - s3[2]) * f]; Q(A, D, Cc, B, (k & 1) ? M.KERB_W : M.CARBON); }
   }
-  for (let k = 0; k < cn; k += Math.round(cn / 9)) { const side = outside(k), p = pos(k, side * (ROAD_W + 26)); if (!clearOfTrack(p[0], p[2], ROAD_W + 6)) continue;
+  // masts are the tier's loudest silhouette from the heli cam, and the only source of light pools —
+  // which is why tiers 0-1 hand back an empty pool list rather than a dimmed one.
+  if (TIER.masts) for (let k = 0; k < cn; k += Math.round(cn / TIER.masts)) { const side = outside(k), p = pos(k, side * (ROAD_W + 26)); if (!clearOfTrack(p[0], p[2], ROAD_W + 6)) continue;
     box(p[0], 14, p[2], 0.9, 28, 0.9, M.STEEL); box(p[0], 28.6, p[2], 4.5, 1.4, 1.2, M.STEEL); for (let j = -1; j <= 1; j++) box(p[0] + j * 1.4, 28.0, p[2] - side * 0.8, 1.0, 0.8, 0.3, M.LAMP);
     const q = pos(k, side * (ROAD_W + 2)); LIGHTPOOLS.push([q[0], q[2], 26]); }
+  if (TIER.gantry && straights.length) {
+    // a sponsor bridge over the longest straight. built the same way as the start gantry — legs in
+    // world space first, beam at the origin and then rotated — because rotateRange takes everything
+    // pushed after the mark.
+    const [gs, gl] = straights[0], gk = gs + Math.floor(gl * 0.72), gt = at(gk);
+    const l = pos(gk, ROAD_W + 2.6), r = pos(gk, -(ROAD_W + 2.6));
+    box(l[0], 3.4, l[2], 0.7, 6.8, 0.7, M.STEEL); box(r[0], 3.4, r[2], 0.7, 6.8, 0.7, M.STEEL);
+    const gx = (l[0] + r[0]) / 2, gz = (l[2] + r[2]) / 2, save = tris().length;
+    box(0, 7.4, 0, 2 * (ROAD_W + 3.0), 1.4, 0.9, M.NAVY);
+    E.rotateRange(save, Math.atan2(gt.tx, gt.tz), gx, gz);
+    E.setAux(signs.length); const go = [gx + gt.nx * (ROAD_W + 2.5) - gt.tx * 0.46, 6.85, gz + gt.nz * (ROAD_W + 2.5) - gt.tz * 0.46];
+    signs.push({ text: `${teamName} · OFFICIAL PARTNER`, o: go, r: [-gt.nx, 0, -gt.nz], u: [0, 1, 0], cell: 0.34, fg: M.CYAN, bg: M.NAVY });
+    const ge = [go[0] - gt.nx * 2 * (ROAD_W + 2.5), 6.85, go[2] - gt.nz * 2 * (ROAD_W + 2.5)];
+    Q(go, ge, [ge[0], 8.1, ge[2]], [go[0], 8.1, go[2]], M.SIGN); E.setAux(0);
+  }
+  { // big screens sit beyond the grandstand, not in front of it: far enough out that the legs clear
+    // the deepest bank of seats, and tall enough that the roofline never crops the picture.
+    let ns = 0;
+    for (const [s0, sl] of straights) {
+      if (ns >= TIER.screens || sl < 8) break;
+      const k = s0 + Math.floor(sl / 2), t = at(k), side = outside(k), sw = 16, sh = 9, y0 = 10, woff = ROAD_W + 42;
+      const base = pos(k, side * woff); if (!clearOfTrack(base[0], base[2], ROAD_W + 10)) continue;
+      const o = [base[0] - t.tx * sw / 2, y0, base[2] - t.tz * sw / 2], b = [o[0] + t.tx * sw, y0, o[2] + t.tz * sw];
+      E.setAux(signs.length); signs.push({ screen: true, o, r: [t.tx, 0, t.tz], u: [0, 1, 0], w: sw, h: sh, kind: ns % 5 });
+      Q(o, b, [b[0], y0 + sh, b[2]], [o[0], y0 + sh, o[2]], M.SCREEN); E.setAux(0);
+      for (const f of [0.12, 0.88]) box(o[0] + t.tx * sw * f, y0 / 2, o[2] + t.tz * sw * f, 0.7, y0, 0.7, M.STEEL);
+      ns++;
+    }
+  }
+  const BOARDS = TIER.bigSign ? [[0, '150'], [10, '100'], [20, '50']] : [[0, '100'], [12, '50']], BS = TIER.bigSign ? 1.5 : 1;
   for (let k = 0; k < cn; k++) { const nxt = at(k + 25);
     if (Math.abs(at(k).curv) < 0.003 && Math.abs(nxt.curv) > 0.012 && Math.abs(at(k + 24).curv) < 0.012) { const side = outside(k + 25);
-      for (const [d, txt] of [[0, '100'], [12, '50']]) { const p = pos(k + d, side * (ROAD_W + 3.5)); if (!clearOfTrack(p[0], p[2], ROAD_W + 1)) continue; box(p[0], 1.1, p[2], 0.15, 2.2, 0.15, M.STEEL);
-        E.setAux(signs.length); const t = at(k + d), o = [p[0] + t.tx * 0.8, 1.6, p[2] + t.tz * 0.8]; signs.push({ text: txt, o, r: [-t.tx, 0, -t.tz], u: [0, 1, 0], cell: 1.6 / (txt.length * 4 + 1), fg: M.BODY, bg: M.STRIPE });
-        Q(o, [o[0] - t.tx * 1.6, 1.6, o[2] - t.tz * 1.6], [o[0] - t.tx * 1.6, 2.6, o[2] - t.tz * 1.6], [o[0], 2.6, o[2]], M.SIGN); E.setAux(0); }
+      // an international licence buys a third board and half again the size — the braking markers are
+      // what a driver actually reads, so they are the signage that scales, not the decoration.
+      for (const [d, txt] of BOARDS) { const p = pos(k + d, side * (ROAD_W + 3.5)); if (!clearOfTrack(p[0], p[2], ROAD_W + 1)) continue; box(p[0], 1.1 * BS, p[2], 0.15, 2.2 * BS, 0.15, M.STEEL);
+        E.setAux(signs.length); const t = at(k + d), w = 1.6 * BS, o = [p[0] + t.tx * 0.8 * BS, 1.6 * BS, p[2] + t.tz * 0.8 * BS]; signs.push({ text: txt, o, r: [-t.tx, 0, -t.tz], u: [0, 1, 0], cell: w / (txt.length * 4 + 1), fg: M.BODY, bg: M.STRIPE });
+        Q(o, [o[0] - t.tx * w, o[1], o[2] - t.tz * w], [o[0] - t.tx * w, o[1] + 1.0 * BS, o[2] - t.tz * w], [o[0], o[1] + 1.0 * BS, o[2]], M.SIGN); E.setAux(0); }
       k += 40; } }
-  for (const [f, txt] of [[1 / 3, 'S1'], [2 / 3, 'S2'], [0, 'S3']]) { const k = Math.round(cn * f), side = outside(k), p = pos(k, side * (ROAD_W + 3.2)); box(p[0], 1.2, p[2], 0.15, 2.4, 0.15, M.STEEL);
-    E.setAux(signs.length); const t = at(k), o = [p[0] - t.tx * 0.6, 1.9, p[2] - t.tz * 0.6]; signs.push({ text: txt, o, r: [t.tx, 0, t.tz], u: [0, 1, 0], cell: 1.2 / (txt.length * 4 + 1), fg: M.NAVY, bg: M.CYAN });
-    Q(o, [o[0] + t.tx * 1.2, 1.9, o[2] + t.tz * 1.2], [o[0] + t.tx * 1.2, 2.7, o[2] + t.tz * 1.2], [o[0], 2.7, o[2]], M.SIGN); E.setAux(0); }
+  for (const [f, txt] of [[1 / 3, 'S1'], [2 / 3, 'S2'], [0, 'S3']]) { const k = Math.round(cn * f), side = outside(k), p = pos(k, side * (ROAD_W + 3.2)); box(p[0], 1.2 * BS, p[2], 0.15, 2.4 * BS, 0.15, M.STEEL);
+    E.setAux(signs.length); const t = at(k), w = 1.2 * BS, o = [p[0] - t.tx * 0.6 * BS, 1.9 * BS, p[2] - t.tz * 0.6 * BS]; signs.push({ text: txt, o, r: [t.tx, 0, t.tz], u: [0, 1, 0], cell: w / (txt.length * 4 + 1), fg: M.NAVY, bg: M.CYAN });
+    Q(o, [o[0] + t.tx * w, o[1], o[2] + t.tz * w], [o[0] + t.tx * w, o[1] + 0.8 * BS, o[2] + t.tz * w], [o[0], o[1] + 0.8 * BS, o[2]], M.SIGN); E.setAux(0); }
   const clearOfStructs = (x, y, z, r) => { for (const t of tris()) { if (E.GROUND_MATS.has(t.m)) continue; for (const v of t.v) if (Math.hypot(v[0] - x, v[1] - y, v[2] - z) < r) return false; } return true; };
-  for (let k = 0; k < 8; k++) {
-    const a0 = Math.round(cn * k / 8), a1 = Math.round(cn * (k + 1) / 8); let bi = a0, bk = -1;
+  // more broadcast positions is the tier cue the director feels rather than sees; the mast under the
+  // camera is the one the spectator sees, so it only appears once the circuit is actually televised.
+  const NC = TIER.cams;
+  for (let k = 0; k < NC; k++) {
+    const a0 = Math.round(cn * k / NC), a1 = Math.round(cn * (k + 1) / NC); let bi = a0, bk = -1;
     for (let q = a0; q < a1; q++) { const kk = Math.abs(at(q).curv); if (kk > bk) { bk = kk; bi = q; } }
     const side = outside(bi); let placed = false;
     for (const w of [ROAD_W + 14, ROAD_W + 10, ROAD_W + 7]) { const p = pos(bi, side * w, 6.5); if ((clearOfTrack(p[0], p[2], w - 1) && clearOfStructs(p[0], p[1], p[2], 4)) || w === ROAD_W + 7) { TVCAMS.push({ i: bi, x: p[0], y: p[1], z: p[2], s: bi * c.step }); placed = true; break; } }
     if (!placed) { const p = pos(bi, side * (ROAD_W + 7), 6.5); TVCAMS.push({ i: bi, x: p[0], y: p[1], z: p[2], s: bi * c.step }); }
+    if (TIER.towers) { const t = TVCAMS[TVCAMS.length - 1]; box(t.x, t.y / 2, t.z, 0.5, t.y, 0.5, M.STEEL); box(t.x, t.y + 0.35, t.z, 1.6, 0.7, 1.6, M.STEEL); box(t.x, t.y + 1.1, t.z, 0.8, 0.8, 1.1, M.CARBON); }
   }
   return { mesh: E.end(), lightpools: LIGHTPOOLS, tvcams: TVCAMS, circuit: c };
 };

@@ -432,6 +432,48 @@ button:focus-visible{outline:2px solid var(--cyan);outline-offset:2px}
 .tier.bump .tier-top b{animation:tierbumpb .9s ease-out}
 @media (prefers-reduced-motion:reduce){.tier.bump,.tier.bump .tier-top b{animation:none}}
 
+/* ---- the view switch, and the developer view it reveals ---- */
+.vswitch{display:flex;gap:2px;flex:none}
+.vtab{font-family:"Press Start 2P","Courier New",monospace;font-size:8px;padding:9px 11px;
+  background:#0B1038;color:var(--mid);border:0;border-bottom:3px solid var(--studio);cursor:pointer}
+.vtab:hover{color:var(--caption)}
+.vtab.active{background:var(--studio);color:var(--cyan);border-bottom-color:var(--cyan)}
+/* the developer view takes the whole body of the page, so the app becomes one row */
+.app.devmode{grid-template-rows:54px minmax(0,1fr)}
+.app.devmode .deck,.app.devmode .work{display:none}
+.dev{min-height:0;overflow:hidden;background:#04060F;padding:10px 12px}
+.dgrid{display:grid;height:100%;min-height:0;gap:8px;
+  grid-template-columns:minmax(0,1.35fr) minmax(0,1fr) minmax(0,0.85fr);
+  grid-template-rows:minmax(0,1fr) minmax(0,0.92fr) minmax(0,1.02fr)}
+.dcard{display:flex;flex-direction:column;min-width:0;min-height:0;background:var(--night);
+  border:1px solid var(--studio);border-left:3px solid var(--cyan)}
+.dcard canvas{flex:1;min-height:0;width:100%;display:block}
+.dcard-h{display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex:none;
+  padding:5px 8px 4px;border-bottom:1px solid var(--studio)}
+.dcard-h span{font-family:"Press Start 2P","Courier New",monospace;font-size:8px;
+  color:var(--white);letter-spacing:.4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dcard-h em{font-style:normal;font-family:"VT323","Courier New",monospace;font-size:14px;
+  line-height:12px;color:var(--mid);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* Placed explicitly rather than auto-flowed: a spanning card and an auto-placed one fight
+   each other for the same cell, and the loser gets whatever height is left over. */
+.dgrid>*:nth-child(1){grid-area:1/1/2/3}   /* one lap, across the top   */
+.dgrid>*:nth-child(2){grid-area:2/1/3/2}   /* inference meter            */
+.dgrid>*:nth-child(3){grid-area:1/3/3/4}   /* credit graph, full height  */
+.dgrid>*:nth-child(4){grid-area:2/2/3/3}   /* rails                      */
+.dgrid>*:nth-child(5){grid-area:3/1/4/2}   /* failure modes              */
+.dgrid>*:nth-child(6){grid-area:3/2/4/4}   /* claimed vs held-out        */
+#dev .dcard:nth-child(2){border-left-color:var(--red)}
+#dev .dcard:nth-child(3){border-left-color:var(--purple)}
+#dev .dcard:nth-child(4){border-left-color:var(--green)}
+#dev .dcard:nth-child(5){border-left-color:var(--amber)}
+#dev .dcard:nth-child(6){border-left-color:var(--gold)}
+@media (max-width:1080px){
+  .app.devmode{grid-template-rows:52px auto;height:auto;min-height:100vh;overflow:auto}
+  .dev{overflow:visible}
+  .dgrid{grid-template-columns:1fr;grid-auto-rows:minmax(190px,auto);height:auto}
+  .dgrid>*:nth-child(n){grid-area:auto}
+}
+
 </style>
 <!-- Scrutineer. A pit wall: the picture in the middle, the readouts on the rails. -->
 <div class="app" id="app">
@@ -439,6 +481,10 @@ button:focus-visible{outline:2px solid var(--cyan);outline-offset:2px}
     <div class="mark">SCRUTINEER</div>
     <div class="hdr-chips" id="hdrChips"></div>
     <div class="top-right">
+      <div class="vswitch" id="vswitch" role="tablist">
+        <button class="vtab active" data-view="broadcast" role="tab" aria-selected="true">BROADCAST</button>
+        <button class="vtab" data-view="dev" role="tab" aria-selected="false">DEVELOPER</button>
+      </div>
       <span class="runcount" id="runCount"></span>
       <button class="run" id="runBtn">RUN THE AGENT</button>
     </div>
@@ -471,6 +517,7 @@ button:focus-visible{outline:2px solid var(--cyan);outline-offset:2px}
   </main>
 
   <section class="work" id="work" aria-label="The agent's work"></section>
+  <section class="dev" id="dev" hidden aria-label="Developer view"></section>
   <div class="regs" id="regs" hidden></div>
 </div>
 
@@ -8032,11 +8079,39 @@ E.hooks[M.CROWD] = function (mx, my, mz, a) {
     return hh < 0.2 ? M.BODY : hh < 0.34 ? M.STRIPE : hh < 0.44 ? M.GOLD : hh < 0.56 ? M.CYAN : hh < 0.86 ? M.NAVY : M.PURPLE; }
   return M.STAND;
 };
+// M.SCREEN ships with a ramp but no hook. garage.js registers a richer one and loads after this
+// file, so claim the slot only when it is free: a trackside screen still has to animate in a build
+// that ships the world without the garage. Both hooks read the same {w,h,kind} descriptor.
+if (E.hooks[M.SCREEN] === undefined) E.hooks[M.SCREEN] = function (mx, my, mz, a) {
+  const sg = E.signs[a]; if (!sg) return M.CYAN; const [u, v] = E.signUV(sg, mx, my, mz);
+  const w = sg.w || 1, h = sg.h || 1; if (u < 0.05 || u > w - 0.05 || v < 0.05 || v > h - 0.05) return M.CARBON;
+  const row = Math.floor((v / h) * 9), col = Math.floor((u / w) * 20 + E.time * 5 + row * 3);
+  return (col % 3) < 2 && E.hash2(col, row) > 0.35 ? M.CYAN : M.NAVY;
+};
 // build(circuit, opts) -> { mesh, lightpools, tvcams, circuit }
+// opts.tier 0..4 walks the same layout from a 1994 club circuit up to a floodlit modern venue.
 Wd.build = function (c, opts = {}) {
   const cp = c.pts, cn = c.n, at = c.at, pos = c.pos, outside = c.outside, geomInside = c.geomInside, clearOfTrack = c.clearOfTrack;
   const maxInside = i => 0.85 / Math.max(Math.abs(at(i).curv), 1e-4), safeOff = (i, side, w) => (side === geomInside(i)) ? Math.min(w, maxInside(i)) : w;
   const LIGHTPOOLS = [], TVCAMS = [], signs = E.signs, tris = () => E.current();
+  // one knob for the whole venue. every decision below reads a row of this table rather than
+  // testing `tier` inline, so a tier is legible as a column and a new rung is one entry per row.
+  const tier = Math.max(0, Math.min(4, Math.round(opts.tier || 0))), TIER = {
+    kerbCurv: [0.006, 0.0035, 0.0035, 0.0035, 0.0035][tier],  // club circuits only painted the hairpins
+    runoff:   [0, 1, 1, 2, 2][tier],                          // 0 grass verge · 1 gravel trap · 2 paved
+    stands:   [1, 2, 2, 2, 3][tier],
+    rows:     [4, 7, 7, 10, 11][tier],
+    pitH:     [4.0, 5.2, 6.8, 6.8, 6.8][tier],
+    masts:    [0, 0, 9, 9, 16][tier],                         // 0 masts also means 0 light pools
+    cams:     [6, 6, 10, 10, 12][tier],
+    screens:  [0, 0, 0, 1, 3][tier],
+    towers:   tier >= 2, bigSign: tier >= 2, gantry: tier >= 3, neon: tier >= 4,
+  };
+  // hoisted above the per-segment loop because the tier-4 barrier strips need segWall while the
+  // road is still being laid down.
+  const segQuad = (k, side, w0, w1, y0, y1, m) => { const A = pos(k, side * w0, y0), B = pos(k + 1, side * w0, y0), Cq = pos(k + 1, side * w1, y1), Dq = pos(k, side * w1, y1); if (side > 0) Q(A, Dq, Cq, B, m); else Q(A, B, Cq, Dq, m); };
+  const segWall = (k, side, w, y0, y1, m) => { const A = pos(k, side * w, y0), B = pos(k + 1, side * w, y0), Cq = pos(k + 1, side * w, y1), Dq = pos(k, side * w, y1); if (side > 0) Q(A, B, Cq, Dq, m); else Q(A, Dq, Cq, B, m); };
+  const segSign = (k, side, w, y0, y1, text, u0, cell, fg, bg) => { const t = at(k), A = pos(k, side * w, y0); E.setAux(signs.length); signs.push({ text, o: A, r: [t.tx, 0, t.tz], u: [0, 1, 0], cell, fg, bg, u0 }); segWall(k, side, w, y0, y1, M.SIGN); E.setAux(0); };
   E.begin(); E.setGroup(0); E.setAux(0);
   let minx = 1e9, maxx = -1e9, minz = 1e9, maxz = -1e9;
   for (const p of cp) { minx = Math.min(minx, p.x); maxx = Math.max(maxx, p.x); minz = Math.min(minz, p.z); maxz = Math.max(maxz, p.z); }
@@ -8047,7 +8122,7 @@ Wd.build = function (c, opts = {}) {
     Q(pos(i, ROAD_W), pos(i + 1, ROAD_W), pos(i + 1, -ROAD_W), pos(i, -ROAD_W), M.ASPHALT);
     const rl0 = pos(i, Math.max(-3.5, Math.min(3.5, -a.curv * 180)), 0.01), rl1 = pos(i + 1, Math.max(-3.5, Math.min(3.5, -b.curv * 180)), 0.01);
     Q([rl0[0] + a.nx * 1.1, 0.012, rl0[2] + a.nz * 1.1], [rl1[0] + b.nx * 1.1, 0.012, rl1[2] + b.nz * 1.1], [rl1[0] - b.nx * 1.1, 0.012, rl1[2] - b.nz * 1.1], [rl0[0] - a.nx * 1.1, 0.012, rl0[2] - a.nz * 1.1], M.RUBBER);
-    if (k > 0.006) {
+    if (k > TIER.kerbCurv) {
       const km = ((i >> 1) & 1) ? M.KERB_R : M.KERB_W, side = left ? 1 : -1;
       const ki0 = pos(i, side * ROAD_W, 0.02), ki1 = pos(i + 1, side * ROAD_W, 0.02), ko0 = pos(i, side * (ROAD_W + 1.3), 0.06), ko1 = pos(i + 1, side * (ROAD_W + 1.3), 0.06);
       if (side > 0) Q(ki0, ko0, ko1, ki1, km); else Q(ki0, ki1, ko1, ko0, km);
@@ -8055,26 +8130,29 @@ Wd.build = function (c, opts = {}) {
       if (side > 0) Q(kx0, kx1, ky1, ky0, km); else Q(kx0, ky0, ky1, kx1, km);
     }
     for (const side of [1, -1]) {
-      const isOut = side !== geomInside(i), gravel = isOut && k > 0.008;
-      let w0 = ROAD_W + 1.7, w1 = gravel ? ROAD_W + 22 : ROAD_W + 9; w1 = safeOff(i, side, w1); if (w1 <= w0 + 0.5) continue;
-      const g0 = pos(i, side * w0), g1 = pos(i + 1, side * w0), h0 = pos(i, side * w1), h1 = pos(i + 1, side * w1), gm = gravel ? M.GRAVEL : (((i >> 2) & 1) ? M.GRASS : M.GRASS2);
+      // the runoff surface is the fastest read of a circuit's era from the chase cam: green verge,
+      // tan gravel, or black tarmac. tier 0 never opens a trap at all, so the verge stays narrow.
+      const isOut = side !== geomInside(i), trap = isOut && k > 0.008 && TIER.runoff > 0;
+      let w0 = ROAD_W + 1.7, w1 = trap ? ROAD_W + 22 : ROAD_W + 9; w1 = safeOff(i, side, w1); if (w1 <= w0 + 0.5) continue;
+      const g0 = pos(i, side * w0), g1 = pos(i + 1, side * w0), h0 = pos(i, side * w1), h1 = pos(i + 1, side * w1), gm = trap ? (TIER.runoff === 2 ? M.ASPHALT : M.GRAVEL) : (((i >> 2) & 1) ? M.GRASS : M.GRASS2);
       if (side > 0) Q(g0, h0, h1, g1, gm); else Q(g0, g1, h1, h0, gm);
-      const bw = safeOff(i, side, gravel ? w1 : ROAD_W + 12); if (bw < ROAD_W + 4) continue;
-      const b0 = pos(i, side * bw), b1 = pos(i + 1, side * bw), bh = gravel ? 1.2 : 0.8, bm = gravel ? M.TYRE : M.STEEL, t0 = [b0[0], bh, b0[2]], t1 = [b1[0], bh, b1[2]];
+      const bw = safeOff(i, side, trap ? w1 : ROAD_W + 12); if (bw < ROAD_W + 4) continue;
+      // tyre stacks belong to the gravel era; once the runoff is paved the barrier goes back to armco
+      const tyres = trap && TIER.runoff === 1;
+      const b0 = pos(i, side * bw), b1 = pos(i + 1, side * bw), bh = tyres ? 1.2 : 0.8, bm = tyres ? M.TYRE : M.STEEL, t0 = [b0[0], bh, b0[2]], t1 = [b1[0], bh, b1[2]];
       if (side > 0) { Q(b0, b1, t1, t0, bm); Q(t0, t1, [t1[0] + a.nx * 0.5, bh, t1[2] + a.nz * 0.5], [t0[0] + a.nx * 0.5, bh, t0[2] + a.nz * 0.5], M.BODY); }
       else { Q(b0, t0, t1, b1, bm); Q(t0, [t0[0] - a.nx * 0.5, bh, t0[2] - a.nz * 0.5], [t1[0] - b.nx * 0.5, bh, t1[2] - b.nz * 0.5], t1, M.BODY); }
+      // a continuous LED rail on the barrier face is what sells a night race: it is emissive, so it
+      // survives the dark ramp, and it is the one tier-4 cue the chase cam sees on every corner.
+      if (TIER.neon) segWall(i, side, bw - 0.06, bh - 0.3, bh - 0.08, ((i >> 3) & 1) ? M.NEON_C : M.NEON_P);
     }
   }
   const straights = []; let i = 0;
   while (i < cn) { if (Math.abs(at(i).curv) < 0.004) { let j = i; while (j < cn && Math.abs(at(j).curv) < 0.004) j++; straights.push([i, j - i]); i = j; } else i++; }
   straights.sort((a, b) => b[1] - a[1]);
   const clearRun = (i0, len, side, wmax) => { for (let q = i0; q <= i0 + len; q += 2) { const p = pos(q, side * wmax); if (!clearOfTrack(p[0], p[2], ROAD_W + 3)) return false; } return true; };
-  const segQuad = (k, side, w0, w1, y0, y1, m) => { const A = pos(k, side * w0, y0), B = pos(k + 1, side * w0, y0), Cq = pos(k + 1, side * w1, y1), Dq = pos(k, side * w1, y1); if (side > 0) Q(A, Dq, Cq, B, m); else Q(A, B, Cq, Dq, m); };
-  const segWall = (k, side, w, y0, y1, m) => { const A = pos(k, side * w, y0), B = pos(k + 1, side * w, y0), Cq = pos(k + 1, side * w, y1), Dq = pos(k, side * w, y1); if (side > 0) Q(A, B, Cq, Dq, m); else Q(A, Dq, Cq, B, m); };
-  const segSign = (k, side, w, y0, y1, text, u0, cell, fg, bg) => { const t = at(k), A = pos(k, side * w, y0); E.setAux(signs.length); signs.push({ text, o: A, r: [t.tx, 0, t.tz], u: [0, 1, 0], cell, fg, bg, u0 }); segWall(k, side, w, y0, y1, M.SIGN); E.setAux(0); };
   const teamName = opts.teamName || 'SCRUTINEER';
-  const placeStand = (i0, len, side) => {
-    const rows = 7;
+  const placeStand = (i0, len, side, rows) => {
     for (let k = i0; k < i0 + len; k++) {
       const t = at(k);
       for (let r = 0; r < rows; r++) { const w0 = ROAD_W + 15 + r * 1.6, y0 = 0.3 + r * 1.15;
@@ -8090,54 +8168,99 @@ Wd.build = function (c, opts = {}) {
     }
   };
   let standsPlaced = 0;
-  for (const [s0, sl] of straights) { if (standsPlaced >= 2 || sl < 10) continue; const i0 = s0 + 2, len = sl - 4, side = outside(s0 + Math.floor(sl / 2)); if (clearRun(i0, len, side, ROAD_W + 36)) { placeStand(i0, len, side); standsPlaced++; } }
+  for (const [s0, sl] of straights) { if (standsPlaced >= TIER.stands || sl < 10) continue; const i0 = s0 + 2, len = sl - 4, side = outside(s0 + Math.floor(sl / 2)); if (clearRun(i0, len, side, ROAD_W + 36)) { placeStand(i0, len, side, TIER.rows); standsPlaced++; } }
   if (straights.length) {
     const [s0, sl] = straights[0]; const i0 = s0 + 3, len = sl - 6; let side = -outside(s0 + Math.floor(sl / 2));
     if (!clearRun(i0, len, side, ROAD_W + 15)) side = -side;
     if (clearRun(i0, len, side, ROAD_W + 15)) {
-      const wf = ROAD_W + 4.6, wb = ROAD_W + 13.6, hgt = 5.2;
+      // the pit building grows with the tier, so every band is measured off the roof or off the
+      // garage-door head rather than pinned to the old 5.2m box.
+      const wf = ROAD_W + 4.6, wb = ROAD_W + 13.6, hgt = TIER.pitH, dh = hgt - 2.3;
       for (let k = i0; k < i0 + len; k++) {
         segWall(k, side, wf, 0, hgt, M.BODY); segQuad(k, side, wf, wb, hgt, hgt, M.STEEL);
         const A = pos(k, side * wb, 0), B = pos(k + 1, side * wb, 0), Cq = pos(k + 1, side * wb, hgt), Dq = pos(k, side * wb, hgt); if (side > 0) Q(A, Dq, Cq, B, M.BODY); else Q(A, B, Cq, Dq, M.BODY);
-        segWall(k, side, wf - 0.05, hgt - 0.5, hgt, M.NAVY); segWall(k, side, wf - 0.06, 3.1, 4.0, M.CYAN);
-        if ((k - i0) % 2 === 0) { segWall(k, side, wf - 0.08, 0.1, 2.9, M.STEEL); segWall(k, side, wf - 0.1, 2.95, 3.05, M.GOLD); }
-        if ((k - i0) % 2 === 1) { const p = pos(k, side * (wf - 0.12)); box(p[0], 1.5, p[2], 0.16, 2.9, 0.16, M.CARBON); }
-        if (k > i0 + 1 && k < i0 + len - 2) segSign(k, side, wf - 0.14, 4.1, 4.9, 'PIT LANE · PARC FERME · SCRUTINEERING BAY · PIT LANE · PARC FERME', (k - i0 - 2) * 4, 0.3, M.CYAN, M.NAVY);
+        segWall(k, side, wf - 0.05, hgt - 0.5, hgt, M.NAVY); segWall(k, side, wf - 0.06, hgt - 2.1, hgt - 1.2, M.CYAN);
+        if ((k - i0) % 2 === 0) { segWall(k, side, wf - 0.08, 0.1, dh, M.STEEL); segWall(k, side, wf - 0.1, dh + 0.05, dh + 0.15, M.GOLD); }
+        if ((k - i0) % 2 === 1) { const p = pos(k, side * (wf - 0.12)); box(p[0], dh / 2, p[2], 0.16, dh, 0.16, M.CARBON); }
+        if (k > i0 + 1 && k < i0 + len - 2) segSign(k, side, wf - 0.14, hgt - 1.1, hgt - 0.3, 'PIT LANE · PARC FERME · SCRUTINEERING BAY · PIT LANE · PARC FERME', (k - i0 - 2) * 4, 0.3, M.CYAN, M.NAVY);
         segWall(k, side, ROAD_W + 2.4, 0, 1.0, M.ARMCO);
       }
       const mid = pos(i0 + Math.floor(len / 2), side * (wf + 4.5)); box(mid[0], hgt + 0.8, mid[2], 3, 1.6, 8, M.STEEL); box(mid[0], hgt + 2.2, mid[2], 0.3, 2.6, 0.3, M.STEEL);
     }
   }
   { const p = at(0), l = pos(0, ROAD_W + 2.5), r = pos(0, -(ROAD_W + 2.5));
-    box(l[0], 4, l[2], 0.8, 8, 0.8, M.STEEL); box(r[0], 4, r[2], 0.8, 8, 0.8, M.STEEL);
-    const cx = (l[0] + r[0]) / 2, cz = (l[2] + r[2]) / 2, yaw = Math.atan2(p.tx, p.tz), save = tris().length;
-    box(0, 8.4, 0, 2 * (ROAD_W + 2.9), 1.6, 1.0, M.NAVY); for (let k = -2; k <= 2; k++) box(k * 1.6, 7.3, 0.55, 0.8, 0.5, 0.2, M.STRIPE);
-    E.rotateRange(save, yaw, cx, cz);
-    E.setAux(signs.length); const so = [cx + p.nx * (ROAD_W + 2.4) - p.tx * 0.51, 7.7, cz + p.nz * (ROAD_W + 2.4) - p.tz * 0.51];
-    signs.push({ text: `${teamName} · SEALED CIRCUIT`, o: so, r: [-p.nx, 0, -p.nz], u: [0, 1, 0], cell: 0.36, fg: M.GOLD, bg: M.NAVY });
-    const se = [so[0] - p.nx * 2 * (ROAD_W + 2.4), 7.7, so[2] - p.nz * 2 * (ROAD_W + 2.4)]; Q(so, se, [se[0], 9.1, se[2]], [so[0], 9.1, so[2]], M.SIGN); E.setAux(0);
+    // a club circuit has nothing to hang over the line, so its posts are stumps and the paint does
+    // all the work. everything above it gets the full gantry and the sealed-circuit banner.
+    const mh = tier > 0 ? 8 : 3;
+    box(l[0], mh / 2, l[2], 0.8, mh, 0.8, M.STEEL); box(r[0], mh / 2, r[2], 0.8, mh, 0.8, M.STEEL);
+    if (tier > 0) {
+      const cx = (l[0] + r[0]) / 2, cz = (l[2] + r[2]) / 2, yaw = Math.atan2(p.tx, p.tz), save = tris().length;
+      box(0, 8.4, 0, 2 * (ROAD_W + 2.9), 1.6, 1.0, M.NAVY); for (let k = -2; k <= 2; k++) box(k * 1.6, 7.3, 0.55, 0.8, 0.5, 0.2, M.STRIPE);
+      E.rotateRange(save, yaw, cx, cz);
+      E.setAux(signs.length); const so = [cx + p.nx * (ROAD_W + 2.4) - p.tx * 0.51, 7.7, cz + p.nz * (ROAD_W + 2.4) - p.tz * 0.51];
+      signs.push({ text: `${teamName} · SEALED CIRCUIT`, o: so, r: [-p.nx, 0, -p.nz], u: [0, 1, 0], cell: 0.36, fg: M.GOLD, bg: M.NAVY });
+      const se = [so[0] - p.nx * 2 * (ROAD_W + 2.4), 7.7, so[2] - p.nz * 2 * (ROAD_W + 2.4)]; Q(so, se, [se[0], 9.1, se[2]], [so[0], 9.1, so[2]], M.SIGN); E.setAux(0);
+    }
     const s0 = pos(0, ROAD_W, 0.015), s1 = pos(0, -ROAD_W, 0.015), s2 = pos(-1, -ROAD_W, 0.015), s3 = pos(-1, ROAD_W, 0.015);
     for (let k = 0; k < 6; k++) { const f = k / 6, g = (k + 1) / 6, A = [s0[0] + (s1[0] - s0[0]) * f, 0.015, s0[2] + (s1[2] - s0[2]) * f], B = [s0[0] + (s1[0] - s0[0]) * g, 0.015, s0[2] + (s1[2] - s0[2]) * g], Cc = [s3[0] + (s2[0] - s3[0]) * g, 0.015, s3[2] + (s2[2] - s3[2]) * g], D = [s3[0] + (s2[0] - s3[0]) * f, 0.015, s3[2] + (s2[2] - s3[2]) * f]; Q(A, D, Cc, B, (k & 1) ? M.KERB_W : M.CARBON); }
   }
-  for (let k = 0; k < cn; k += Math.round(cn / 9)) { const side = outside(k), p = pos(k, side * (ROAD_W + 26)); if (!clearOfTrack(p[0], p[2], ROAD_W + 6)) continue;
+  // masts are the tier's loudest silhouette from the heli cam, and the only source of light pools —
+  // which is why tiers 0-1 hand back an empty pool list rather than a dimmed one.
+  if (TIER.masts) for (let k = 0; k < cn; k += Math.round(cn / TIER.masts)) { const side = outside(k), p = pos(k, side * (ROAD_W + 26)); if (!clearOfTrack(p[0], p[2], ROAD_W + 6)) continue;
     box(p[0], 14, p[2], 0.9, 28, 0.9, M.STEEL); box(p[0], 28.6, p[2], 4.5, 1.4, 1.2, M.STEEL); for (let j = -1; j <= 1; j++) box(p[0] + j * 1.4, 28.0, p[2] - side * 0.8, 1.0, 0.8, 0.3, M.LAMP);
     const q = pos(k, side * (ROAD_W + 2)); LIGHTPOOLS.push([q[0], q[2], 26]); }
+  if (TIER.gantry && straights.length) {
+    // a sponsor bridge over the longest straight. built the same way as the start gantry — legs in
+    // world space first, beam at the origin and then rotated — because rotateRange takes everything
+    // pushed after the mark.
+    const [gs, gl] = straights[0], gk = gs + Math.floor(gl * 0.72), gt = at(gk);
+    const l = pos(gk, ROAD_W + 2.6), r = pos(gk, -(ROAD_W + 2.6));
+    box(l[0], 3.4, l[2], 0.7, 6.8, 0.7, M.STEEL); box(r[0], 3.4, r[2], 0.7, 6.8, 0.7, M.STEEL);
+    const gx = (l[0] + r[0]) / 2, gz = (l[2] + r[2]) / 2, save = tris().length;
+    box(0, 7.4, 0, 2 * (ROAD_W + 3.0), 1.4, 0.9, M.NAVY);
+    E.rotateRange(save, Math.atan2(gt.tx, gt.tz), gx, gz);
+    E.setAux(signs.length); const go = [gx + gt.nx * (ROAD_W + 2.5) - gt.tx * 0.46, 6.85, gz + gt.nz * (ROAD_W + 2.5) - gt.tz * 0.46];
+    signs.push({ text: `${teamName} · OFFICIAL PARTNER`, o: go, r: [-gt.nx, 0, -gt.nz], u: [0, 1, 0], cell: 0.34, fg: M.CYAN, bg: M.NAVY });
+    const ge = [go[0] - gt.nx * 2 * (ROAD_W + 2.5), 6.85, go[2] - gt.nz * 2 * (ROAD_W + 2.5)];
+    Q(go, ge, [ge[0], 8.1, ge[2]], [go[0], 8.1, go[2]], M.SIGN); E.setAux(0);
+  }
+  { // big screens sit beyond the grandstand, not in front of it: far enough out that the legs clear
+    // the deepest bank of seats, and tall enough that the roofline never crops the picture.
+    let ns = 0;
+    for (const [s0, sl] of straights) {
+      if (ns >= TIER.screens || sl < 8) break;
+      const k = s0 + Math.floor(sl / 2), t = at(k), side = outside(k), sw = 16, sh = 9, y0 = 10, woff = ROAD_W + 42;
+      const base = pos(k, side * woff); if (!clearOfTrack(base[0], base[2], ROAD_W + 10)) continue;
+      const o = [base[0] - t.tx * sw / 2, y0, base[2] - t.tz * sw / 2], b = [o[0] + t.tx * sw, y0, o[2] + t.tz * sw];
+      E.setAux(signs.length); signs.push({ screen: true, o, r: [t.tx, 0, t.tz], u: [0, 1, 0], w: sw, h: sh, kind: ns % 5 });
+      Q(o, b, [b[0], y0 + sh, b[2]], [o[0], y0 + sh, o[2]], M.SCREEN); E.setAux(0);
+      for (const f of [0.12, 0.88]) box(o[0] + t.tx * sw * f, y0 / 2, o[2] + t.tz * sw * f, 0.7, y0, 0.7, M.STEEL);
+      ns++;
+    }
+  }
+  const BOARDS = TIER.bigSign ? [[0, '150'], [10, '100'], [20, '50']] : [[0, '100'], [12, '50']], BS = TIER.bigSign ? 1.5 : 1;
   for (let k = 0; k < cn; k++) { const nxt = at(k + 25);
     if (Math.abs(at(k).curv) < 0.003 && Math.abs(nxt.curv) > 0.012 && Math.abs(at(k + 24).curv) < 0.012) { const side = outside(k + 25);
-      for (const [d, txt] of [[0, '100'], [12, '50']]) { const p = pos(k + d, side * (ROAD_W + 3.5)); if (!clearOfTrack(p[0], p[2], ROAD_W + 1)) continue; box(p[0], 1.1, p[2], 0.15, 2.2, 0.15, M.STEEL);
-        E.setAux(signs.length); const t = at(k + d), o = [p[0] + t.tx * 0.8, 1.6, p[2] + t.tz * 0.8]; signs.push({ text: txt, o, r: [-t.tx, 0, -t.tz], u: [0, 1, 0], cell: 1.6 / (txt.length * 4 + 1), fg: M.BODY, bg: M.STRIPE });
-        Q(o, [o[0] - t.tx * 1.6, 1.6, o[2] - t.tz * 1.6], [o[0] - t.tx * 1.6, 2.6, o[2] - t.tz * 1.6], [o[0], 2.6, o[2]], M.SIGN); E.setAux(0); }
+      // an international licence buys a third board and half again the size — the braking markers are
+      // what a driver actually reads, so they are the signage that scales, not the decoration.
+      for (const [d, txt] of BOARDS) { const p = pos(k + d, side * (ROAD_W + 3.5)); if (!clearOfTrack(p[0], p[2], ROAD_W + 1)) continue; box(p[0], 1.1 * BS, p[2], 0.15, 2.2 * BS, 0.15, M.STEEL);
+        E.setAux(signs.length); const t = at(k + d), w = 1.6 * BS, o = [p[0] + t.tx * 0.8 * BS, 1.6 * BS, p[2] + t.tz * 0.8 * BS]; signs.push({ text: txt, o, r: [-t.tx, 0, -t.tz], u: [0, 1, 0], cell: w / (txt.length * 4 + 1), fg: M.BODY, bg: M.STRIPE });
+        Q(o, [o[0] - t.tx * w, o[1], o[2] - t.tz * w], [o[0] - t.tx * w, o[1] + 1.0 * BS, o[2] - t.tz * w], [o[0], o[1] + 1.0 * BS, o[2]], M.SIGN); E.setAux(0); }
       k += 40; } }
-  for (const [f, txt] of [[1 / 3, 'S1'], [2 / 3, 'S2'], [0, 'S3']]) { const k = Math.round(cn * f), side = outside(k), p = pos(k, side * (ROAD_W + 3.2)); box(p[0], 1.2, p[2], 0.15, 2.4, 0.15, M.STEEL);
-    E.setAux(signs.length); const t = at(k), o = [p[0] - t.tx * 0.6, 1.9, p[2] - t.tz * 0.6]; signs.push({ text: txt, o, r: [t.tx, 0, t.tz], u: [0, 1, 0], cell: 1.2 / (txt.length * 4 + 1), fg: M.NAVY, bg: M.CYAN });
-    Q(o, [o[0] + t.tx * 1.2, 1.9, o[2] + t.tz * 1.2], [o[0] + t.tx * 1.2, 2.7, o[2] + t.tz * 1.2], [o[0], 2.7, o[2]], M.SIGN); E.setAux(0); }
+  for (const [f, txt] of [[1 / 3, 'S1'], [2 / 3, 'S2'], [0, 'S3']]) { const k = Math.round(cn * f), side = outside(k), p = pos(k, side * (ROAD_W + 3.2)); box(p[0], 1.2 * BS, p[2], 0.15, 2.4 * BS, 0.15, M.STEEL);
+    E.setAux(signs.length); const t = at(k), w = 1.2 * BS, o = [p[0] - t.tx * 0.6 * BS, 1.9 * BS, p[2] - t.tz * 0.6 * BS]; signs.push({ text: txt, o, r: [t.tx, 0, t.tz], u: [0, 1, 0], cell: w / (txt.length * 4 + 1), fg: M.NAVY, bg: M.CYAN });
+    Q(o, [o[0] + t.tx * w, o[1], o[2] + t.tz * w], [o[0] + t.tx * w, o[1] + 0.8 * BS, o[2] + t.tz * w], [o[0], o[1] + 0.8 * BS, o[2]], M.SIGN); E.setAux(0); }
   const clearOfStructs = (x, y, z, r) => { for (const t of tris()) { if (E.GROUND_MATS.has(t.m)) continue; for (const v of t.v) if (Math.hypot(v[0] - x, v[1] - y, v[2] - z) < r) return false; } return true; };
-  for (let k = 0; k < 8; k++) {
-    const a0 = Math.round(cn * k / 8), a1 = Math.round(cn * (k + 1) / 8); let bi = a0, bk = -1;
+  // more broadcast positions is the tier cue the director feels rather than sees; the mast under the
+  // camera is the one the spectator sees, so it only appears once the circuit is actually televised.
+  const NC = TIER.cams;
+  for (let k = 0; k < NC; k++) {
+    const a0 = Math.round(cn * k / NC), a1 = Math.round(cn * (k + 1) / NC); let bi = a0, bk = -1;
     for (let q = a0; q < a1; q++) { const kk = Math.abs(at(q).curv); if (kk > bk) { bk = kk; bi = q; } }
     const side = outside(bi); let placed = false;
     for (const w of [ROAD_W + 14, ROAD_W + 10, ROAD_W + 7]) { const p = pos(bi, side * w, 6.5); if ((clearOfTrack(p[0], p[2], w - 1) && clearOfStructs(p[0], p[1], p[2], 4)) || w === ROAD_W + 7) { TVCAMS.push({ i: bi, x: p[0], y: p[1], z: p[2], s: bi * c.step }); placed = true; break; } }
     if (!placed) { const p = pos(bi, side * (ROAD_W + 7), 6.5); TVCAMS.push({ i: bi, x: p[0], y: p[1], z: p[2], s: bi * c.step }); }
+    if (TIER.towers) { const t = TVCAMS[TVCAMS.length - 1]; box(t.x, t.y / 2, t.z, 0.5, t.y, 0.5, M.STEEL); box(t.x, t.y + 0.35, t.z, 1.6, 0.7, 1.6, M.STEEL); box(t.x, t.y + 1.1, t.z, 0.8, 0.8, 1.1, M.CARBON); }
   }
   return { mesh: E.end(), lightpools: LIGHTPOOLS, tvcams: TVCAMS, circuit: c };
 };
@@ -9781,6 +9904,668 @@ D.reset = function () {
 };
 })(window.SCR = window.SCR || {});
 
+// ===== devgraphs.js =====
+// ============================================================================
+// SCR.devgraphs — three canvas readouts for the developer dashboard.
+//
+// These are pure: given (ctx, w, h, t, data) they draw and nothing else. No
+// frame state, no timers — `t` is the only clock, so a caller can scrub, pause
+// or re-render at any rate and get the same picture. That is what lets the
+// dashboard tear down and rebuild panels without motion popping.
+// ============================================================================
+(function (SCR) {
+'use strict';
+const G = SCR.devgraphs = {};
+
+// project tokens. nothing here invents a colour.
+const NIGHT = '#06081A', STUDIO = '#121A4A', TARMAC = '#2C2E3A';
+const WHITE = '#FFFFFF', CAPTION = '#C8CBD8', MID = '#6A6F8A';
+const GOLD = '#F4C542', RED = '#E31E2D', PURPLE = '#B04BFF';
+const CYAN = '#3DD2FF', GREEN = '#2FD968', AMBER = '#FFA318';
+
+const PX = "px 'Press Start 2P', monospace";   // labels: shouting, so keep them short
+const VT = "px 'VT323', monospace";            // numbers: the actual content
+
+const TAU = Math.PI * 2;
+const clamp = (v, a, b) => v < a ? a : v > b ? b : v;
+// alpha is applied via globalAlpha rather than rgba strings — no per-frame string building.
+
+// mast modes are the taxonomy the diagnoser blames; colour is the only legend we get.
+function modeColor (m) {
+  if (m === '1.4-loss-of-history') return CYAN;
+  if (m === '1.5-unaware-of-stopping') return AMBER;
+  if (m === '1.2-tool-schema-error') return RED;
+  return PURPLE;
+}
+
+// a panel with nothing in it should still look deliberate, not broken.
+function empty (ctx, w, h) {
+  ctx.save();
+  ctx.globalAlpha = 0.55;
+  ctx.fillStyle = MID;
+  ctx.font = 7 + PX;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('NO DATA', w / 2, h / 2);
+  ctx.restore();
+}
+
+// ---------------------------------------------------------------------------------------
+// 1. credit graph — who got blamed for what, and how sure we were
+// ---------------------------------------------------------------------------------------
+G.creditGraph = function (ctx, w, h, t, data) {
+  if (!(w > 0) || !(h > 0)) return;
+  const rows = data && data.rows;
+  let items = data && data.items;
+  let roles = data && data.roles;
+  if (!rows || !rows.length) { empty(ctx, w, h); return; }
+
+  // tolerate a caller that hands us rows only.
+  if (!items || !items.length) { items = []; for (let i = 0; i < rows.length; i++) { const v = rows[i] && rows[i].item; if (v && items.indexOf(v) < 0) items.push(v); } }
+  if (!roles || !roles.length) { roles = []; for (let i = 0; i < rows.length; i++) { const v = rows[i] && rows[i].blamed_role; if (v && roles.indexOf(v) < 0) roles.push(v); } }
+  if (!items.length || !roles.length) { empty(ctx, w, h); return; }
+
+  ctx.save();
+
+  const tiny = w < 380 || h < 190;
+  const fs = tiny ? 6 : 7;
+  const padX = tiny ? 20 : 30;
+  const padY = tiny ? 12 : 16;
+  const xL = padX, xR = w - padX;
+  const span = xR - xL;
+  if (span < 24) { ctx.restore(); empty(ctx, w, h); return; }
+
+  const yOf = (i, n) => n < 2 ? h / 2 : padY + (h - padY * 2) * (i / (n - 1));
+
+  // role weight: AERO swallows nearly every row, and the picture should say so.
+  let maxCount = 1;
+  const counts = new Array(roles.length).fill(0);
+  for (let i = 0; i < rows.length; i++) {
+    const k = roles.indexOf(rows[i] && rows[i].blamed_role);
+    if (k >= 0) { counts[k]++; if (counts[k] > maxCount) maxCount = counts[k]; }
+  }
+
+  // ---- edges ----
+  ctx.lineCap = 'round';
+  const cap = Math.min(rows.length, 240);       // hard ceiling keeps the 2ms budget honest
+  for (let i = 0; i < cap; i++) {
+    const r = rows[i]; if (!r) continue;
+    const ii = items.indexOf(r.item), ri = roles.indexOf(r.blamed_role);
+    if (ii < 0 || ri < 0) continue;
+    const conf = clamp(typeof r.confidence === 'number' ? r.confidence : 0.5, 0, 1);
+    const y0 = yOf(ii, items.length), y1 = yOf(ri, roles.length);
+    const c0 = xL + span * 0.42, c1 = xR - span * 0.42;
+    const col = modeColor(r.mast_mode);
+
+    ctx.globalAlpha = 0.14 + conf * 0.42;
+    ctx.strokeStyle = col;
+    ctx.lineWidth = 0.6 + conf * 1.7;
+    ctx.beginPath();
+    ctx.moveTo(xL, y0);
+    ctx.bezierCurveTo(c0, y0, c1, y1, xR, y1);
+    ctx.stroke();
+
+    // packet. the phase offset is per-edge so the bundle shimmers instead of marching.
+    const s = ((t * 0.28 + i * 0.0773 + ii * 0.17) % 1);
+    const u = 1 - s, a = u * u * u, b = 3 * u * u * s, c = 3 * u * s * s, d = s * s * s;
+    const px = a * xL + b * c0 + c * c1 + d * xR;
+    const py = a * y0 + b * y0 + c * y1 + d * y1;
+    ctx.globalAlpha = 0.35 + 0.55 * Math.sin(s * Math.PI);   // fade in and out at the ends
+    ctx.fillStyle = col;
+    const pr = 0.9 + conf * 1.5;
+    ctx.beginPath();
+    ctx.arc(px, py, pr, 0, TAU);
+    ctx.fill();
+  }
+
+  // ---- nodes ----
+  ctx.font = fs + PX;
+  ctx.textBaseline = 'middle';
+
+  ctx.textAlign = 'right';
+  for (let i = 0; i < items.length; i++) {
+    const y = yOf(i, items.length);
+    ctx.globalAlpha = 1;
+    ctx.fillStyle = STUDIO;
+    ctx.beginPath(); ctx.arc(xL, y, 3.2, 0, TAU); ctx.fill();
+    ctx.globalAlpha = 0.85;
+    ctx.strokeStyle = CAPTION; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.arc(xL, y, 3.2, 0, TAU); ctx.stroke();
+    if (items.length <= 14) { ctx.globalAlpha = 0.7; ctx.fillStyle = CAPTION; ctx.fillText(String(items[i]), xL - 6, y); }
+  }
+
+  ctx.textAlign = 'left';
+  for (let i = 0; i < roles.length; i++) {
+    const y = yOf(i, roles.length);
+    const share = counts[i] / maxCount;
+    const rr = 3 + share * (tiny ? 4 : 7) + Math.sin(t * 1.3 + i) * 0.35 * share;
+    ctx.globalAlpha = 0.18 + share * 0.3;
+    ctx.fillStyle = GOLD;
+    ctx.beginPath(); ctx.arc(xR, y, rr + 3.5, 0, TAU); ctx.fill();      // halo carries the weight
+    ctx.globalAlpha = 0.45 + share * 0.55;
+    ctx.beginPath(); ctx.arc(xR, y, rr, 0, TAU); ctx.fill();
+    if (roles.length <= 14) {
+      ctx.globalAlpha = 0.5 + share * 0.5;
+      ctx.fillStyle = share > 0.5 ? WHITE : CAPTION;
+      ctx.fillText(String(roles[i]), xR + rr + 5, y);
+    }
+  }
+
+  ctx.restore();
+};
+
+// ---------------------------------------------------------------------------------------
+// 2. failure modes — which WCAG tags the agent keeps missing
+// ---------------------------------------------------------------------------------------
+G.failureModes = function (ctx, w, h, t, data) {
+  if (!(w > 0) || !(h > 0)) return;
+  const tally = data && data.tally;
+  if (!tally) { empty(ctx, w, h); return; }
+
+  const keys = Object.keys(tally);
+  if (!keys.length) { empty(ctx, w, h); return; }
+  keys.sort((a, b) => (tally[b] - tally[a]) || (a < b ? -1 : 1));
+  const n = Math.min(keys.length, 8);
+
+  let max = 0;
+  for (let i = 0; i < n; i++) { const v = +tally[keys[i]] || 0; if (v > max) max = v; }
+  if (!(max > 0)) { empty(ctx, w, h); return; }
+
+  ctx.save();
+
+  const tiny = w < 400;
+  const labelW = clamp(w * 0.28, 44, 96);
+  const numW = tiny ? 30 : 40;
+  const x0 = labelW + 6;
+  const track = w - x0 - numW - 4;
+  if (track < 12) { ctx.restore(); empty(ctx, w, h); return; }
+
+  const rowH = h / n;
+  const barH = clamp(rowH * 0.5, 3, 16);
+  const fs = rowH < 18 ? 6 : 7;
+  ctx.textBaseline = 'middle';
+
+  for (let i = 0; i < n; i++) {
+    const v = +tally[keys[i]] || 0;
+    const y = rowH * (i + 0.5);
+    const col = i < 2 ? RED : i < 4 ? AMBER : CYAN;
+    const bw = Math.max(1, track * (v / max));
+
+    // rail first, so short bars still read as a position on a scale
+    ctx.globalAlpha = 1;
+    ctx.fillStyle = TARMAC;
+    ctx.fillRect(x0, y - barH / 2, track, barH);
+
+    ctx.globalAlpha = 0.9;
+    ctx.fillStyle = col;
+    ctx.fillRect(x0, y - barH / 2, bw, barH);
+
+    // t never resets, so there is no grow-in to play — the leading edge breathes instead.
+    const pulse = 0.5 + 0.5 * Math.sin(t * 2.2 - i * 0.55);
+    ctx.globalAlpha = 0.25 + pulse * 0.65;
+    ctx.fillStyle = WHITE;
+    ctx.fillRect(x0 + bw - 2, y - barH / 2, 2, barH);
+
+    ctx.globalAlpha = 0.82;
+    ctx.fillStyle = CAPTION;
+    ctx.font = fs + PX;
+    ctx.textAlign = 'left';
+    ctx.fillText(String(keys[i]).slice(0, 10).toUpperCase(), 2, y);
+
+    ctx.globalAlpha = 1;
+    ctx.fillStyle = col;
+    ctx.font = (rowH < 18 ? 14 : 18) + VT;
+    ctx.textAlign = 'right';
+    ctx.fillText(String(v), w - 2, y);
+  }
+
+  ctx.restore();
+};
+
+// ---------------------------------------------------------------------------------------
+// 3. run history — claimed vs held-out, and what it cost
+// ---------------------------------------------------------------------------------------
+G.runHistory = function (ctx, w, h, t, data) {
+  if (!(w > 0) || !(h > 0)) return;
+  const runs = data && data.runs;
+  if (!runs || runs.length < 1) { empty(ctx, w, h); return; }
+
+  ctx.save();
+
+  const tiny = w < 400 || h < 190;
+  const padL = tiny ? 22 : 30, padR = tiny ? 8 : 12;
+  const padT = tiny ? 10 : 14;
+  const costH = clamp(h * 0.16, 10, 34);
+  const padB = costH + (tiny ? 12 : 16);
+  const pw = w - padL - padR, ph = h - padT - padB;
+  if (pw < 10 || ph < 10) { ctx.restore(); empty(ctx, w, h); return; }
+
+  // y never starts at zero: the whole story lives in the third significant figure.
+  let lo = Infinity, hi = -Infinity, cmax = 0;
+  for (let i = 0; i < runs.length; i++) {
+    const r = runs[i]; if (!r) continue;
+    const a = +r.official, b = +r.claimed, c = +r.cost;
+    if (isFinite(a)) { if (a < lo) lo = a; if (a > hi) hi = a; }
+    if (isFinite(b)) { if (b < lo) lo = b; if (b > hi) hi = b; }
+    if (isFinite(c) && c > cmax) cmax = c;
+  }
+  if (!isFinite(lo) || !isFinite(hi)) { ctx.restore(); empty(ctx, w, h); return; }
+  const pad = (hi - lo) * 0.12 || Math.max(Math.abs(hi) * 0.01, 0.5);
+  lo -= pad; hi += pad;
+
+  const n = runs.length;
+  const xOf = i => n < 2 ? padL + pw / 2 : padL + pw * (i / (n - 1));
+  const yOf = v => padT + ph * (1 - (v - lo) / (hi - lo));
+
+  // ---- band: the gap between what was claimed and what held out is the whole point ----
+  ctx.globalAlpha = 0.16;
+  ctx.fillStyle = PURPLE;
+  ctx.beginPath();
+  for (let i = 0; i < n; i++) { const v = runs[i] ? +runs[i].claimed : NaN; ctx[i ? 'lineTo' : 'moveTo'](xOf(i), yOf(isFinite(v) ? v : lo)); }
+  for (let i = n - 1; i >= 0; i--) { const v = runs[i] ? +runs[i].official : NaN; ctx.lineTo(xOf(i), yOf(isFinite(v) ? v : lo)); }
+  ctx.closePath();
+  ctx.fill();
+
+  // ---- series ----
+  const line = (key, col, wid) => {
+    ctx.globalAlpha = 0.95;
+    ctx.strokeStyle = col;
+    ctx.lineWidth = wid;
+    ctx.lineJoin = 'round';
+    ctx.beginPath();
+    let started = false;
+    for (let i = 0; i < n; i++) {
+      const v = runs[i] ? +runs[i][key] : NaN; if (!isFinite(v)) continue;
+      const x = xOf(i), y = yOf(v);
+      if (started) ctx.lineTo(x, y); else { ctx.moveTo(x, y); started = true; }
+    }
+    if (started) ctx.stroke();
+    ctx.fillStyle = col;
+    for (let i = 0; i < n; i++) {
+      const v = runs[i] ? +runs[i][key] : NaN; if (!isFinite(v)) continue;
+      ctx.beginPath(); ctx.arc(xOf(i), yOf(v), 1.6, 0, TAU); ctx.fill();
+    }
+  };
+  line('claimed', PURPLE, 1.4);
+  line('official', GOLD, 1.8);
+
+  // ---- cost, along the floor ----
+  if (cmax > 0) {
+    const bw = Math.max(1.5, pw / n * 0.34);
+    const base = h - (tiny ? 8 : 12);
+    ctx.globalAlpha = 0.7;
+    ctx.fillStyle = CYAN;
+    for (let i = 0; i < n; i++) {
+      const c = runs[i] ? +runs[i].cost : NaN; if (!isFinite(c)) continue;
+      const bh = Math.max(1, costH * (c / cmax));
+      ctx.fillRect(xOf(i) - bw / 2, base - bh, bw, bh);
+    }
+  }
+
+  // ---- the run we are standing in ----
+  const at = (data && typeof data.at === 'number') ? clamp(data.at | 0, 0, n - 1) : -1;
+  if (at >= 0 && runs[at]) {
+    const mx = xOf(at);
+    ctx.globalAlpha = 0.55;
+    ctx.strokeStyle = WHITE;
+    ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(mx, padT - 4); ctx.lineTo(mx, h - 4); ctx.stroke();
+    const v = +runs[at].official;
+    if (isFinite(v)) {
+      const my = yOf(v);
+      const p = (t * 0.8) % 1;                       // pulse rings out and dies, forever
+      ctx.globalAlpha = (1 - p) * 0.8;
+      ctx.strokeStyle = WHITE; ctx.lineWidth = 1.2;
+      ctx.beginPath(); ctx.arc(mx, my, 2 + p * 9, 0, TAU); ctx.stroke();
+      ctx.globalAlpha = 1; ctx.fillStyle = WHITE;
+      ctx.beginPath(); ctx.arc(mx, my, 2.2, 0, TAU); ctx.fill();
+    }
+  }
+
+  // ---- four numbers, no axis furniture ----
+  ctx.globalAlpha = 0.7;
+  ctx.fillStyle = MID;
+  ctx.font = (tiny ? 14 : 17) + VT;
+  ctx.textBaseline = 'middle';
+  ctx.textAlign = 'right';
+  ctx.fillText((hi - pad).toFixed(1), padL - 3, padT + 4);
+  ctx.fillText((lo + pad).toFixed(1), padL - 3, padT + ph - 4);
+  ctx.textAlign = 'left';
+  ctx.fillText(String(runs[0] && runs[0].i !== undefined ? runs[0].i : 0), padL, h - 3);
+  ctx.textAlign = 'right';
+  ctx.fillText(String(runs[n - 1] && runs[n - 1].i !== undefined ? runs[n - 1].i : n - 1), w - padR, h - 3);
+
+  ctx.restore();
+};
+
+})(window.SCR = window.SCR || {});
+
+// ===== devview.js =====
+// ============================================================================
+// SCR.dev — the developer view.
+//
+// The broadcast answers "is it getting faster". This answers "what is it
+// actually doing, and on whose hardware". No race team, no circuit: the agent
+// drawn as the pipeline it really is, with the infrastructure it really runs on.
+//
+// Every number here comes out of the season bundle the loop exported —
+// meters, backends, router rows, tasks, pages. Nothing is invented, and a rail
+// that did not serve says so rather than being drawn as if it had.
+// ============================================================================
+(function (SCR) {
+'use strict';
+const V = SCR.dev = {};
+const $ = id => document.getElementById(id);
+const el = (t, c, txt) => { const n = document.createElement(t); if (c) n.className = c;
+  if (txt !== undefined) n.textContent = txt; return n; };
+
+const C = { night: '#06081A', studio: '#121A4A', tarmac: '#2C2E3A', ink: '#000',
+  white: '#FFF', caption: '#C8CBD8', mid: '#6A6F8A', gold: '#F4C542', red: '#E31E2D',
+  purple: '#B04BFF', cyan: '#3DD2FF', green: '#2FD968', amber: '#FFA318' };
+const PX = n => `${n}px 'Press Start 2P', monospace`;
+const VT = n => `${n}px 'VT323', monospace`;
+
+// The five spans a lap actually opens, in the order car/lap.py opens them. The op names are
+// the ones written into the trace store, so a developer can grep for them.
+const OPS = [
+  { op: 'strategist.call',    role: 'BUDGET',       hue: C.purple, out: 'step budget' },
+  { op: 'tyres.profile',      role: 'SAMPLING',     hue: C.amber,  out: 'temp · k' },
+  { op: 'aero.shape_context', role: 'RETRIEVAL',    hue: C.cyan,   out: 'refs · tokens' },
+  { op: 'power_unit.drive',   role: 'MODEL',        hue: C.red,    out: 'completion', remote: true },
+  { op: 'data.run_tools',     role: 'VERIFICATION', hue: C.green,  out: 'score · schema' },
+];
+
+// The seven rails, with the label `scrutineer doctor` prints for each. `of` is what the rail
+// reaches when it is live — this is the part that is CoreWeave.
+const RAILS = [
+  { key: 'driver',         name: 'INFERENCE',  of: 'api.inference.wandb.ai' },
+  { key: 'typed_decision', name: 'TYPED',      of: 'strict json schema' },
+  { key: 'sandbox',        name: 'SANDBOX',    of: 'cwsandbox · kata guest' },
+  { key: 'weave',          name: 'WEAVE',      of: 'trace mirror' },
+  { key: 'rl',             name: 'RL',         of: 'serverless training' },
+  { key: 'registry',       name: 'REGISTRY',   of: 'versions · aliases' },
+  { key: 'aria',           name: 'ARIA',       of: 'hypotheses' },
+];
+// A rail is only live if the bundle named a real backend for it; these are the stand-in names.
+const STANDIN = /^(local-|aria$|weave$)/;
+const LIVE_OK = { driver: 'wandb-inference', typed_decision: 'strict-json-schema',
+  weave: 'weave', rl: 'serverless-rl', registry: 'wandb-registry', aria: 'aria' };
+
+let A = null, on = false, t0 = 0, raf = 0, last = 0;
+const cards = {};          // id -> {canvas, ctx, w, h}
+const D = { meters: {}, backends: {}, rounds: [], at: 0 };
+
+// ---------------------------------------------------------------------------------------
+// data: read once out of the bundle the loop exported
+// ---------------------------------------------------------------------------------------
+function readBundle() {
+  const L = window.SCRUTINEER_LOOP || {};
+  D.meters = L.meters || {};
+  D.backends = L.backends || {};
+  D.rounds = L.rounds || [];
+  D.runs = D.rounds.map((r, i) => ({ i, official: r.official_s, claimed: r.claimed_s,
+    cost: r.cost_usd }));
+  // the credit graph is the union of every round's router rows, which is what the typed
+  // decision rail actually answered
+  const rows = [];
+  for (const r of D.rounds) for (const row of (r.router_rows || [])) rows.push(row);
+  D.rows = rows;
+  D.items = [...new Set(rows.map(r => r.item))].sort();
+  D.roles = [...new Set(rows.map(r => r.blamed_role))];
+  // what the agent kept failing to put on the page, summed over every task of every round
+  const tally = {};
+  for (const r of D.rounds) for (const task of (r.tasks || []))
+    for (const m of (task.missing || [])) tally[m] = (tally[m] || 0) + 1;
+  D.tally = tally;
+}
+
+V.setRun = function (i) { D.at = Math.max(0, i | 0); };
+
+// ---------------------------------------------------------------------------------------
+// furniture
+// ---------------------------------------------------------------------------------------
+function card(host, id, title, note, cls) {
+  const n = el('div', 'dcard' + (cls ? ' ' + cls : ''));
+  const h = el('div', 'dcard-h');
+  h.innerHTML = `<span>${title}</span>` + (note ? `<em>${note}</em>` : '');
+  const cv = el('canvas');
+  n.append(h, cv);
+  host.append(n);
+  cards[id] = { canvas: cv, ctx: cv.getContext('2d'), w: 0, h: 0 };
+  return n;
+}
+
+V.build = function () {
+  const host = $('dev'); if (!host || host.dataset.built) return;
+  host.dataset.built = '1';
+  readBundle();
+  const grid = el('div', 'dgrid');
+  host.append(grid);
+  card(grid, 'pipe',  'ONE LAP', 'five spans, in the order they open', 'wide');
+  card(grid, 'infer', 'W&B INFERENCE', 'qwen3-14b · coreweave');
+  card(grid, 'credit', 'WHO CAUSED IT', 'typed decisions, item to component', 'tall');
+  card(grid, 'rails', 'RAILS', 'live or labelled stand-in');
+  card(grid, 'fail',  'WHAT IT KEPT MISSING', 'wcag requirement, summed');
+  card(grid, 'hist',  'CLAIMED vs HELD-OUT', 'per run, with cost', 'wide');
+};
+
+// Canvas backing stores follow the box, at device resolution so the labels stay sharp.
+function size() {
+  const dpr = Math.min(2, window.devicePixelRatio || 1);
+  for (const k in cards) {
+    const c = cards[k], w = c.canvas.clientWidth, h = c.canvas.clientHeight;
+    if (!w || !h) continue;
+    if (c.w === w && c.h === h && c.dpr === dpr) continue;
+    c.w = w; c.h = h; c.dpr = dpr;
+    c.canvas.width = Math.round(w * dpr); c.canvas.height = Math.round(h * dpr);
+    c.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+}
+
+// ---------------------------------------------------------------------------------------
+// 1. one lap, as the five spans it opens
+// ---------------------------------------------------------------------------------------
+function drawPipe(ctx, w, h, t) {
+  const n = OPS.length;
+  const padX = 14, gap = (w - padX * 2) / n;
+  const cy = h * 0.46, r = Math.max(13, Math.min(22, gap * 0.19));
+
+  // the wire first, so nodes sit on top of it
+  ctx.strokeStyle = C.tarmac; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.moveTo(padX + gap * 0.5, cy); ctx.lineTo(padX + gap * (n - 0.5), cy); ctx.stroke();
+
+  // packets: one lap every 1.6 s, several in flight, so the wire is never still
+  const PERIOD = 1.6, INFLIGHT = 4;
+  for (let k = 0; k < INFLIGHT; k++) {
+    const u = ((t / PERIOD) + k / INFLIGHT) % 1;
+    const x = padX + gap * 0.5 + u * gap * (n - 1);
+    const seg = Math.min(n - 1, Math.floor(u * (n - 1)));
+    // a lap that failed its audit leaves the last node red; 1 in 10 pass, which is the real rate
+    const passed = (Math.floor(t / PERIOD) + k) % 10 === 0;
+    ctx.fillStyle = u > 0.97 ? (passed ? C.green : C.red) : OPS[seg].hue;
+    ctx.fillRect(x - 3, cy - 3, 6, 6);
+  }
+
+  for (let i = 0; i < n; i++) {
+    const o = OPS[i], x = padX + gap * (i + 0.5);
+    // a node lights while a packet is inside it
+    const u = (t / PERIOD) % 1, at = Math.min(n - 1, Math.floor(u * (n - 1)));
+    const hot = at === i;
+    ctx.fillStyle = C.night;
+    ctx.fillRect(x - r, cy - r, r * 2, r * 2);
+    ctx.strokeStyle = hot ? C.white : o.hue; ctx.lineWidth = hot ? 3 : 2;
+    ctx.strokeRect(x - r, cy - r, r * 2, r * 2);
+    ctx.fillStyle = o.hue;
+    const ir = r * (hot ? 0.58 : 0.4) * (1 + 0.08 * Math.sin(t * 4 + i));
+    ctx.fillRect(x - ir, cy - ir, ir * 2, ir * 2);
+
+    // the one span that leaves this machine gets a mast and a label
+    if (o.remote) {
+      ctx.strokeStyle = C.red; ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(x, cy - r); ctx.lineTo(x, cy - r - 16); ctx.stroke();
+      for (let a = 0; a < 3; a++) {
+        const rr = 5 + a * 4 + ((t * 9) % 12);
+        ctx.globalAlpha = Math.max(0, 1 - rr / 18) * 0.9;
+        ctx.beginPath(); ctx.arc(x, cy - r - 16, rr, Math.PI * 1.15, Math.PI * 1.85); ctx.stroke();
+      }
+      ctx.globalAlpha = 1;
+    }
+
+    ctx.font = PX(7); ctx.textAlign = 'center';
+    ctx.fillStyle = hot ? C.white : C.caption;
+    ctx.fillText(o.role, x, cy + r + 15);
+    ctx.font = VT(14); ctx.fillStyle = C.mid;
+    ctx.fillText(o.op, x, cy + r + 29);
+  }
+  ctx.textAlign = 'left';
+}
+
+// ---------------------------------------------------------------------------------------
+// 2. the inference meter — the rail that is CoreWeave
+// ---------------------------------------------------------------------------------------
+function drawInfer(ctx, w, h, t) {
+  const m = D.meters.driver;
+  if (!m) return empty(ctx, w, h, 'no meter in this bundle');
+  const calls = m.calls || 0, hits = m.cache_hits || 0, total = calls + hits || 1;
+
+  // laid out as fractions of the box: this card is two thirds as tall in the folded
+  // layout as it is on a desk, and a fixed pixel ladder ran off the bottom there.
+  const bx = 12, bw = w - 24;
+  const bh = Math.max(12, h * 0.1), th = Math.max(9, h * 0.075);
+  const by = h * 0.16, ty = h * 0.42, ty2 = h * 0.64;
+
+  // the headline: nine calls in ten were answered from cache, so the split is the story
+  ctx.fillStyle = C.studio; ctx.fillRect(bx, by, bw, bh);
+  const cw = bw * (calls / total);
+  ctx.fillStyle = C.red; ctx.fillRect(bx, by, cw, bh);
+  // a shimmer over the cached portion: it is the part that reached no GPU at all
+  const rest = Math.max(1, bw - cw);
+  ctx.fillStyle = C.cyan; ctx.globalAlpha = 0.45;
+  ctx.fillRect(bx + cw + ((t * 70) % rest), by, 3, bh); ctx.globalAlpha = 1;
+
+  ctx.font = PX(6); ctx.fillStyle = C.red;
+  ctx.fillText(calls.toLocaleString() + ' CALLS', bx, by - 5);
+  ctx.textAlign = 'right'; ctx.fillStyle = C.cyan;
+  ctx.fillText(Math.round(hits / total * 100) + '% CACHED', bx + bw, by - 5);
+  ctx.textAlign = 'left';
+
+  // tokens in and out against a shared scale, so the ratio is readable without reading
+  const ti = m.tokens_in || 0, to = m.tokens_out || 0, tmax = Math.max(ti, to, 1);
+  const row = (label, val, col, y) => {
+    ctx.font = PX(6); ctx.fillStyle = C.mid; ctx.fillText(label, bx, y - 5);
+    ctx.fillStyle = C.night; ctx.fillRect(bx, y, bw, th);
+    ctx.fillStyle = col; ctx.fillRect(bx, y, bw * (val / tmax), th);
+    ctx.font = VT(Math.max(15, th * 1.6)); ctx.fillStyle = C.white; ctx.textAlign = 'right';
+    ctx.fillText(val.toLocaleString(), bx + bw - 4, y + th + 15);
+    ctx.textAlign = 'left';
+  };
+  row('TOKENS IN', ti, C.cyan, ty);
+  row('TOKENS OUT', to, C.purple, ty2);
+
+  // spend, big, because the cost cap is one of the ten gates
+  ctx.font = VT(Math.max(22, h * 0.17)); ctx.fillStyle = C.gold;
+  ctx.fillText('$' + (m.spend_usd || 0).toFixed(4), bx, h - 6);
+  ctx.font = PX(6); ctx.fillStyle = C.mid;
+  ctx.textAlign = 'right'; ctx.fillText('SPEND', bx + bw, h - 9); ctx.textAlign = 'left';
+}
+
+// ---------------------------------------------------------------------------------------
+// 3. the rails — which of the seven actually served
+// ---------------------------------------------------------------------------------------
+function drawRails(ctx, w, h, t) {
+  const rowH = Math.min(26, (h - 8) / RAILS.length);
+  RAILS.forEach((rl, i) => {
+    const backend = D.backends[rl.key] || '';
+    const short = backend.split('—')[0].trim();
+    const live = !!backend && short === LIVE_OK[rl.key] && !STANDIN.test(short)
+      || (rl.key === 'weave' && short === 'weave')
+      || (rl.key === 'aria' && short === 'aria');
+    const y = 4 + i * rowH;
+    ctx.fillStyle = live ? C.green : C.tarmac;
+    // a live rail breathes; a stand-in sits still, which is the honest difference
+    const p = live ? 0.65 + 0.35 * Math.abs(Math.sin(t * 2 + i * 0.7)) : 1;
+    ctx.globalAlpha = p; ctx.fillRect(6, y + rowH * 0.28, 7, 7); ctx.globalAlpha = 1;
+    ctx.font = PX(7); ctx.fillStyle = live ? C.white : C.mid;
+    ctx.fillText(rl.name, 20, y + rowH * 0.5 + 3);
+    ctx.font = VT(15); ctx.fillStyle = live ? C.caption : C.tarmac;
+    ctx.textAlign = 'right';
+    ctx.fillText(live ? rl.of : 'stand-in', w - 8, y + rowH * 0.5 + 4);
+    ctx.textAlign = 'left';
+  });
+}
+
+function empty(ctx, w, h, msg) {
+  ctx.font = VT(16); ctx.fillStyle = C.mid; ctx.textAlign = 'center';
+  ctx.fillText(msg, w / 2, h / 2); ctx.textAlign = 'left';
+}
+
+// ---------------------------------------------------------------------------------------
+// frame
+// ---------------------------------------------------------------------------------------
+function paint(t) {
+  size();
+  const G = SCR.devgraphs || {};
+  const go = (id, fn) => {
+    const c = cards[id]; if (!c || !c.w) return;
+    c.ctx.clearRect(0, 0, c.w, c.h);
+    try { fn(c.ctx, c.w, c.h, t); } catch (e) { void e; }
+  };
+  go('pipe', drawPipe);
+  go('infer', drawInfer);
+  go('rails', drawRails);
+  go('credit', (x, w, h, tt) => G.creditGraph && G.creditGraph(x, w, h, tt,
+    { rows: D.rows, items: D.items, roles: D.roles }));
+  go('fail', (x, w, h, tt) => G.failureModes && G.failureModes(x, w, h, tt, { tally: D.tally }));
+  go('hist', (x, w, h, tt) => G.runHistory && G.runHistory(x, w, h, tt,
+    { runs: D.runs, at: D.at }));
+}
+
+function tick(ts) {
+  if (!on) return;
+  if (!last) last = ts;
+  last = ts;
+  paint((ts - t0) / 1000);
+  raf = requestAnimationFrame(tick);
+}
+
+V.show = function () {
+  V.build();
+  on = true; t0 = performance.now(); last = 0;
+  raf = requestAnimationFrame(tick);
+};
+
+V.hide = function () { on = false; cancelAnimationFrame(raf); };
+V.active = () => on;
+
+// The switch. The broadcast keeps running underneath — the season is a timeline, and coming
+// back to it mid-run should land where it would have been, not where it was left.
+V.wire = function () {
+  const sw = $('vswitch'); if (!sw) return;
+  sw.addEventListener('click', ev => {
+    const b = ev.target.closest('.vtab'); if (!b) return;
+    V.select(b.dataset.view);
+  });
+};
+
+V.select = function (which) {
+  const dev = which === 'dev';
+  const app = $('app'), host = $('dev');
+  if (!app || !host) return;
+  app.classList.toggle('devmode', dev);
+  host.hidden = !dev;
+  for (const b of document.querySelectorAll('.vtab')) {
+    const meIsIt = b.dataset.view === which;
+    b.classList.toggle('active', meIsIt);
+    b.setAttribute('aria-selected', meIsIt ? 'true' : 'false');
+  }
+  if (dev) V.show(); else V.hide();
+  // the picture is sized in script, so it has to be re-measured when it comes back
+  if (!dev && SCR.dash && SCR.dash.fitStage) requestAnimationFrame(() => SCR.dash.fitStage());
+};
+
+V.init = function (app) { A = app; V.wire(); };
+})(window.SCR = window.SCR || {});
+
 // ===== ui.js =====
 // ============================================================================
 // SCR.ui — the broadcast frame: header, timing tower, lineage strip, FIA telemetry, constructors'
@@ -10735,6 +11520,7 @@ S.init = function (app) {
   A = app; R = app.R;
   if (SCR.dash) { SCR.dash.build(); SCR.dash.watchStage(); }
   if (SCR.curtain) SCR.curtain.attach($('curtain'));
+  if (SCR.dev) SCR.dev.init(app);
   const L = window.SCRUTINEER_LOOP;
   st.bundle = L || null;
   st.rounds = (L && L.rounds) || [];
@@ -11091,6 +11877,7 @@ function startRun() {
 
 function phase(name) {
   st.phase = name; st.t = 0; st.shown = 0;
+  if (SCR.dev) SCR.dev.setRun(st.i);
   // The verdict lamp answers one question — was the change kept — so until the checks have run
   // it says so rather than borrowing whatever word the previous phase left there.
   if (D()) { D().phase(name);
