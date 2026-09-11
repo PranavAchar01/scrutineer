@@ -460,9 +460,38 @@ button:focus-visible{outline:2px solid var(--cyan);outline-offset:2px}
 .app.devmode .run:disabled{background:#171B21;color:#5C646F}
 .app.devmode .run.armed{animation:none}
 
-.dev{min-height:0;overflow:hidden;background:#08090B;padding:9px 11px}
+.dev{min-height:0;overflow:hidden;background:#08090B;padding:8px 11px;
+  display:grid;grid-template-rows:auto minmax(0,1fr);gap:7px}
+
+/* the run context strip: every scalar the broadcast rail carries, in one row */
+.dstrip{display:flex;align-items:center;gap:14px;flex:none;background:#0E1013;
+  border:1px solid #1C2026;border-radius:7px;padding:7px 11px;overflow:hidden;
+  font-family:"Geist",ui-sans-serif,system-ui,sans-serif}
+.ds-run{display:flex;align-items:baseline;gap:4px;flex:none}
+.ds-run b{font-family:"Geist Mono",ui-monospace,monospace;font-size:13px;color:#E7EAEE}
+.ds-run span{font-family:"Geist Mono",ui-monospace,monospace;font-size:10px;color:#5C646F}
+.ds-steps{display:flex;gap:3px;flex:none}
+.ds-step{display:flex;flex-direction:column;gap:3px;min-width:44px}
+.ds-step u{display:block;height:2px;background:#1C2026;border-radius:1px}
+.ds-step span{font-size:10px;font-weight:500;color:#5C646F;letter-spacing:-.01em}
+.ds-step.done u{background:#3FCF8E}.ds-step.done span{color:#949BA6}
+.ds-step.on u{background:#5B8DEF}.ds-step.on span{color:#E7EAEE}
+.ds-stats{display:flex;gap:14px;flex:1;min-width:0;overflow:hidden}
+.ds-stat{display:flex;flex-direction:column;gap:1px;min-width:0}
+.ds-stat span{font-size:9px;font-weight:500;color:#5C646F;letter-spacing:.01em}
+.ds-stat b{font-family:"Geist Mono",ui-monospace,monospace;font-size:13px;color:#E7EAEE;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ds-stat b.good{color:#3FCF8E}.ds-stat b.bad{color:#F05E6B}
+.ds-verdict{display:flex;align-items:center;gap:6px;flex:none;padding:4px 9px;
+  border:1px solid #1C2026;border-radius:5px}
+.ds-verdict i{width:7px;height:7px;border-radius:50%;background:#5C646F;display:block}
+.ds-verdict b{font-size:11px;font-weight:600;color:#5C646F;letter-spacing:-.01em}
+.ds-verdict.kept{border-color:#3FCF8E}.ds-verdict.kept i{background:#3FCF8E}
+.ds-verdict.kept b{color:#3FCF8E}
+.ds-verdict.tossed{border-color:#F05E6B}.ds-verdict.tossed i{background:#F05E6B}
+.ds-verdict.tossed b{color:#F05E6B}
 .dgrid{display:grid;height:100%;min-height:0;gap:7px;
-  grid-template-columns:repeat(4,minmax(0,1fr));
+  grid-template-columns:repeat(5,minmax(0,1fr));
   grid-template-rows:minmax(0,1fr) minmax(0,1fr) minmax(0,1fr)}
 .dcard{display:flex;flex-direction:column;min-width:0;min-height:0;background:#0E1013;
   border:1px solid #1C2026;border-radius:7px;overflow:hidden}
@@ -486,25 +515,32 @@ button:focus-visible{outline:2px solid var(--cyan);outline-offset:2px}
 .dgrid>*:nth-child(6)::before{background:#2DD4BF}
 .dgrid>*:nth-child(7)::before{background:#A78BFA}
 .dgrid>*:nth-child(8)::before{background:#2DD4BF}
-.dgrid>*:nth-child(9)::before{background:#F05E6B}
+.dgrid>*:nth-child(9)::before{background:#A78BFA}
+.dgrid>*:nth-child(10)::before{background:#3FCF8E}
+.dgrid>*:nth-child(11)::before{background:#F05E6B}
+.dgrid>*:nth-child(12)::before{background:#5B8DEF}
 
 /* Placed explicitly rather than auto-flowed: a spanning card and an auto-placed one fight
    each other for the same cell, and the loser gets whatever height is left over.
-   Nine panels. The two that carry the whole argument — what it does, and what the gap
-   between its own score and the held-out one is — get the double width. */
-.dgrid>*:nth-child(1){grid-area:1/1/2/3}   /* one lap                */
-.dgrid>*:nth-child(2){grid-area:1/3/2/5}   /* claimed vs held-out    */
-.dgrid>*:nth-child(3){grid-area:2/1/3/2}   /* inference              */
-.dgrid>*:nth-child(4){grid-area:2/2/3/3}   /* rails                  */
-.dgrid>*:nth-child(5){grid-area:2/3/3/4}   /* attribution            */
-.dgrid>*:nth-child(6){grid-area:2/4/3/5}   /* gates                  */
-.dgrid>*:nth-child(7){grid-area:3/1/4/3}   /* blame and selection    */
-.dgrid>*:nth-child(8){grid-area:3/3/4/4}   /* calibration            */
-.dgrid>*:nth-child(9){grid-area:3/4/4/5}   /* tamper                 */
+   Twelve panels over fifteen cells. The two that carry the argument get the double width. */
+.dgrid>*:nth-child(1){grid-area:1/1/2/3}    /* one lap              */
+.dgrid>*:nth-child(2){grid-area:1/3/2/5}    /* claimed vs held-out  */
+.dgrid>*:nth-child(3){grid-area:1/5/2/6}    /* calibration          */
+.dgrid>*:nth-child(4){grid-area:2/1/3/2}    /* inference            */
+.dgrid>*:nth-child(5){grid-area:2/2/3/3}    /* rails                */
+.dgrid>*:nth-child(6){grid-area:2/3/3/4}    /* attribution          */
+.dgrid>*:nth-child(7){grid-area:2/4/3/5}    /* gates                */
+.dgrid>*:nth-child(8){grid-area:2/5/3/6}    /* tamper               */
+.dgrid>*:nth-child(9){grid-area:3/1/4/3}    /* blame and selection  */
+.dgrid>*:nth-child(10){grid-area:3/3/4/4}   /* interfaces built     */
+.dgrid>*:nth-child(11){grid-area:3/4/4/5}   /* wcag rules           */
+.dgrid>*:nth-child(12){grid-area:3/5/4/6}   /* the change           */
 
 @media (max-width:1180px){
   .app.devmode{grid-template-rows:52px auto;height:auto;min-height:100vh;overflow:auto}
   .dev{overflow:visible}
+  .dev{display:block}
+  .dstrip{flex-wrap:wrap;margin-bottom:7px}
   .dgrid{grid-template-columns:repeat(2,minmax(0,1fr));grid-auto-rows:minmax(180px,auto);height:auto}
   .dgrid>*:nth-child(n){grid-area:auto}
 }

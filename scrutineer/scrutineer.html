@@ -463,9 +463,38 @@ button:focus-visible{outline:2px solid var(--cyan);outline-offset:2px}
 .app.devmode .run:disabled{background:#171B21;color:#5C646F}
 .app.devmode .run.armed{animation:none}
 
-.dev{min-height:0;overflow:hidden;background:#08090B;padding:9px 11px}
+.dev{min-height:0;overflow:hidden;background:#08090B;padding:8px 11px;
+  display:grid;grid-template-rows:auto minmax(0,1fr);gap:7px}
+
+/* the run context strip: every scalar the broadcast rail carries, in one row */
+.dstrip{display:flex;align-items:center;gap:14px;flex:none;background:#0E1013;
+  border:1px solid #1C2026;border-radius:7px;padding:7px 11px;overflow:hidden;
+  font-family:"Geist",ui-sans-serif,system-ui,sans-serif}
+.ds-run{display:flex;align-items:baseline;gap:4px;flex:none}
+.ds-run b{font-family:"Geist Mono",ui-monospace,monospace;font-size:13px;color:#E7EAEE}
+.ds-run span{font-family:"Geist Mono",ui-monospace,monospace;font-size:10px;color:#5C646F}
+.ds-steps{display:flex;gap:3px;flex:none}
+.ds-step{display:flex;flex-direction:column;gap:3px;min-width:44px}
+.ds-step u{display:block;height:2px;background:#1C2026;border-radius:1px}
+.ds-step span{font-size:10px;font-weight:500;color:#5C646F;letter-spacing:-.01em}
+.ds-step.done u{background:#3FCF8E}.ds-step.done span{color:#949BA6}
+.ds-step.on u{background:#5B8DEF}.ds-step.on span{color:#E7EAEE}
+.ds-stats{display:flex;gap:14px;flex:1;min-width:0;overflow:hidden}
+.ds-stat{display:flex;flex-direction:column;gap:1px;min-width:0}
+.ds-stat span{font-size:9px;font-weight:500;color:#5C646F;letter-spacing:.01em}
+.ds-stat b{font-family:"Geist Mono",ui-monospace,monospace;font-size:13px;color:#E7EAEE;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ds-stat b.good{color:#3FCF8E}.ds-stat b.bad{color:#F05E6B}
+.ds-verdict{display:flex;align-items:center;gap:6px;flex:none;padding:4px 9px;
+  border:1px solid #1C2026;border-radius:5px}
+.ds-verdict i{width:7px;height:7px;border-radius:50%;background:#5C646F;display:block}
+.ds-verdict b{font-size:11px;font-weight:600;color:#5C646F;letter-spacing:-.01em}
+.ds-verdict.kept{border-color:#3FCF8E}.ds-verdict.kept i{background:#3FCF8E}
+.ds-verdict.kept b{color:#3FCF8E}
+.ds-verdict.tossed{border-color:#F05E6B}.ds-verdict.tossed i{background:#F05E6B}
+.ds-verdict.tossed b{color:#F05E6B}
 .dgrid{display:grid;height:100%;min-height:0;gap:7px;
-  grid-template-columns:repeat(4,minmax(0,1fr));
+  grid-template-columns:repeat(5,minmax(0,1fr));
   grid-template-rows:minmax(0,1fr) minmax(0,1fr) minmax(0,1fr)}
 .dcard{display:flex;flex-direction:column;min-width:0;min-height:0;background:#0E1013;
   border:1px solid #1C2026;border-radius:7px;overflow:hidden}
@@ -489,25 +518,32 @@ button:focus-visible{outline:2px solid var(--cyan);outline-offset:2px}
 .dgrid>*:nth-child(6)::before{background:#2DD4BF}
 .dgrid>*:nth-child(7)::before{background:#A78BFA}
 .dgrid>*:nth-child(8)::before{background:#2DD4BF}
-.dgrid>*:nth-child(9)::before{background:#F05E6B}
+.dgrid>*:nth-child(9)::before{background:#A78BFA}
+.dgrid>*:nth-child(10)::before{background:#3FCF8E}
+.dgrid>*:nth-child(11)::before{background:#F05E6B}
+.dgrid>*:nth-child(12)::before{background:#5B8DEF}
 
 /* Placed explicitly rather than auto-flowed: a spanning card and an auto-placed one fight
    each other for the same cell, and the loser gets whatever height is left over.
-   Nine panels. The two that carry the whole argument — what it does, and what the gap
-   between its own score and the held-out one is — get the double width. */
-.dgrid>*:nth-child(1){grid-area:1/1/2/3}   /* one lap                */
-.dgrid>*:nth-child(2){grid-area:1/3/2/5}   /* claimed vs held-out    */
-.dgrid>*:nth-child(3){grid-area:2/1/3/2}   /* inference              */
-.dgrid>*:nth-child(4){grid-area:2/2/3/3}   /* rails                  */
-.dgrid>*:nth-child(5){grid-area:2/3/3/4}   /* attribution            */
-.dgrid>*:nth-child(6){grid-area:2/4/3/5}   /* gates                  */
-.dgrid>*:nth-child(7){grid-area:3/1/4/3}   /* blame and selection    */
-.dgrid>*:nth-child(8){grid-area:3/3/4/4}   /* calibration            */
-.dgrid>*:nth-child(9){grid-area:3/4/4/5}   /* tamper                 */
+   Twelve panels over fifteen cells. The two that carry the argument get the double width. */
+.dgrid>*:nth-child(1){grid-area:1/1/2/3}    /* one lap              */
+.dgrid>*:nth-child(2){grid-area:1/3/2/5}    /* claimed vs held-out  */
+.dgrid>*:nth-child(3){grid-area:1/5/2/6}    /* calibration          */
+.dgrid>*:nth-child(4){grid-area:2/1/3/2}    /* inference            */
+.dgrid>*:nth-child(5){grid-area:2/2/3/3}    /* rails                */
+.dgrid>*:nth-child(6){grid-area:2/3/3/4}    /* attribution          */
+.dgrid>*:nth-child(7){grid-area:2/4/3/5}    /* gates                */
+.dgrid>*:nth-child(8){grid-area:2/5/3/6}    /* tamper               */
+.dgrid>*:nth-child(9){grid-area:3/1/4/3}    /* blame and selection  */
+.dgrid>*:nth-child(10){grid-area:3/3/4/4}   /* interfaces built     */
+.dgrid>*:nth-child(11){grid-area:3/4/4/5}   /* wcag rules           */
+.dgrid>*:nth-child(12){grid-area:3/5/4/6}   /* the change           */
 
 @media (max-width:1180px){
   .app.devmode{grid-template-rows:52px auto;height:auto;min-height:100vh;overflow:auto}
   .dev{overflow:visible}
+  .dev{display:block}
+  .dstrip{flex-wrap:wrap;margin-bottom:7px}
   .dgrid{grid-template-columns:repeat(2,minmax(0,1fr));grid-auto-rows:minmax(180px,auto);height:auto}
   .dgrid>*:nth-child(n){grid-area:auto}
 }
@@ -11313,6 +11349,379 @@ A.roleTable = function (ctx, w, h, t, data) {
 };
 })(window.SCR = window.SCR || {});
 
+// ===== devrun.js =====
+// ============================================================================
+// SCR.devrun — the three panels about one run of the loop: what the agent built,
+// which rules kept firing across runs, and the change it actually wrote.
+//
+// Same contract as SCR.devpanels: pure draw, no state between frames, colour and
+// type from SCR.devtheme only. All three are still — none of them shows
+// throughput, liveness, "you are here" or a flag, which are the only four things
+// devtheme lets move. `t` is taken and ignored so the caller's signature holds.
+// ============================================================================
+(function (SCR) {
+'use strict';
+const R = SCR.devrun = {};
+
+const TAU = Math.PI * 2;
+const clamp = (v, a, b) => v < a ? a : v > b ? b : v;
+const num = (v, d) => { const n = +v; return isFinite(n) ? n : d; };
+
+// Truncation measures rather than assumes: 'checkout' and 'landmark-one-main' are
+// the same string class to a guesser and very different to the renderer.
+function fit (ctx, s, max) {
+  if (!(max > 0)) return '';
+  if (ctx.measureText(s).width <= max) return s;
+  let lo = 0, hi = s.length;
+  while (lo < hi) {
+    const mid = (lo + hi + 1) >> 1;
+    if (ctx.measureText(s.slice(0, mid) + '…').width <= max) lo = mid; else hi = mid - 1;
+  }
+  return lo > 0 ? s.slice(0, lo) + '…' : '';
+}
+
+// ---------------------------------------------------------------------------------------
+// 1. interfaces — the ten pages this run built, and which one survived
+//
+// Pass/fail is the tile's whole character rather than a badge on it: at 5x2 the eye
+// counts borders, not glyphs, and the finding is "one green out of ten". The bar is
+// normalised to the worst weighted score in the set so the tiles rank each other.
+// ---------------------------------------------------------------------------------------
+R.interfaces = function (ctx, w, h, t, data) {
+  const T = SCR.devtheme;
+  if (!T || !(w > 0) || !(h > 0)) return;
+  const C = T.C;
+
+  const src = data && data.pages;
+  const pages = [];
+  if (src && src.length) {
+    for (let i = 0; i < src.length; i++) {
+      const p = src[i]; if (!p) continue;
+      pages.push({
+        family: String(p.family || p.id || '?'),
+        passed: !!p.passed,
+        weighted: Math.max(0, num(p.weighted, 0)),
+      });
+    }
+  }
+  if (!pages.length) { T.empty(ctx, w, h, 'no interfaces built'); return; }
+
+  ctx.save();
+
+  // one decision from the box, taken once — every font call downstream reads it.
+  const small = h < 190 || w < 300;
+  const pad = small ? 6 : 10, gap = small ? 4 : 6;
+  const pw = w - pad * 2, ph = h - pad * 2;
+  if (!(pw > 40) || !(ph > 20)) { ctx.restore(); T.empty(ctx, w, h, 'no room'); return; }
+
+  let worst = 0;
+  for (let i = 0; i < pages.length; i++) if (pages[i].weighted > worst) worst = pages[i].weighted;
+
+  // 5x2 is the shape this data wants; narrow boxes reflow, and a set bigger than ten
+  // widens the grid rather than shrinking rows below anything readable.
+  let cols = w >= 620 ? 5 : w >= 440 ? 4 : w >= 320 ? 3 : 2;
+  const minTile = small ? 20 : 26;
+  const maxRows = Math.max(1, Math.floor((ph + gap) / (minTile + gap)));
+  cols = Math.max(cols, Math.ceil(pages.length / maxRows));
+  const tw = (pw - gap * (cols - 1)) / cols;
+  if (!(tw > 8)) { ctx.restore(); T.empty(ctx, w, h, 'no room'); return; }
+
+  const rows = Math.max(1, Math.ceil(pages.length / cols));
+  const th = (ph - gap * (rows - 1)) / rows;
+  if (!(th > 8)) { ctx.restore(); T.empty(ctx, w, h, 'no room'); return; }
+
+  const barH = clamp(th * 0.14, 2, 4);
+
+  for (let i = 0; i < pages.length; i++) {
+    const p = pages[i];
+    const cx = pad + (i % cols) * (tw + gap);
+    const cy = pad + Math.floor(i / cols) * (th + gap);
+    const tone = p.passed ? C.green : C.rose;
+    const rad = Math.min(3, tw / 2, th / 2);
+
+    ctx.globalAlpha = p.passed ? 0.07 : 0.045;
+    ctx.fillStyle = p.passed ? C.green : C.panel;
+    T.rr(ctx, cx, cy, tw, th, rad); ctx.fill();
+
+    ctx.globalAlpha = p.passed ? 0.95 : 0.55;
+    ctx.strokeStyle = tone; ctx.lineWidth = 1;
+    T.rr(ctx, T.crisp(cx), T.crisp(cy), tw, th, rad); ctx.stroke();
+
+    // the worst offenders read as a longer red floor to the tile, no reading required.
+    if (!p.passed && worst > 0 && th > 14) {
+      const frac = clamp(p.weighted / worst, 0, 1);
+      const bw = (tw - 2) * frac;
+      if (bw > 0.5) {
+        ctx.globalAlpha = 0.5;
+        ctx.fillStyle = C.rose;
+        ctx.fillRect(cx + 1, cy + th - 1 - barH, bw, barH);
+      }
+    }
+
+    const inner = tw - (small ? 8 : 10);
+    if (!(inner > 6)) continue;
+    const tx = cx + (small ? 4 : 5);
+
+    // the score sits right, the brief sits left — the pair is the whole tile.
+    let right = 0;
+    ctx.globalAlpha = 1;
+    ctx.textBaseline = 'middle';
+    if (p.passed) {
+      const r = clamp(th * 0.1, 2, 3.5);
+      ctx.fillStyle = C.green;
+      ctx.beginPath(); ctx.arc(cx + tw - (small ? 6 : 8), cy + th / 2, r, 0, TAU); ctx.fill();
+      right = (small ? 12 : 16);
+    } else if (th > 14 && tw > 44) {
+      ctx.font = T.font('value', small);
+      const s = String(Math.round(p.weighted));
+      ctx.fillStyle = C.rose; ctx.textAlign = 'right';
+      ctx.fillText(s, cx + tw - (small ? 4 : 6), cy + th / 2 - (th > 26 ? 1 : 0));
+      right = ctx.measureText(s).width + (small ? 8 : 10);
+    }
+
+    ctx.font = T.font('label', small);
+    ctx.fillStyle = p.passed ? C.text : C.dim;
+    ctx.textAlign = 'left';
+    ctx.fillText(fit(ctx, p.family, inner - right), tx, cy + th / 2 - (th > 26 ? 1 : 0));
+  }
+
+  ctx.restore();
+};
+
+// ---------------------------------------------------------------------------------------
+// 2. ruleHeat — which WCAG rules fired, run by run
+//
+// The rows are flat and that is the point: the loop is not clearing contrast, it is
+// re-earning it. Nothing here interpolates or animates, because a moving cell would
+// invent the trend the data refuses to show. A rule that reaches zero and stays there
+// turns green — the only way elimination is visible in a matrix of sameness.
+// ---------------------------------------------------------------------------------------
+R.ruleHeat = function (ctx, w, h, t, data) {
+  const T = SCR.devtheme;
+  if (!T || !(w > 0) || !(h > 0)) return;
+  const C = T.C;
+
+  const src = data && data.rules;
+  const rules = [];
+  if (src && src.length) {
+    for (let i = 0; i < src.length; i++) {
+      const r = src[i]; if (!r) continue;
+      const pr = r.perRun && r.perRun.length ? r.perRun : [];
+      const vals = [];
+      let total = 0;
+      for (let k = 0; k < pr.length; k++) {
+        const v = Math.max(0, num(pr[k], 0));
+        vals.push(v); total += v;
+      }
+      if (!vals.length) continue;
+      rules.push({ id: String(r.id || '?'), vals: vals, total: total });
+    }
+  }
+  if (!rules.length) { T.empty(ctx, w, h, 'no rule history'); return; }
+
+  let runs = Math.round(num(data && data.runs, 0));
+  for (let i = 0; i < rules.length; i++) runs = Math.max(runs, rules[i].vals.length);
+  runs = clamp(runs, 1, 200);
+
+  rules.sort((a, b) => b.total - a.total);
+  const shown = rules.slice(0, 8);
+
+  ctx.save();
+
+  // one decision from the box, taken once — every font call downstream reads it.
+  const small = h < 190 || w < 300;
+  const padT = small ? 8 : 12, padB = small ? 14 : 18;
+  const padR = small ? 6 : 10, padL = small ? 6 : 10;
+  const labelW = clamp(w * 0.34, 0, small ? 78 : 118);
+  const gx = padL + labelW + (small ? 4 : 6);
+  const gw = w - padR - gx, gh = h - padT - padB;
+  if (!(gw > 24) || !(gh > 12)) { ctx.restore(); T.empty(ctx, w, h, 'no room'); return; }
+
+  const cw = gw / runs;
+  const rh = gh / shown.length;
+  const at = Math.round(num(data && data.at, -1));
+
+  let peak = 0;
+  for (let i = 0; i < shown.length; i++) {
+    for (let k = 0; k < shown[i].vals.length; k++) peak = Math.max(peak, shown[i].vals[k]);
+  }
+
+  // the column you are standing in, drawn under the cells so it never dims them.
+  if (at >= 0 && at < runs) {
+    ctx.globalAlpha = 0.1;
+    ctx.fillStyle = C.line;
+    ctx.fillRect(gx + at * cw, padT - (small ? 3 : 4), cw, gh + (small ? 5 : 7));
+  }
+
+  const inset = cw > 7 && rh > 7 ? 1 : 0;
+  for (let i = 0; i < shown.length; i++) {
+    const r = shown[i];
+    const y = padT + i * rh;
+
+    // "eliminated" needs history, not a single zero: it only counts once the rule
+    // has fired at least once and every later run is clean.
+    let lastHit = -1;
+    for (let k = 0; k < r.vals.length; k++) if (r.vals[k] > 0) lastHit = k;
+
+    for (let k = 0; k < runs; k++) {
+      const v = k < r.vals.length ? r.vals[k] : 0;
+      const x = gx + k * cw;
+      if (v > 0) {
+        ctx.globalAlpha = peak > 0 ? clamp(0.16 + 0.74 * (v / peak), 0, 1) : 0.5;
+        ctx.fillStyle = C.rose;
+      } else if (lastHit >= 0 && k > lastHit && k < r.vals.length) {
+        ctx.globalAlpha = 0.42;
+        ctx.fillStyle = C.green;
+      } else {
+        ctx.globalAlpha = 0.5;
+        ctx.fillStyle = C.grid;
+      }
+      ctx.fillRect(x + inset, y + inset, Math.max(0.5, cw - inset * 2), Math.max(0.5, rh - inset * 2));
+    }
+  }
+
+  // the current column keeps a hairline on top so it survives a wall of full cells.
+  if (at >= 0 && at < runs && cw > 2) {
+    ctx.globalAlpha = 0.55;
+    ctx.strokeStyle = C.line; ctx.lineWidth = 1;
+    ctx.strokeRect(T.crisp(gx + at * cw), T.crisp(padT - (small ? 3 : 4)),
+      Math.max(1, cw), gh + (small ? 5 : 7));
+  }
+
+  // rule ids left, truncated to the gutter they were given.
+  ctx.globalAlpha = 1;
+  ctx.font = T.font('label', small);
+  ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+  if (rh >= (small ? 9 : 11)) {
+    for (let i = 0; i < shown.length; i++) {
+      ctx.fillStyle = shown[i].total > 0 ? C.dim : C.mute;
+      ctx.fillText(fit(ctx, shown[i].id, labelW), padL, padT + i * rh + rh / 2);
+    }
+  }
+
+  // run numbers along the bottom, thinned until they stop colliding.
+  ctx.font = T.font('axis', small);
+  ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+  const stride = Math.max(1, Math.ceil((small ? 16 : 20) / Math.max(cw, 1)));
+  for (let k = 0; k < runs; k += stride) {
+    ctx.globalAlpha = k === at ? 1 : 0.8;
+    ctx.fillStyle = k === at ? C.text : C.mute;
+    ctx.fillText(String(k), gx + k * cw + cw / 2, padT + gh + (small ? 3 : 5));
+  }
+
+  ctx.restore();
+};
+
+// ---------------------------------------------------------------------------------------
+// 3. diffView — the change the loop wrote this run
+//
+// Three runs in ten wrote nothing at all, so the empty case is a stated refusal rather
+// than a blank card: a reader who sees nothing assumes the panel is broken. The body is
+// set in the mono axis size because a diff that does not column-align is not a diff.
+// ---------------------------------------------------------------------------------------
+R.diffView = function (ctx, w, h, t, data) {
+  const T = SCR.devtheme;
+  if (!T || !(w > 0) || !(h > 0)) return;
+  const C = T.C;
+
+  const raw = data && typeof data.diff === 'string' ? data.diff : '';
+  if (!raw) { T.empty(ctx, w, h, 'no change written'); return; }
+
+  const lines = raw.split('\n');
+  while (lines.length && lines[lines.length - 1] === '') lines.pop();
+  if (!lines.length) { T.empty(ctx, w, h, 'no change written'); return; }
+
+  let add = 0, del = 0;
+  for (let i = 0; i < lines.length; i++) {
+    const s = lines[i];
+    if (s.charAt(0) === '+' && s.slice(0, 3) !== '+++') add++;
+    else if (s.charAt(0) === '-' && s.slice(0, 3) !== '---') del++;
+  }
+
+  ctx.save();
+
+  // one decision from the box, taken once — every font call downstream reads it.
+  const small = h < 190 || w < 300;
+  const padL = small ? 8 : 12, padR = small ? 6 : 10;
+  const padT = small ? 6 : 9, padB = small ? 4 : 6;
+  const availW = w - padL - padR;
+  if (!(availW > 24) || !(h - padT - padB > 12)) { ctx.restore(); T.empty(ctx, w, h, 'no room'); return; }
+
+  // ---- summary: the two counts, then which part of the harness moved ----
+  ctx.globalAlpha = 1;
+  ctx.font = T.font('value', small);
+  ctx.textAlign = 'left'; ctx.textBaseline = 'top';
+  const headH = (small ? 12 : 15);
+  let hx = padL;
+  const plus = '+' + add, minus = '−' + del;
+  ctx.fillStyle = C.green; ctx.fillText(plus, hx, padT);
+  hx += ctx.measureText(plus).width + (small ? 6 : 8);
+  ctx.fillStyle = C.rose; ctx.fillText(minus, hx, padT);
+  hx += ctx.measureText(minus).width + (small ? 7 : 10);
+
+  const part = data && data.part ? String(data.part) : '';
+  if (part && hx < padL + availW) {
+    ctx.font = T.font('tag', small);
+    ctx.fillStyle = C.mute;
+    ctx.fillText(fit(ctx, part, padL + availW - hx), hx, padT + (small ? 2 : 3));
+  }
+
+  // ---- body ----
+  const bodyY = padT + headH;
+  const bodyH = h - bodyY - padB;
+  if (!(bodyH > 6)) { ctx.restore(); return; }
+
+  ctx.font = T.font('axis', small);
+  const adv = ctx.measureText('0').width;          // measured, never assumed
+  const lh = small ? 9.5 : 11;
+  const rows = Math.max(0, Math.floor(bodyH / lh));
+  if (!rows || !(adv > 0)) { ctx.restore(); return; }
+
+  const more = lines.length - rows;
+  const shown = more > 0 ? rows - 1 : rows;        // the tally costs one row
+  const textW = availW - adv;
+  const cap = Math.max(1, Math.floor(textW / adv));
+
+  ctx.save();
+  ctx.beginPath(); ctx.rect(padL, bodyY, availW, bodyH); ctx.clip();
+  ctx.textBaseline = 'top'; ctx.textAlign = 'left';
+
+  for (let i = 0; i < shown && i < lines.length; i++) {
+    const s = lines[i];
+    const c0 = s.charAt(0);
+    const head = s.slice(0, 3);
+    let tone = C.dim, alpha = 0.9;
+    if (s.slice(0, 2) === '@@') { tone = C.violet; alpha = 1; }
+    else if (head === '---' || head === '+++') { tone = C.mute; alpha = 0.9; }
+    else if (c0 === '+') { tone = C.green; alpha = 1; }
+    else if (c0 === '-') { tone = C.rose; alpha = 1; }
+
+    // sign and body are drawn on their own columns so the gutter stays a gutter
+    // even when a leading space is eaten by the string.
+    const sign = (c0 === '+' || c0 === '-') && head !== '+++' && head !== '---' ? c0 : '';
+    const rest = sign ? s.slice(1) : s;
+    const y = bodyY + i * lh;
+
+    ctx.globalAlpha = alpha;
+    ctx.fillStyle = tone;
+    if (sign) ctx.fillText(sign, padL, y);
+    const body = rest.length > cap ? rest.slice(0, Math.max(0, cap - 1)) + '…' : rest;
+    if (body) ctx.fillText(body, padL + adv, y);
+  }
+
+  if (more > 0 && shown >= 0) {
+    ctx.globalAlpha = 1;
+    ctx.font = T.font('tag', small);
+    ctx.fillStyle = C.mute;
+    ctx.fillText('+' + more + ' more lines', padL, bodyY + shown * lh);
+  }
+
+  ctx.restore();
+  ctx.restore();
+};
+
+})(window.SCR = window.SCR || {});
+
 // ===== devview.js =====
 // ============================================================================
 // SCR.dev — the developer view.
@@ -11426,9 +11835,52 @@ function readBundle() {
   for (const st_ of D.standings) by[st_.role] = { ...st_ };
   for (const a of D.alternatives) by[a.role] = { ...(by[a.role] || { role: a.role }), ...a };
   D.roleRows = Object.values(by);
+
+  // every WCAG rule the audit fired, weighted, per run — the broadcast's own heatmap
+  const W = { critical: 10, serious: 5, moderate: 2, minor: 1 };
+  const byRule = {};
+  D.rounds.forEach((rd, i) => {
+    for (const pg of (rd.pages || [])) for (const v of (pg.rules || [])) {
+      const row = byRule[v.id] || (byRule[v.id] = new Array(D.rounds.length).fill(0));
+      row[i] += (W[v.impact] || 1) * (v.n || 1);
+    }
+  });
+  D.ruleRows = Object.entries(byRule).map(([id, perRun]) => ({ id, perRun }));
 }
 
-V.setRun = function (i) { D.at = Math.max(0, i | 0); };
+V.setRun = function (i) {
+  D.at = Math.max(0, Math.min(D.rounds.length - 1, i | 0));
+  pushStrip();
+};
+
+V.setPhase = function (name, verdict, tone) {
+  D.phase = name; D.verdict = verdict; D.verdictTone = tone;
+  pushStrip();
+};
+
+// One scalar set, shared by the strip and read from the same round every panel uses.
+function pushStrip() {
+  if (!V.setRunState || !D.rounds.length) return;
+  const r = D.rounds[D.at] || {}, prev = D.at > 0 ? D.rounds[D.at - 1] : null;
+  const pages = r.pages || [];
+  V.setRunState({
+    run: D.at + 1, of: D.rounds.length, phase: D.phase,
+    score: r.official_s, delta: prev ? prev.official_s - r.official_s : null,
+    clean: pages.filter(p => p.passed).length, total: pages.length,
+    spend: r.cost_usd, tier: D.tier, circuit: D.circuit,
+    verdict: D.verdict, verdictTone: D.verdictTone,
+  });
+}
+
+// The broadcast names the state of tune and the circuit over the picture; the developer
+// view has no picture, so it carries the same two words in the strip.
+// undefined means "leave this one alone". The garage repaints the state of tune without
+// knowing a circuit, and passing null there used to wipe the circuit off the strip.
+V.setContext = function (tier, circuit) {
+  if (tier !== undefined) D.tier = tier;
+  if (circuit !== undefined) D.circuit = circuit;
+  pushStrip();
+};
 
 // ---------------------------------------------------------------------------------------
 // furniture
@@ -11447,21 +11899,90 @@ function card(host, id, icon, title, note) {
 
 // Nine panels, down from eleven. Blame and selection were one question asked twice, so
 // they are one table now; the WCAG tag counts are already a panel in the broadcast.
+// The broadcast's right-hand rail is ten scalars — where the season is, what it scored,
+// what it cost, and whether the change was kept. None of them were on this page. They go in
+// one strip rather than ten cards: they are readouts, not graphs.
+const PHASES = [['RUN', 'build'], ['SCORE', 'audit'], ['DIAGNOSE', 'blame'],
+  ['CHANGE', 'patch'], ['GATES', 'check'], ['RESULT', 'verdict']];
+
+function buildStrip(host) {
+  const strip = el('div', 'dstrip');
+  strip.innerHTML =
+    '<div class="ds-run"><b data-run>—</b><span data-of></span></div>'
+    + '<div class="ds-steps" data-steps></div>'
+    + '<div class="ds-stats">'
+    + stat('score', 'score') + stat('delta', 'delta') + stat('clean', 'clean')
+    + stat('spend', 'spend') + stat('tier', 'tune') + stat('circuit', 'circuit')
+    + '</div>'
+    + '<div class="ds-verdict" data-verdict><i></i><b>standby</b></div>';
+  host.append(strip);
+  const steps = strip.querySelector('[data-steps]');
+  for (const [key, label] of PHASES) {
+    const n = el('div', 'ds-step'); n.dataset.phase = key;
+    n.innerHTML = `<u></u><span>${label}</span>`;
+    steps.append(n);
+  }
+  return strip;
+}
+function stat(key, label) {
+  return `<div class="ds-stat"><span>${label}</span><b data-${key}>—</b></div>`;
+}
+
+// Everything the strip shows for the run the page is sitting on.
+V.setRunState = function (o) {
+  const strip = $('devStrip'); if (!strip) return;
+  const put = (sel, v, cls) => { const n = strip.querySelector(sel); if (!n) return;
+    n.textContent = v === undefined || v === null || v === '' ? '—' : v;
+    if (cls !== undefined) n.className = cls; };
+  put('[data-run]', o.run ? 'run ' + o.run : '—');
+  put('[data-of]', o.of ? '/ ' + o.of : '');
+  put('[data-score]', o.score === undefined ? null : o.score.toFixed(2));
+  // One deadband, used for the sign and the colour alike. Reading them off different
+  // thresholds printed a delta of -0.001 as "+0.00", which says worse and means unchanged.
+  const dz = o.delta === undefined || o.delta === null ? null
+    : Math.abs(o.delta) < 0.005 ? 0 : o.delta;
+  put('[data-delta]', dz === null ? null
+    : (dz > 0 ? '−' : dz < 0 ? '+' : '') + Math.abs(dz).toFixed(2),
+    dz > 0 ? 'good' : dz < 0 ? 'bad' : '');
+  put('[data-clean]', o.total ? `${o.clean} / ${o.total}` : null, o.clean ? 'good' : '');
+  put('[data-spend]', o.spend === undefined ? null : '$' + o.spend.toFixed(4));
+  put('[data-tier]', o.tier || null);
+  put('[data-circuit]', o.circuit || null);
+
+  const at = PHASES.findIndex(p => p[0] === o.phase);
+  for (const n of strip.querySelectorAll('.ds-step')) {
+    const i = PHASES.findIndex(p => p[0] === n.dataset.phase);
+    n.classList.toggle('on', i === at);
+    n.classList.toggle('done', at >= 0 && i < at);
+  }
+  const v = strip.querySelector('[data-verdict]');
+  if (v) {
+    const word = o.verdict || 'standby';
+    v.querySelector('b').textContent = word;
+    v.className = 'ds-verdict' + (o.verdictTone ? ' ' + o.verdictTone : '');
+  }
+};
+
 V.build = function () {
   const host = $('dev'); if (!host || host.dataset.built) return;
   host.dataset.built = '1';
   readBundle();
+  const strip = buildStrip(host);
+  strip.id = 'devStrip';
   const grid = el('div', 'dgrid');
   host.append(grid);
   card(grid, 'pipe',   'activity',  'one lap', 'five spans');
   card(grid, 'hist',   'trending',  'claimed vs held-out', 'seconds');
+  card(grid, 'calib',  'crosshair', 'calibration', 'seconds');
   card(grid, 'infer',  'cpu',       'inference', 'qwen3-14b');
   card(grid, 'rails',  'server',    'rails', '');
-  card(grid, 'credit', 'share',     'attribution', 'item to component');
-  card(grid, 'funnel', 'filter',    'gates', '7 in, 1 out');
-  card(grid, 'roles',  'sliders',   'blame and selection', 'seconds');
-  card(grid, 'calib',  'crosshair', 'calibration', 'seconds');
+  card(grid, 'credit', 'share',     'attribution', 'this run');
+  card(grid, 'funnel', 'filter',    'gates', 'season');
   card(grid, 'tamper', 'shield',    'tamper', 'role / obligation');
+  card(grid, 'roles',  'sliders',   'blame and selection', 'seconds');
+  card(grid, 'built',  'activity',  'interfaces built', 'this run');
+  card(grid, 'rules',  'filter',    'wcag rules', 'run by run');
+  card(grid, 'diff',   'share',     'the change', 'this run');
 };
 
 // Canvas backing stores follow the box, at device resolution so the labels stay sharp.
@@ -11607,7 +12128,9 @@ function drawRails(ctx, w, h, t) {
 // ---------------------------------------------------------------------------------------
 function paint(t) {
   size();
-  const G = SCR.devgraphs || {}, P = SCR.devpanels || {}, AU = SCR.devaudit || {};
+  const G = SCR.devgraphs || {}, P = SCR.devpanels || {}, AU = SCR.devaudit || {},
+    RN = SCR.devrun || {};
+  const r = D.rounds[D.at] || {};
   const go = (id, fn) => {
     const c = cards[id]; if (!c || !c.w) return;
     c.ctx.clearRect(0, 0, c.w, c.h);
@@ -11618,14 +12141,34 @@ function paint(t) {
   go('rails', drawRails);
   go('hist', (x, w, h, tt) => G.runHistory && G.runHistory(x, w, h, tt,
     { runs: D.runs, at: D.at }));
-  go('credit', (x, w, h, tt) => G.creditGraph && G.creditGraph(x, w, h, tt,
-    { rows: D.rows, items: D.items, roles: D.roles }));
+  // attribution, blame and the change are all about ONE run — the one the page is on —
+  // so they follow the season rather than showing a union of every round at once.
+  go('credit', (x, w, h, tt) => G.creditGraph && G.creditGraph(x, w, h, tt, runRows(r)));
   go('funnel', (x, w, h, tt) => P.gateFunnel && P.gateFunnel(x, w, h, tt,
     { gates: D.gates, entered: D.entered, accepted: D.accepted }));
-  go('roles', (x, w, h, tt) => AU.roleTable && AU.roleTable(x, w, h, tt,
-    { rows: D.roleRows, chosen: D.chosen, threshold: 0 }));
-  go('calib', (x, w, h, tt) => P.calibration && P.calibration(x, w, h, tt, { points: D.calib }));
+  go('roles', (x, w, h, tt) => AU.roleTable && AU.roleTable(x, w, h, tt, runRoles(r)));
+  go('calib', (x, w, h, tt) => P.calibration && P.calibration(x, w, h, tt,
+    { points: D.calib, at: D.at }));
   go('tamper', (x, w, h, tt) => AU.tamperMatrix && AU.tamperMatrix(x, w, h, tt, { flags: D.flags }));
+  go('built', (x, w, h, tt) => RN.interfaces && RN.interfaces(x, w, h, tt, { pages: r.pages || [] }));
+  go('rules', (x, w, h, tt) => RN.ruleHeat && RN.ruleHeat(x, w, h, tt,
+    { rules: D.ruleRows, runs: D.rounds.length, at: D.at }));
+  go('diff', (x, w, h, tt) => RN.diffView && RN.diffView(x, w, h, tt,
+    { diff: r.diff || '', summary: r.diff_summary || '', part: r.part || '' }));
+}
+
+// The router rows of one round, with its own item and role axes.
+function runRows(r) {
+  const rows = r.router_rows || [];
+  return { rows, items: [...new Set(rows.map(x => x.item))].sort(),
+    roles: [...new Set(rows.map(x => x.blamed_role))] };
+}
+// One row per component for this round: its standing merged with its shortlist entry.
+function runRoles(r) {
+  const by = {};
+  for (const st_ of Object.values(r.standings || {})) by[st_.role] = { ...st_ };
+  for (const a of (r.alternatives || [])) by[a.role] = { ...(by[a.role] || { role: a.role }), ...a };
+  return { rows: Object.values(by), chosen: r.role || null, threshold: 0 };
 }
 
 function tick(ts) {
@@ -11638,6 +12181,9 @@ function tick(ts) {
 
 V.show = function () {
   V.build();
+  // the season sets run, phase and verdict long before this view is first opened, so the
+  // strip has to be filled from the state we already hold rather than wait for the next change
+  pushStrip();
   on = true; t0 = performance.now(); last = 0;
   raf = requestAnimationFrame(tick);
 };
@@ -12811,6 +13357,12 @@ function tierNow() { return tierFor(Math.max(0, st.i)); }
 function paintTier() {
   const t = tierNow();
   if (D()) D().tier(t, TIERS[t].name, TIERS[t].of, TIERS.length);
+  // A circuit belongs to the run that raced it. Seeking straight to a late phase never
+  // enters the track, so without this the strip keeps naming whichever circuit ran last.
+  if (SCR.dev) SCR.dev.setContext(TIERS[t].name.toLowerCase(),
+    track.circ && track.forRun === st.i
+      ? track.circ.archetype + ' · ' + (track.circ.len / 1000).toFixed(2) + ' km'
+      : null);
 }
 
 // ---------------------------------------------------------------------------------------
@@ -12904,6 +13456,7 @@ track.enter = function () {
   const world = SCR.world.build(circ, { tier: t });
   track.tier = t;
   track.circ = circ;
+  track.forRun = st.i;
   paintTier();
   track.spec = harnessSpec(t);
   track.dd = SCR.car.derive(track.spec);
@@ -12950,6 +13503,8 @@ function paintCircuit() {
   const c = track.circ;
   D().circuit(c.name, c.len, c.archetype,
     track.scene ? (track.scene.label || '').replace(/^CAM\s*·?\s*/, '') : '');
+  if (SCR.dev) SCR.dev.setContext(TIERS[tierNow()].name.toLowerCase(),
+    c.archetype + ' · ' + (c.len / 1000).toFixed(2) + ' km');
 }
 
 SCR.scenes.run = track;
@@ -13032,7 +13587,7 @@ function startRun() {
 
 function phase(name) {
   st.phase = name; st.t = 0; st.shown = 0;
-  if (SCR.dev) SCR.dev.setRun(st.i);
+  if (SCR.dev) { SCR.dev.setRun(st.i); SCR.dev.setPhase(name); }
   // The verdict lamp answers one question — was the change kept — so until the checks have run
   // it says so rather than borrowing whatever word the previous phase left there.
   if (D()) { D().phase(name);
@@ -13148,6 +13703,8 @@ function phase(name) {
     const p = BY_KEY[r.role] || { name: r.role || '' };
     if (D()) { D().gates(r.gates || []); D().verdict(r.promoted ? 'KEPT' : 'THROWN AWAY',
       r.promoted ? 'kept' : 'tossed'); }
+    if (SCR.dev) SCR.dev.setPhase('RESULT', r.promoted ? 'kept' : 'thrown away',
+      r.promoted ? 'kept' : 'tossed');
     if (r.promoted) {
       st.levels = levelsAt(st.i + 1);
       paintRig(r.role);

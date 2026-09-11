@@ -473,6 +473,12 @@ function tierNow() { return tierFor(Math.max(0, st.i)); }
 function paintTier() {
   const t = tierNow();
   if (D()) D().tier(t, TIERS[t].name, TIERS[t].of, TIERS.length);
+  // A circuit belongs to the run that raced it. Seeking straight to a late phase never
+  // enters the track, so without this the strip keeps naming whichever circuit ran last.
+  if (SCR.dev) SCR.dev.setContext(TIERS[t].name.toLowerCase(),
+    track.circ && track.forRun === st.i
+      ? track.circ.archetype + ' · ' + (track.circ.len / 1000).toFixed(2) + ' km'
+      : null);
 }
 
 // ---------------------------------------------------------------------------------------
@@ -566,6 +572,7 @@ track.enter = function () {
   const world = SCR.world.build(circ, { tier: t });
   track.tier = t;
   track.circ = circ;
+  track.forRun = st.i;
   paintTier();
   track.spec = harnessSpec(t);
   track.dd = SCR.car.derive(track.spec);
@@ -612,6 +619,8 @@ function paintCircuit() {
   const c = track.circ;
   D().circuit(c.name, c.len, c.archetype,
     track.scene ? (track.scene.label || '').replace(/^CAM\s*·?\s*/, '') : '');
+  if (SCR.dev) SCR.dev.setContext(TIERS[tierNow()].name.toLowerCase(),
+    c.archetype + ' · ' + (c.len / 1000).toFixed(2) + ' km');
 }
 
 SCR.scenes.run = track;
@@ -694,7 +703,7 @@ function startRun() {
 
 function phase(name) {
   st.phase = name; st.t = 0; st.shown = 0;
-  if (SCR.dev) SCR.dev.setRun(st.i);
+  if (SCR.dev) { SCR.dev.setRun(st.i); SCR.dev.setPhase(name); }
   // The verdict lamp answers one question — was the change kept — so until the checks have run
   // it says so rather than borrowing whatever word the previous phase left there.
   if (D()) { D().phase(name);
@@ -810,6 +819,8 @@ function phase(name) {
     const p = BY_KEY[r.role] || { name: r.role || '' };
     if (D()) { D().gates(r.gates || []); D().verdict(r.promoted ? 'KEPT' : 'THROWN AWAY',
       r.promoted ? 'kept' : 'tossed'); }
+    if (SCR.dev) SCR.dev.setPhase('RESULT', r.promoted ? 'kept' : 'thrown away',
+      r.promoted ? 'kept' : 'tossed');
     if (r.promoted) {
       st.levels = levelsAt(st.i + 1);
       paintRig(r.role);

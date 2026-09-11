@@ -110,9 +110,52 @@ function readBundle() {
   for (const st_ of D.standings) by[st_.role] = { ...st_ };
   for (const a of D.alternatives) by[a.role] = { ...(by[a.role] || { role: a.role }), ...a };
   D.roleRows = Object.values(by);
+
+  // every WCAG rule the audit fired, weighted, per run — the broadcast's own heatmap
+  const W = { critical: 10, serious: 5, moderate: 2, minor: 1 };
+  const byRule = {};
+  D.rounds.forEach((rd, i) => {
+    for (const pg of (rd.pages || [])) for (const v of (pg.rules || [])) {
+      const row = byRule[v.id] || (byRule[v.id] = new Array(D.rounds.length).fill(0));
+      row[i] += (W[v.impact] || 1) * (v.n || 1);
+    }
+  });
+  D.ruleRows = Object.entries(byRule).map(([id, perRun]) => ({ id, perRun }));
 }
 
-V.setRun = function (i) { D.at = Math.max(0, i | 0); };
+V.setRun = function (i) {
+  D.at = Math.max(0, Math.min(D.rounds.length - 1, i | 0));
+  pushStrip();
+};
+
+V.setPhase = function (name, verdict, tone) {
+  D.phase = name; D.verdict = verdict; D.verdictTone = tone;
+  pushStrip();
+};
+
+// One scalar set, shared by the strip and read from the same round every panel uses.
+function pushStrip() {
+  if (!V.setRunState || !D.rounds.length) return;
+  const r = D.rounds[D.at] || {}, prev = D.at > 0 ? D.rounds[D.at - 1] : null;
+  const pages = r.pages || [];
+  V.setRunState({
+    run: D.at + 1, of: D.rounds.length, phase: D.phase,
+    score: r.official_s, delta: prev ? prev.official_s - r.official_s : null,
+    clean: pages.filter(p => p.passed).length, total: pages.length,
+    spend: r.cost_usd, tier: D.tier, circuit: D.circuit,
+    verdict: D.verdict, verdictTone: D.verdictTone,
+  });
+}
+
+// The broadcast names the state of tune and the circuit over the picture; the developer
+// view has no picture, so it carries the same two words in the strip.
+// undefined means "leave this one alone". The garage repaints the state of tune without
+// knowing a circuit, and passing null there used to wipe the circuit off the strip.
+V.setContext = function (tier, circuit) {
+  if (tier !== undefined) D.tier = tier;
+  if (circuit !== undefined) D.circuit = circuit;
+  pushStrip();
+};
 
 // ---------------------------------------------------------------------------------------
 // furniture
@@ -131,21 +174,90 @@ function card(host, id, icon, title, note) {
 
 // Nine panels, down from eleven. Blame and selection were one question asked twice, so
 // they are one table now; the WCAG tag counts are already a panel in the broadcast.
+// The broadcast's right-hand rail is ten scalars — where the season is, what it scored,
+// what it cost, and whether the change was kept. None of them were on this page. They go in
+// one strip rather than ten cards: they are readouts, not graphs.
+const PHASES = [['RUN', 'build'], ['SCORE', 'audit'], ['DIAGNOSE', 'blame'],
+  ['CHANGE', 'patch'], ['GATES', 'check'], ['RESULT', 'verdict']];
+
+function buildStrip(host) {
+  const strip = el('div', 'dstrip');
+  strip.innerHTML =
+    '<div class="ds-run"><b data-run>—</b><span data-of></span></div>'
+    + '<div class="ds-steps" data-steps></div>'
+    + '<div class="ds-stats">'
+    + stat('score', 'score') + stat('delta', 'delta') + stat('clean', 'clean')
+    + stat('spend', 'spend') + stat('tier', 'tune') + stat('circuit', 'circuit')
+    + '</div>'
+    + '<div class="ds-verdict" data-verdict><i></i><b>standby</b></div>';
+  host.append(strip);
+  const steps = strip.querySelector('[data-steps]');
+  for (const [key, label] of PHASES) {
+    const n = el('div', 'ds-step'); n.dataset.phase = key;
+    n.innerHTML = `<u></u><span>${label}</span>`;
+    steps.append(n);
+  }
+  return strip;
+}
+function stat(key, label) {
+  return `<div class="ds-stat"><span>${label}</span><b data-${key}>—</b></div>`;
+}
+
+// Everything the strip shows for the run the page is sitting on.
+V.setRunState = function (o) {
+  const strip = $('devStrip'); if (!strip) return;
+  const put = (sel, v, cls) => { const n = strip.querySelector(sel); if (!n) return;
+    n.textContent = v === undefined || v === null || v === '' ? '—' : v;
+    if (cls !== undefined) n.className = cls; };
+  put('[data-run]', o.run ? 'run ' + o.run : '—');
+  put('[data-of]', o.of ? '/ ' + o.of : '');
+  put('[data-score]', o.score === undefined ? null : o.score.toFixed(2));
+  // One deadband, used for the sign and the colour alike. Reading them off different
+  // thresholds printed a delta of -0.001 as "+0.00", which says worse and means unchanged.
+  const dz = o.delta === undefined || o.delta === null ? null
+    : Math.abs(o.delta) < 0.005 ? 0 : o.delta;
+  put('[data-delta]', dz === null ? null
+    : (dz > 0 ? '−' : dz < 0 ? '+' : '') + Math.abs(dz).toFixed(2),
+    dz > 0 ? 'good' : dz < 0 ? 'bad' : '');
+  put('[data-clean]', o.total ? `${o.clean} / ${o.total}` : null, o.clean ? 'good' : '');
+  put('[data-spend]', o.spend === undefined ? null : '$' + o.spend.toFixed(4));
+  put('[data-tier]', o.tier || null);
+  put('[data-circuit]', o.circuit || null);
+
+  const at = PHASES.findIndex(p => p[0] === o.phase);
+  for (const n of strip.querySelectorAll('.ds-step')) {
+    const i = PHASES.findIndex(p => p[0] === n.dataset.phase);
+    n.classList.toggle('on', i === at);
+    n.classList.toggle('done', at >= 0 && i < at);
+  }
+  const v = strip.querySelector('[data-verdict]');
+  if (v) {
+    const word = o.verdict || 'standby';
+    v.querySelector('b').textContent = word;
+    v.className = 'ds-verdict' + (o.verdictTone ? ' ' + o.verdictTone : '');
+  }
+};
+
 V.build = function () {
   const host = $('dev'); if (!host || host.dataset.built) return;
   host.dataset.built = '1';
   readBundle();
+  const strip = buildStrip(host);
+  strip.id = 'devStrip';
   const grid = el('div', 'dgrid');
   host.append(grid);
   card(grid, 'pipe',   'activity',  'one lap', 'five spans');
   card(grid, 'hist',   'trending',  'claimed vs held-out', 'seconds');
+  card(grid, 'calib',  'crosshair', 'calibration', 'seconds');
   card(grid, 'infer',  'cpu',       'inference', 'qwen3-14b');
   card(grid, 'rails',  'server',    'rails', '');
-  card(grid, 'credit', 'share',     'attribution', 'item to component');
-  card(grid, 'funnel', 'filter',    'gates', '7 in, 1 out');
-  card(grid, 'roles',  'sliders',   'blame and selection', 'seconds');
-  card(grid, 'calib',  'crosshair', 'calibration', 'seconds');
+  card(grid, 'credit', 'share',     'attribution', 'this run');
+  card(grid, 'funnel', 'filter',    'gates', 'season');
   card(grid, 'tamper', 'shield',    'tamper', 'role / obligation');
+  card(grid, 'roles',  'sliders',   'blame and selection', 'seconds');
+  card(grid, 'built',  'activity',  'interfaces built', 'this run');
+  card(grid, 'rules',  'filter',    'wcag rules', 'run by run');
+  card(grid, 'diff',   'share',     'the change', 'this run');
 };
 
 // Canvas backing stores follow the box, at device resolution so the labels stay sharp.
@@ -291,7 +403,9 @@ function drawRails(ctx, w, h, t) {
 // ---------------------------------------------------------------------------------------
 function paint(t) {
   size();
-  const G = SCR.devgraphs || {}, P = SCR.devpanels || {}, AU = SCR.devaudit || {};
+  const G = SCR.devgraphs || {}, P = SCR.devpanels || {}, AU = SCR.devaudit || {},
+    RN = SCR.devrun || {};
+  const r = D.rounds[D.at] || {};
   const go = (id, fn) => {
     const c = cards[id]; if (!c || !c.w) return;
     c.ctx.clearRect(0, 0, c.w, c.h);
@@ -302,14 +416,34 @@ function paint(t) {
   go('rails', drawRails);
   go('hist', (x, w, h, tt) => G.runHistory && G.runHistory(x, w, h, tt,
     { runs: D.runs, at: D.at }));
-  go('credit', (x, w, h, tt) => G.creditGraph && G.creditGraph(x, w, h, tt,
-    { rows: D.rows, items: D.items, roles: D.roles }));
+  // attribution, blame and the change are all about ONE run — the one the page is on —
+  // so they follow the season rather than showing a union of every round at once.
+  go('credit', (x, w, h, tt) => G.creditGraph && G.creditGraph(x, w, h, tt, runRows(r)));
   go('funnel', (x, w, h, tt) => P.gateFunnel && P.gateFunnel(x, w, h, tt,
     { gates: D.gates, entered: D.entered, accepted: D.accepted }));
-  go('roles', (x, w, h, tt) => AU.roleTable && AU.roleTable(x, w, h, tt,
-    { rows: D.roleRows, chosen: D.chosen, threshold: 0 }));
-  go('calib', (x, w, h, tt) => P.calibration && P.calibration(x, w, h, tt, { points: D.calib }));
+  go('roles', (x, w, h, tt) => AU.roleTable && AU.roleTable(x, w, h, tt, runRoles(r)));
+  go('calib', (x, w, h, tt) => P.calibration && P.calibration(x, w, h, tt,
+    { points: D.calib, at: D.at }));
   go('tamper', (x, w, h, tt) => AU.tamperMatrix && AU.tamperMatrix(x, w, h, tt, { flags: D.flags }));
+  go('built', (x, w, h, tt) => RN.interfaces && RN.interfaces(x, w, h, tt, { pages: r.pages || [] }));
+  go('rules', (x, w, h, tt) => RN.ruleHeat && RN.ruleHeat(x, w, h, tt,
+    { rules: D.ruleRows, runs: D.rounds.length, at: D.at }));
+  go('diff', (x, w, h, tt) => RN.diffView && RN.diffView(x, w, h, tt,
+    { diff: r.diff || '', summary: r.diff_summary || '', part: r.part || '' }));
+}
+
+// The router rows of one round, with its own item and role axes.
+function runRows(r) {
+  const rows = r.router_rows || [];
+  return { rows, items: [...new Set(rows.map(x => x.item))].sort(),
+    roles: [...new Set(rows.map(x => x.blamed_role))] };
+}
+// One row per component for this round: its standing merged with its shortlist entry.
+function runRoles(r) {
+  const by = {};
+  for (const st_ of Object.values(r.standings || {})) by[st_.role] = { ...st_ };
+  for (const a of (r.alternatives || [])) by[a.role] = { ...(by[a.role] || { role: a.role }), ...a };
+  return { rows: Object.values(by), chosen: r.role || null, threshold: 0 };
 }
 
 function tick(ts) {
@@ -322,6 +456,9 @@ function tick(ts) {
 
 V.show = function () {
   V.build();
+  // the season sets run, phase and verdict long before this view is first opened, so the
+  // strip has to be filled from the state we already hold rather than wait for the next change
+  pushStrip();
   on = true; t0 = performance.now(); last = 0;
   raf = requestAnimationFrame(tick);
 };
